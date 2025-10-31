@@ -1,8 +1,5 @@
 package ni.shikatu.re_extera;
 
-import static ni.shikatu.re_extera.PutMessagesInternalHook.extractText;
-import static ni.shikatu.re_extera.PutMessagesInternalHook.resolveDidFromMessage;
-import static ni.shikatu.re_extera.PutMessagesInternalHook.safeMsgText;
 
 import android.util.SparseArray;
 import androidx.collection.LongSparseArray;

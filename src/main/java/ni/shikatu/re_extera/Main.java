@@ -86,8 +86,6 @@ public class Main {
 
 		XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessages", long.class, long.class, ArrayList.class, ArrayList.class, boolean.class), new UpdateDialogsWithDeletedHook());
 		XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", long.class, long.class, ArrayList.class, ArrayList.class), new UpdateDialogsWithDeletedHook());
-		XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("setMessageContent", MessageObject.class, MessageObject.GroupedMessages.class, boolean.class, boolean.class, boolean.class, boolean.class), new SetMessageContentHook());
-		XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", SendMessagesHelper.SendMessageParams.class), new SendMessageHook());
 		XposedBridge.hookMethod(NotificationsController.class.getDeclaredMethod("removeDeletedMessagesFromNotifications", LongSparseArray.class, boolean.class), new NotificationsRemoveDeletedHook());
 
 		XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("fillMessageMenu", MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class), new FillMessageMenuHook());
