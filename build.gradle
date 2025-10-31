@@ -1,0 +1,65 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'ni.shikatu.re_extera'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 26
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+tasks.register("aarToDex", Exec) {
+    dependsOn "assembleRelease"
+    group = "build"
+    description = "Собирает DEX из AAR модуля"
+
+    doFirst {
+        def aarPath = "$buildDir/outputs/aar/${project.name}-release.aar"
+        def dexOut = "$buildDir/dex/"
+        mkdir dexOut
+
+        commandLine "${android.sdkDirectory}/build-tools/36.0.0/d8",
+                aarPath,
+                "--output", dexOut
+    }
+}
+
+
+tasks.register("buildDex") {
+
+    group = "build"
+    description = "Собирает модуль и конвертирует его в DEX"
+    dependsOn "assembleRelease", "aarToDex"
+}
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url 'https://maven.aliucord.com/snapshots' }
+}
+dependencies {
+    compileOnly project(':TMessagesProj')
+    compileOnly 'com.aliucord:Aliuhook:1.1.3'
+    compileOnly 'androidx.appcompat:appcompat:1.7.1'
+    compileOnly 'com.google.android.material:material:1.13.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+}
