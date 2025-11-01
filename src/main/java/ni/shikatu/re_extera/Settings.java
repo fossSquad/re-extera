@@ -28,6 +28,14 @@ public class Settings {
 	private static void set(String settingName, boolean value){
 		LaunchActivity.instance.getApplicationContext().getSharedPreferences("re_extera", Context.MODE_PRIVATE).edit().putBoolean(settingName, value).apply();
 	}
+
+	public static String getCustomPrefix(){
+		return get("custom_prefix", "deleted");
+	}
+	public static void setCustomPrefix(String value){
+		set("custom_prefix", value);
+	}
+
 	public static boolean getHideOnline(){
 		return get("hide_online", false);
 	}
@@ -71,6 +79,13 @@ public class Settings {
 
 	public static void setSaveDeletedMessages(){
 		set("save_deleted_messages", true);
+	}
+
+	public static boolean getUseSchedule(){
+		return get("use_schedule", false);
+	}
+	public static void setUseSchedule(boolean value){
+		set("use_schedule", value);
 	}
 
 	public static void setHideOnline(boolean value){

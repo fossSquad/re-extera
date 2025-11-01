@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera;
 
 import org.telegram.messenger.MessageObject;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 
 import java.lang.reflect.Field;
@@ -30,7 +31,7 @@ public class ProcessSelectedOptionHook extends XC_MethodHook {
 		MessageObject messageObject = (MessageObject) selectedObjectField.get(thisObj);
 		if(option == 6363){
 			Global.log("Hooked 6363 match");
-			ArrayList<String> x = DbDeletedStore.get().listEdits(messageObject.getDialogId(), messageObject.getId());
+			ArrayList<TLRPC.Message> x = DbDeletedStore.get().listEdits(messageObject.getDialogId(), messageObject.getId());
 			Global.log(String.format("MSGObj has: %s, lines: %s",!x.isEmpty(), x.size()));
 			Global.log(String.format("%s", x.toString()));
 			if(messageObject != null){

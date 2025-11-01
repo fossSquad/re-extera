@@ -31,6 +31,21 @@ public class Localization{
 	public static String MESSAGE_HISTORY_TOGGLE;
 	public static String MESSAGE_HISTORY_TITLE;
 	public static String REMOVE_FLAG_SECURE;
+
+	public static String USE_SCHEDULE;
+
+	public static String CLEAR_DB;
+
+	public static String YES;
+	public static String NO;
+
+	public static String CUSTOM_PREFIX;
+
+
+	public static String GHOST_MODE;
+	public static String DELETED_AND_EDITED_MESSAGES;
+
+	public static String OTHER;
 	public static void updateStrings() {
 		String currentLang = LocaleController.getInstance().getCurrentLocale().getLanguage();
 		if ("ru".equals(currentLang)) {
@@ -48,6 +63,15 @@ public class Localization{
 			MESSAGE_HISTORY_TOGGLE = "Сохранить историю правок";
 			MESSAGE_HISTORY_TITLE = "История правок";
 			REMOVE_FLAG_SECURE = "Игнорировать FLAG_SECURE";
+			USE_SCHEDULE = "Использовать отложку";
+			CLEAR_DB = "Очистить БД";
+			YES = "Да";
+			NO = "Нет";
+			CUSTOM_PREFIX = "Метка удаленок";
+			GHOST_MODE = "Режим призрака";
+			DELETED_AND_EDITED_MESSAGES = "Измененные и удаленные сообщения";
+			OTHER = "Другое";
+
 		} else {
 			HIDE_READING_MESSAGE = "Don't read messages";
 			HIDE_TYPING_STATUS = "Don't show \"typing\" status";
@@ -63,6 +87,14 @@ public class Localization{
 			MESSAGE_HISTORY_TOGGLE = "Save message history";
 			MESSAGE_HISTORY_TITLE = "Message history";
 			REMOVE_FLAG_SECURE = "Ignore FLAG_SECURE";
+			USE_SCHEDULE = "Use schedule to send";
+			CLEAR_DB = "Clear DB";
+			YES = "Yes";
+			NO = "No";
+			CUSTOM_PREFIX = "Deleted message mark";
+			GHOST_MODE = "Ghost mode";
+			DELETED_AND_EDITED_MESSAGES = "Edited and deleted messages";
+			OTHER = "Other";
 		}
 	}
 }

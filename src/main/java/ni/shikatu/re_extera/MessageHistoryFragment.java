@@ -81,23 +81,13 @@ public class MessageHistoryFragment extends BaseFragment {
 
 		void reload() {
 			versionRows.clear();
-
-			MessageObject base = findOrBuildBase(did, mid);
-			if (base == null) {
-				notifyDataSetChanged();
-				return;
-			}
-
-			ArrayList<String> versions = DbDeletedStore.get().listEdits(did, mid);
-			if (versions == null || versions.isEmpty()) {
-				versionRows.add(base);
-			} else {
-				int ver = 0;
-				for (String t : versions) {
-					String text = t == null ? "" : t;
-					MessageObject moVer = cloneWithText(base, text, ver);
-					versionRows.add(moVer);
-					ver++;
+			ArrayList<TLRPC.Message> versions = DbDeletedStore.get().listEdits(did, mid);
+			if (!versions.isEmpty()) {
+				for (TLRPC.Message m : versions) {
+					if(m.edit_date != 0){
+						m.date = m.edit_date;
+					}
+					versionRows.add(new MessageObject(UserConfig.selectedAccount, m, false, false));
 				}
 			}
 			notifyDataSetChanged();

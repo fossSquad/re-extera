@@ -50,6 +50,7 @@ public class Main {
 		DbDeletedStore.init(LaunchActivity.instance.getApplicationContext());
 		setupHooks();
 		Localization.updateStrings();
+		//MeasureTimeHook.notifyMarkChanged(Settings.getCustomPrefix());
 	}
 
 	public void setupHooks() throws NoSuchMethodException, ClassNotFoundException {
@@ -83,7 +84,8 @@ public class Main {
 
 		XposedBridge.hookMethod(Window.class.getDeclaredMethod("setFlags", int.class, int.class), new WindowHook());
 		XposedBridge.hookMethod(FlagSecureReason.class.getDeclaredMethod("attach"), new FlagSecureReasonHook());
-
+		XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", SendMessagesHelper.SendMessageParams.class), new SendMessageHook());
+		XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("measureTime", MessageObject.class), new MeasureTimeHook());
 		XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessages", long.class, long.class, ArrayList.class, ArrayList.class, boolean.class), new UpdateDialogsWithDeletedHook());
 		XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", long.class, long.class, ArrayList.class, ArrayList.class), new UpdateDialogsWithDeletedHook());
 		XposedBridge.hookMethod(NotificationsController.class.getDeclaredMethod("removeDeletedMessagesFromNotifications", LongSparseArray.class, boolean.class), new NotificationsRemoveDeletedHook());

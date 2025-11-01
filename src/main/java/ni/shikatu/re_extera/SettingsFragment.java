@@ -11,16 +11,15 @@ import android.widget.ScrollView;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
-import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EffectsTextView;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.StickerImageView;
-
-import java.lang.reflect.InvocationTargetException;
 
 public class SettingsFragment extends BaseFragment {
 
@@ -88,9 +87,9 @@ public class SettingsFragment extends BaseFragment {
 
         linearLayout.setOrientation(LinearLayout.VERTICAL);
         scrollView.addView(linearLayout, LayoutHelper.createScroll(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.NO_GRAVITY));
-        HeaderCell generalHeader = new HeaderCell(context);
-        generalHeader.setText(Localization.GENERAL);
-        linearLayout.addView(generalHeader);
+        HeaderCell ghostModeHeader = new HeaderCell(context);
+        ghostModeHeader.setText(Localization.GHOST_MODE);
+        linearLayout.addView(ghostModeHeader);
         TextCheckCell hideOnlineCell = new TextCheckCell(context);
         hideOnlineCell.setTextAndCheck(Localization.HIDE_ONLINE_STATUS, Settings.getHideOnline(), false);
         hideOnlineCell.setOnClickListener(v -> {
@@ -133,6 +132,9 @@ public class SettingsFragment extends BaseFragment {
             }
         });
         linearLayout.addView(enableHighRequireFeaturesCell);*/
+        HeaderCell editedAndDeletedMessagesHeader = new HeaderCell(context);
+        editedAndDeletedMessagesHeader.setText(Localization.DELETED_AND_EDITED_MESSAGES);
+        linearLayout.addView(editedAndDeletedMessagesHeader);
         TextCheckCell saveDeletedMessages = new TextCheckCell(context);
         saveDeletedMessages.setTextAndCheck(Localization.SAVE_DELETED_MESSAGES, Settings.getSaveDeletedMessages(), false);
         saveDeletedMessages.setOnClickListener(v -> {
@@ -140,6 +142,27 @@ public class SettingsFragment extends BaseFragment {
             saveDeletedMessages.setChecked(Settings.getSaveDeletedMessages());
         });
         linearLayout.addView(saveDeletedMessages);
+
+        /*EditTextSettingsCell customPrefix = new EditTextSettingsCell(context);
+
+        customPrefix.setTextAndHint(Settings.getCustomPrefix(), Localization.CUSTOM_PREFIX ,false);
+        customPrefix.getTextView().addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Settings.setCustomPrefix(s.toString());
+                customPrefix.setText(Settings.getCustomPrefix(), false);
+                MeasureTimeHook.notifyMarkChanged(Settings.getCustomPrefix());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        linearLayout.addView(customPrefix);*/
 
         TextCheckCell saveEditedMessages = new TextCheckCell(context);
         saveEditedMessages.setTextAndCheck(Localization.MESSAGE_HISTORY_TOGGLE, Settings.getSaveEditedMessages(), false);
@@ -149,6 +172,16 @@ public class SettingsFragment extends BaseFragment {
         });
         linearLayout.addView(saveEditedMessages);
 
+        TextCheckCell useSchedule = new TextCheckCell(context);
+        useSchedule.setTextAndCheck(Localization.USE_SCHEDULE, Settings.getUseSchedule(), false);
+        useSchedule.setOnClickListener(v -> {
+            Settings.setUseSchedule(!Settings.getUseSchedule());
+            useSchedule.setChecked(Settings.getUseSchedule());
+        });
+        //linearLayout.addView(useSchedule);
+        HeaderCell otherHeader = new HeaderCell(context);
+        otherHeader.setText(Localization.OTHER);
+        linearLayout.addView(otherHeader);
         TextCheckCell removeFlagSecure = new TextCheckCell(context);
         removeFlagSecure.setTextAndCheck(Localization.REMOVE_FLAG_SECURE, Settings.getRemoveFlagSecure(), false);
         removeFlagSecure.setOnClickListener(v -> {
@@ -156,6 +189,20 @@ public class SettingsFragment extends BaseFragment {
             removeFlagSecure.setChecked(Settings.getRemoveFlagSecure());
         });
         linearLayout.addView(removeFlagSecure);
+
+        TextCell clearDbCell = new TextCell(context);
+        clearDbCell.setText(Localization.CLEAR_DB, false);
+        clearDbCell.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Localization.CLEAR_DB + "?");
+            builder.setPositiveButton(Localization.YES, (dialog,which) -> {
+                DbDeletedStore.get().clearAll();
+                dialog.dismiss();
+            });
+            builder.setNegativeButton(Localization.NO, (dialog,which) -> dialog.dismiss());
+            builder.show();
+        });
+        linearLayout.addView(clearDbCell);
         LinearLayout textLayout = new LinearLayout(context);
         textLayout.setOrientation(LinearLayout.VERTICAL);
         textLayout.setGravity(Gravity.CENTER);
@@ -163,7 +210,7 @@ public class SettingsFragment extends BaseFragment {
         about.setGravity(Gravity.CENTER);
         about.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
         about.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        about.setText(fullyFormatText("**Version: 1.0.1**"));
+        about.setText(fullyFormatText("**Version: 1.0.3**"));
         textLayout.addView(about);
         linearLayout.addView(textLayout);
         return fragmentView;

@@ -32,29 +32,27 @@ public class ProcessUpdatesHook extends XC_MethodHook {
 
 		if(update instanceof TLRPC.TL_updateEditMessage){
 			TLRPC.Message msg = ((TLRPC.TL_updateEditMessage) update).message;
-			long did = getDialogIdFromMessage(msg);
+			long did = Utils.getDialogIdFromMessage(msg);
 			MessageObject oldObj = getMessage(controller, did, msg.id);
 
-			if(oldObj != null){
-				Global.log("Old object is not null");
-				if(!DbDeletedStore.get().hasEdits(did, msg.id)){
-					Global.log("message does not have edits");
-					DbDeletedStore.get().saveOriginalIfAbsent(did, msg.id, oldObj.messageText.toString(), System.currentTimeMillis());
+			if (oldObj != null) {
+				if (!DbDeletedStore.get().hasEdits(did, msg.id)) {
+					DbDeletedStore.get().saveOriginalIfAbsent(did, msg.id, oldObj.messageOwner, System.currentTimeMillis());
 				}
-				Global.log("saving");
-				DbDeletedStore.get().appendEdit(did, msg.id, msg.message, System.currentTimeMillis());
+				DbDeletedStore.get().appendEdit(did, msg.id, msg, System.currentTimeMillis());
 			}
 		}
 		if(update instanceof TLRPC.TL_updateEditChannelMessage){
 			TLRPC.Message msg = ((TLRPC.TL_updateEditChannelMessage) update).message;
-			long did = getDialogIdFromMessage(msg);
+			long did = Utils.getDialogIdFromMessage(msg);
 			MessageObject oldObj = getMessage(controller, did, msg.id);
-			if(oldObj != null){
-				if(!DbDeletedStore.get().hasEdits(did, msg.id)){
-					DbDeletedStore.get().saveOriginalIfAbsent(did, msg.id, oldObj.messageText.toString(), System.currentTimeMillis());
+			if (oldObj != null) {
+				if (!DbDeletedStore.get().hasEdits(did, msg.id)) {
+					DbDeletedStore.get().saveOriginalIfAbsent(did, msg.id, oldObj.messageOwner, System.currentTimeMillis());
 				}
-				DbDeletedStore.get().appendEdit(did, msg.id, msg.message, System.currentTimeMillis());
+				DbDeletedStore.get().appendEdit(did, msg.id, msg, System.currentTimeMillis());
 			}
+
 		}
 	}
 	MessageObject getMessage(MessagesController controller, long did, int mid){
@@ -96,15 +94,4 @@ public class ProcessUpdatesHook extends XC_MethodHook {
 		return obj;
 	}
 
-
-	private long getDialogIdFromMessage(TLRPC.Message msg) {
-		if (msg.peer_id instanceof TLRPC.TL_peerUser) {
-			return msg.peer_id.user_id;
-		} else if (msg.peer_id instanceof TLRPC.TL_peerChat) {
-			return -msg.peer_id.chat_id;
-		} else if (msg.peer_id instanceof TLRPC.TL_peerChannel) {
-			return -msg.peer_id.channel_id;
-		}
-		return 0;
-	}
 }

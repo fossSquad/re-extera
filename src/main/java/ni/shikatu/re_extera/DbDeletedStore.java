@@ -6,6 +6,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 
+import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLRPC;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +16,7 @@ import java.util.Collection;
 public final class DbDeletedStore {
 
 	private static final String DB_NAME = "re_extera.db";
-	private static final int DB_VER = 2;
+	private static final int DB_VER = 3;
 
 	private static DbDeletedStore sInstance;
 
@@ -113,22 +116,24 @@ public final class DbDeletedStore {
 		return db.delete("deleted_keys", "ts < ?", new String[]{ String.valueOf(cutoff) });
 	}
 
-	public void saveOriginalIfAbsent(long did, int mid, String text, long when) {
+	public void saveOriginalIfAbsent(long did, int mid, TLRPC.Message msg, long when) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		SQLiteStatement st = db.compileStatement(
-				"INSERT OR IGNORE INTO message_edits(did, mid, ver, date, text) VALUES(?, ?, 0, ?, ?)");
+				"INSERT OR IGNORE INTO message_edits(did, mid, ver, date, data) VALUES(?, ?, 0, ?, ?)");
 		try {
 			st.bindLong(1, did);
 			st.bindLong(2, mid);
 			st.bindLong(3, when);
-			st.bindString(4, text != null ? text : "");
+			byte[] blob = serializeMessage(msg);
+			if (blob == null) blob = new byte[0];
+			st.bindBlob(4, blob);
 			st.executeInsert();
 		} finally {
 			st.close();
 		}
 	}
 
-	public void appendEdit(long did, int mid, String text, long when) {
+	public void appendEdit(long did, int mid, TLRPC.Message msg, long when) {
 		SQLiteDatabase db = helper.getWritableDatabase();
 		db.beginTransaction();
 		try {
@@ -144,13 +149,15 @@ public final class DbDeletedStore {
 				c.close();
 			}
 			SQLiteStatement st = db.compileStatement(
-					"INSERT INTO message_edits(did, mid, ver, date, text) VALUES(?, ?, ?, ?, ?)");
+					"INSERT INTO message_edits(did, mid, ver, date, data) VALUES(?, ?, ?, ?, ?)");
 			try {
 				st.bindLong(1, did);
 				st.bindLong(2, mid);
 				st.bindLong(3, nextVer);
 				st.bindLong(4, when);
-				st.bindString(5, text != null ? text : "");
+				byte[] blob = serializeMessage(msg);
+				if (blob == null) blob = new byte[0];
+				st.bindBlob(5, blob);
 				st.executeInsert();
 			} finally {
 				st.close();
@@ -161,15 +168,17 @@ public final class DbDeletedStore {
 		}
 	}
 
-	public ArrayList<String> listEdits(long did, int mid) {
+	public ArrayList<TLRPC.Message> listEdits(long did, int mid) {
 		SQLiteDatabase db = helper.getReadableDatabase();
 		Cursor c = db.rawQuery(
-				"SELECT ver, date, text FROM message_edits WHERE did=? AND mid=? ORDER BY ver ASC",
+				"SELECT ver, date, data FROM message_edits WHERE did=? AND mid=? ORDER BY ver ASC",
 				new String[]{ String.valueOf(did), String.valueOf(mid) });
-		ArrayList<String> out = new ArrayList<>();
+		ArrayList<TLRPC.Message> out = new ArrayList<>();
 		try {
 			while (c.moveToNext()) {
-				out.add(c.getString(2));
+				byte[] blob = c.getBlob(2);
+				TLRPC.Message m = deserializeMessage(blob);
+				if (m != null) out.add(m);
 			}
 		} finally {
 			c.close();
@@ -177,11 +186,43 @@ public final class DbDeletedStore {
 		return out;
 	}
 
+	public void clearAll() {
+		SQLiteDatabase db = helper.getWritableDatabase();
+		db.beginTransaction();
+		try {
+			db.delete("deleted_keys", null, null);
+			db.delete("message_edits", null, null);
+			db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
+		}
+	}
+
+	private static byte[] serializeMessage(TLRPC.Message m) {
+		if (m == null) return null;
+		SerializedData sd = new SerializedData(m.getObjectSize());
+		m.serializeToStream(sd); // пишет конструктор и поля
+		byte[] out = sd.toByteArray();
+		sd.cleanup();
+		return out;
+	}
+
+	private static TLRPC.Message deserializeMessage(byte[] bytes) {
+		if (bytes == null) return null;
+		SerializedData sd = new SerializedData(bytes);
+		int constructor = sd.readInt32(false);
+		TLRPC.Message msg = TLRPC.Message.TLdeserialize(sd, constructor, false);
+		sd.cleanup();
+		return msg;
+	}
+
+
 	private static final class Helper extends SQLiteOpenHelper {
 		Helper(Context ctx, String path) {
 			super(ctx, path, null, DB_VER);
 		}
 
+		// было: private static final int DB_VER = 2;
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL("CREATE TABLE IF NOT EXISTS deleted_keys(" +
@@ -191,28 +232,31 @@ public final class DbDeletedStore {
 					"PRIMARY KEY(did, mid))");
 			db.execSQL("CREATE INDEX IF NOT EXISTS idx_deleted_ts ON deleted_keys(ts)");
 			db.execSQL("CREATE INDEX IF NOT EXISTS idx_deleted_did ON deleted_keys(did)");
+			// новое: message_edits с BLOB
 			db.execSQL("CREATE TABLE IF NOT EXISTS message_edits(" +
 					"did INTEGER NOT NULL," +
 					"mid INTEGER NOT NULL," +
 					"ver INTEGER NOT NULL," +
 					"date INTEGER NOT NULL," +
-					"text TEXT NOT NULL," +
+					"data BLOB NOT NULL," +
 					"PRIMARY KEY(did, mid, ver))");
 			db.execSQL("CREATE INDEX IF NOT EXISTS idx_edits_did_mid ON message_edits(did, mid)");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
-			if (oldV < 2) {
+			if (oldV < 3) {
+				db.execSQL("DROP TABLE IF EXISTS message_edits");
 				db.execSQL("CREATE TABLE IF NOT EXISTS message_edits(" +
 						"did INTEGER NOT NULL," +
 						"mid INTEGER NOT NULL," +
 						"ver INTEGER NOT NULL," +
 						"date INTEGER NOT NULL," +
-						"text TEXT NOT NULL," +
+						"data BLOB NOT NULL," +
 						"PRIMARY KEY(did, mid, ver))");
 				db.execSQL("CREATE INDEX IF NOT EXISTS idx_edits_did_mid ON message_edits(did, mid)");
 			}
 		}
+
 	}
 }
