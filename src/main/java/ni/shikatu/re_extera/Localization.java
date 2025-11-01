@@ -3,14 +3,6 @@ package ni.shikatu.re_extera;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 
-/**
- * Handles localization for the mod.
- * Strings are updated automatically when the user changes the language in the app.
- * <p>
- * How to use:
- * 1. Call Localization.init() once at startup.
- * 2. Access strings via static fields, e.g., Localization.HIDE_READING_MESSAGE.
- */
 public class Localization{
 	public static String HIDE_READING_MESSAGE;
 	public static String HIDE_TYPING_STATUS;

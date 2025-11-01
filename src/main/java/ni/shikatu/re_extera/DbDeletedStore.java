@@ -222,7 +222,6 @@ public final class DbDeletedStore {
 			super(ctx, path, null, DB_VER);
 		}
 
-		// было: private static final int DB_VER = 2;
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL("CREATE TABLE IF NOT EXISTS deleted_keys(" +
