@@ -22,10 +22,10 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 
 public class SettingsFragmentNew extends BasePreferencesActivityExtended {
-    private static Drawable ADDITIONAL_ICON;
-    private static Drawable DELETED_ICON;
-    private static Drawable GHOST_ICON;
-    private static int iconSize = 30;
+    private static Drawable ADDITIONAL_ICON = null;
+    private static Drawable DELETED_ICON = null;
+    private static Drawable GHOST_ICON = null;
+    private static final int iconSize = 28;
     private boolean isGhostExpanded;
 
     public enum IDs {
@@ -40,10 +40,14 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         }
     }
 
+    public SettingsFragmentNew() {
+        Main.checkBlocked();
+    }
+
     public View createView(Context context) {
-        GHOST_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.ghost), AndroidUtilities.dp(iconSize), AndroidUtilities.dp(iconSize));
-        DELETED_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.menu_hide_gift), AndroidUtilities.dp(iconSize), AndroidUtilities.dp(iconSize));
-        ADDITIONAL_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_list), AndroidUtilities.dp(iconSize), AndroidUtilities.dp(iconSize));
+        GHOST_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.ghost), AndroidUtilities.dp(28.0f), AndroidUtilities.dp(28.0f));
+        DELETED_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.menu_hide_gift), AndroidUtilities.dp(28.0f), AndroidUtilities.dp(28.0f));
+        ADDITIONAL_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_list), AndroidUtilities.dp(28.0f), AndroidUtilities.dp(28.0f));
         return super.createView(context);
     }
 

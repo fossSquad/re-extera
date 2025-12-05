@@ -1,7 +1,6 @@
 package ni.shikatu.re_extera.utils;
 
 import android.view.View;
-import de.robv.android.xposed.XposedBridge;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -110,7 +109,7 @@ public class InternalUtils {
             if (lastFragment instanceof ChatActivity) {
                 ChatActivity chatActivity = lastFragment;
                 try {
-                    Runnable result = (Runnable) XposedBridge.invokeOriginalMethod(sendSecretMessageRead, chatActivity, new Object[]{mo, true});
+                    Runnable result = (Runnable) ReflectionUtils.invokeOriginalMethod(sendSecretMessageRead, chatActivity, new Object[]{mo, true});
                     Main.requestSendWithUnhook(result);
                 } catch (Exception e) {
                     Main.log("sendSecretMessageRead failed", e.getMessage());

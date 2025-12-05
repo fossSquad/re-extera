@@ -29,24 +29,42 @@ public class DrawerAdapterReset extends XC_MethodHook {
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        DrawerLayoutAdapter thisObject = (DrawerLayoutAdapter) param.thisObject;
+        ArrayList<DrawerLayoutAdapter.Item> items = (ArrayList) itemsField.get(thisObject);
         if (Settings.getAddGhostToDrawer()) {
-            DrawerLayoutAdapter thisObject = (DrawerLayoutAdapter) param.thisObject;
-            ArrayList<DrawerLayoutAdapter.Item> items = (ArrayList) itemsField.get(thisObject);
-            DrawerLayoutAdapter.Item ghostItem = new DrawerLayoutAdapter.Item(7799, Settings.getGhostModeEnabledGlobal() ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, R.drawable.ghost);
-            ghostItem.onClick(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.drawerlayout.DrawerAdapterReset$$ExternalSyntheticLambda0
-                @Override // android.view.View.OnClickListener
-                public final void onClick(View view) {
-                    DrawerAdapterReset.lambda$afterHookedMethod$0(view);
-                }
-            });
+            DrawerLayoutAdapter.Item ghostItem = getGhostItem();
             if (items != null) {
                 items.add(0, null);
                 items.add(0, ghostItem);
             }
         }
+        if (Settings.getShowSettingsInDrawer()) {
+            DrawerLayoutAdapter.Item settingsItem = new DrawerLayoutAdapter.Item(7798, Localization.RE_EXTERA_SETTINGS, R.drawable.filled_giveaway_premium);
+            settingsItem.onClick(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.drawerlayout.DrawerAdapterReset$$ExternalSyntheticLambda0
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view) {
+                    Main.getInstance().showSettings();
+                }
+            });
+            if (items != null) {
+                items.add(null);
+                items.add(settingsItem);
+            }
+        }
     }
 
-    static /* synthetic */ void lambda$afterHookedMethod$0(View v) {
+    private static DrawerLayoutAdapter.Item getGhostItem() {
+        DrawerLayoutAdapter.Item ghostItem = new DrawerLayoutAdapter.Item(7799, Settings.getGhostModeEnabledGlobal() ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, R.drawable.ghost);
+        ghostItem.onClick(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.drawerlayout.DrawerAdapterReset$$ExternalSyntheticLambda1
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                DrawerAdapterReset.lambda$getGhostItem$1(view);
+            }
+        });
+        return ghostItem;
+    }
+
+    static /* synthetic */ void lambda$getGhostItem$1(View v) {
         InternalUtils.createShortVibration();
         Settings.setGhostModeEnabledGlobal(!Settings.getGhostModeEnabledGlobal());
         BaseFragment lastFragment = LaunchActivity.getLastFragment();

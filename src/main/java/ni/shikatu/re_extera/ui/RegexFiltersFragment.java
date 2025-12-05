@@ -17,6 +17,7 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.MessageUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -80,7 +81,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()));
+        items.add(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()).setLinkAlias("reExteraFiltersEnable", this));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         if (!this.filters.isEmpty()) {
             for (int i = 0; i < this.filters.size(); i++) {
@@ -210,6 +211,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
                 ReExteraDb.get().addRegexFilter(regex);
                 this.filters.add(regex);
             }
+            MessageUtils.updatePatterns();
             if (getAdapter() != null) {
                 getAdapter().update(true);
             }
@@ -232,7 +234,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setTitle(Localization.DELETE_FILTER);
         builder.setMessage(Localization.DELETE_FILTER_ABOUT);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda0
-            public final void onClick(AlertDialog alertDialog, int i) {
+            public final void onClick(AlertDialog alertDialog, int i) throws IllegalAccessException, InvocationTargetException {
                 this.f$0.lambda$showDeleteConfirmation$3(position, alertDialog, i);
             }
         });
@@ -241,10 +243,11 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showDeleteConfirmation$3(int position, AlertDialog dialog, int which) {
+    public /* synthetic */ void lambda$showDeleteConfirmation$3(int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
         String filter = this.filters.get(position);
         ReExteraDb.get().deleteRegexFilter(filter);
         this.filters.remove(position);
+        MessageUtils.updatePatterns();
         if (getAdapter() != null) {
             getAdapter().update(true);
         }

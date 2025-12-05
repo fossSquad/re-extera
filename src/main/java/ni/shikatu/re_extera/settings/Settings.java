@@ -1,8 +1,40 @@
 package ni.shikatu.re_extera.settings;
 
+import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
 
 public class Settings {
+
+    public enum SendSilence {
+        YES,
+        NO,
+        ONLY_WITH_GHOST;
+
+        public int getType() {
+            switch (ordinal()) {
+                case Defaults.GLOBAL_VALUE /* 0 */:
+                    return 1;
+                case Defaults.ALWAYS /* 1 */:
+                    return 0;
+                case 2:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        public static SendSilence getValue(int value) {
+            switch (value) {
+                case Defaults.ALWAYS /* 1 */:
+                    return YES;
+                case 2:
+                    return ONLY_WITH_GHOST;
+                default:
+                    return NO;
+            }
+        }
+    }
+
     private static int get(String settingName, int defaultValue) {
         return Main.getApplicationContext().getSharedPreferences("re_extera", 0).getInt(settingName, defaultValue);
     }
@@ -171,6 +203,22 @@ public class Settings {
         set("add_ghost_to_drawer", value);
     }
 
+    public static void setShowSettingsInDrawer(boolean value) {
+        set("show_settings_in_drawer", value);
+    }
+
+    public static boolean getShowSettingsInDrawer() {
+        return get("show_settings_in_drawer", true);
+    }
+
+    public static void setLocalPremium(boolean value) {
+        set("local_premium", value);
+    }
+
+    public static boolean getLocalPremium() {
+        return get("local_premium", false);
+    }
+
     public static boolean getHideOnlineWithGhost() {
         return getHideOnline() && getGhostModeEnabledGlobal();
     }
@@ -203,5 +251,13 @@ public class Settings {
             c++;
         }
         return getImmediateOffline() ? c + 1 : c;
+    }
+
+    public static int getSendSilence() {
+        return get("send_silence", SendSilence.NO.getType());
+    }
+
+    public static void setSendSilence(SendSilence value) {
+        set("send_silence", value.getType());
     }
 }

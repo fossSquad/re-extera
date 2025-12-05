@@ -35,8 +35,11 @@ import ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
 import ni.shikatu.re_extera.hooks.messagesstorage.UpdateDialogsWithDeletedMessages;
 import ni.shikatu.re_extera.hooks.notificationmanager.RemoveDeletedMessagesFromNotification;
+import ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
+import ni.shikatu.re_extera.hooks.userconfig.isPremium;
+import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
@@ -44,6 +47,7 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.QuickAckDelegate;
 import org.telegram.tgnet.RequestDelegate;
@@ -54,6 +58,7 @@ import org.telegram.tgnet.WriteToSocketDelegate;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SecretVoicePlayer;
 
 public class HookInit {
@@ -90,6 +95,10 @@ public class HookInit {
         addHook(XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class), new UpdateDialogsWithDeletedMessages()));
         addHook(XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("didPressButton", Boolean.TYPE, Boolean.TYPE), new DidPressButton()));
         addHook(XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("measureTime", MessageObject.class), new MeasureTime()));
+        if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
+            Settings.setLocalPremium(false);
+        }
+        addHook(XposedBridge.hookMethod(UserConfig.class.getDeclaredMethod("isPremium", new Class[0]), new isPremium()));
         try {
             Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
             addHook(XposedBridge.hookMethod(clazz.getDeclaredMethod("addView", View.class, ViewGroup.LayoutParams.class), new WindowManagerImpl()));
@@ -113,6 +122,7 @@ public class HookInit {
         addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("processNewMessages", ArrayList.class, Boolean.TYPE), new ProcessNewMessages()));
         addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("didReceivedNotification", Integer.TYPE, Integer.TYPE, Object[].class), new NotificationCenterDidLoad()));
         addHook(XposedBridge.hookMethod(DrawerLayoutAdapter.class.getDeclaredMethod("resetItems", new Class[0]), new DrawerAdapterReset()));
+        addHook(XposedBridge.hookMethod(ProfileActivity.class.getDeclaredMethod("updateProfileData", Boolean.TYPE), new UpdateProfileData()));
     }
 
     public void onUnload() {

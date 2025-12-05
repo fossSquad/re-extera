@@ -7,10 +7,12 @@ public class Localization {
     public static String ADD;
     public static String ADDITIONAL_SETTINGS;
     public static String ADD_REGEX_FILTER;
+    public static String ADD_SETTINGS_TO_DRAWER;
     public static String ALPHA_WARNING;
     public static String ALWAYS;
     public static String BASED_ON_GLOBAL;
     public static String CANCEL;
+    public static String CANT_USE_WITH_PREMIUM;
     public static String CLEARING_NOW;
     public static String CLEAR_DB;
     public static String CLEAR_DELETED;
@@ -52,6 +54,7 @@ public class Localization {
     public static String IMMEDIATE_OFFLINE;
     public static String INFINITY_STARS;
     public static String LEAVE_BLANK_FOR_RECYCLE;
+    public static String LOCAL_PREMIUM;
     public static String MESSAGE_HISTORY;
     public static String MESSAGE_HISTORY_TITLE;
     public static String MESSAGE_HISTORY_TOGGLE;
@@ -63,6 +66,7 @@ public class Localization {
     public static String NO_FORWARD_ABOUT;
     public static String NO_READ_STORIES;
     public static String OFFLINE;
+    public static String ONLY_WITH_GHOST;
     public static String OPEN_CHAT;
     public static String OTHER;
     public static String PATTERN_ERROR;
@@ -71,12 +75,15 @@ public class Localization {
     public static String READ_TO;
     public static String RED_DELETED_MARK;
     public static String REMOVE_FLAG_SECURE;
+    public static String RESTART_APP;
+    public static String RESTART_APP_ABOUT;
     public static String RE_EXTERA_SETTINGS;
     public static String SAVE;
     public static String SAVE_DELETED_MESSAGES;
     public static String SAVE_ONE_TIME_MESSAGES;
     public static String SAVE_OWN_MESSAGES;
     public static String SAVE_SELF_DELETED_MESSAGES;
+    public static String SEND_SILENCE;
     public static String SPY;
     public static String THANKS;
     public static String TYPE;
@@ -175,6 +182,13 @@ public class Localization {
             SPY = "Шпион";
             GHOST_MODE_ENABLE = "Включить призрака";
             GHOST_MODE_DISABLE = "Выключить призрака";
+            ADD_SETTINGS_TO_DRAWER = "Настройки в боковом меню";
+            LOCAL_PREMIUM = "Локальный премиум";
+            CANT_USE_WITH_PREMIUM = "Нельзя использовать с премиум аккаунтом";
+            RESTART_APP = "Перезапустить приложение";
+            RESTART_APP_ABOUT = "Это решает 99% всех проблем";
+            SEND_SILENCE = "Отправлять без звука";
+            ONLY_WITH_GHOST = "Только с призраком";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -261,5 +275,12 @@ public class Localization {
         SPY = "Spy";
         GHOST_MODE_ENABLE = "Enable ghost";
         GHOST_MODE_DISABLE = "Disable ghost";
+        ADD_SETTINGS_TO_DRAWER = "Settings in side menu";
+        LOCAL_PREMIUM = "Local Premium";
+        CANT_USE_WITH_PREMIUM = "Can't use with premium account";
+        RESTART_APP = "Restart app";
+        RESTART_APP_ABOUT = "This solves 99% of all problems";
+        SEND_SILENCE = "Send silence";
+        ONLY_WITH_GHOST = "Only with ghost";
     }
 }

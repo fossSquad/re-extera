@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.EarListener;
 import org.telegram.ui.Components.VideoPlayer;
@@ -69,7 +70,7 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
                 playerC.releasePlayer(true);
                 player.set(param.thisObject, null);
             }
-            setupTranslation.invoke(param.thisObject, new Object[0]);
+            ReflectionUtils.invoke(setupTranslation, param.thisObject, new Object[0]);
             if (windowViewC != null) {
                 windowViewC.invalidate();
             }
