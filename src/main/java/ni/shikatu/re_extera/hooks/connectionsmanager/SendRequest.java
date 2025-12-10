@@ -51,7 +51,7 @@ public class SendRequest extends XC_MethodHook {
                         Main.log("Selected DEFAULT, not reading", new Object[0]);
                     }
                     break;
-                case Defaults.ALWAYS /* 1 */:
+                case 1:
                     Main.log("Selected ALWAYS, reading", new Object[0]);
                     break;
             }
@@ -71,7 +71,7 @@ public class SendRequest extends XC_MethodHook {
                         Main.log("Selected DEFAULT, typing", new Object[0]);
                     }
                     break;
-                case Defaults.ALWAYS /* 1 */:
+                case 1:
                     Main.log("Selected ALWAYS, typing", new Object[0]);
                     break;
             }

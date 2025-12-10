@@ -11,10 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
-import ni.shikatu.re_extera.utils.MessageForwarder;
+import ni.shikatu.re_extera.utils.RestrictedMessageUtils;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -82,9 +81,7 @@ public class MessageHistoryFragment extends BaseFragment {
                         View childView = MessageHistoryFragment.this.list.findChildViewUnder(e.getX(), e.getY());
                         if ((childView instanceof ChatMessageCell) && (position = MessageHistoryFragment.this.list.getChildAdapterPosition(childView)) != -1 && (messageObject = MessageHistoryFragment.this.adapter.getItem(position)) != null) {
                             childView.performHapticFeedback(0);
-                            long savedMessagesDid = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
-                            MessageForwarder.sendMessageCopy(MessageHistoryFragment.this.getAccountInstance(), new ArrayList(Collections.singletonList(messageObject)), savedMessagesDid, true, 0, null);
-                            MessageHistoryFragment.createSavedMessagesBulletin(context, MessageHistoryFragment.this, null, 1, null, null).show();
+                            RestrictedMessageUtils.createMenu(MessageHistoryFragment.this, childView, messageObject);
                         }
                     }
                 });

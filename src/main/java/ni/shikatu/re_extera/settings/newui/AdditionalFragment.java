@@ -62,7 +62,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 Settings.setRemoveFlagSecure(!Settings.getRemoveFlagSecure());
                 refreshCheckBox(item, position, Settings.getRemoveFlagSecure());
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 Settings.setNoForward(!Settings.noForward());
                 refreshCheckBox(item, position, Settings.noForward());
                 break;

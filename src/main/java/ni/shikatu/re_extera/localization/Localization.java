@@ -21,6 +21,7 @@ public class Localization {
     public static String CUSTOM_PREFIX;
     public static String DELETE;
     public static String DELETED_AND_EDITED_MESSAGES;
+    public static String DELETED_MESSAGES_TITLE;
     public static String DELETE_FILTER;
     public static String DELETE_FILTER_ABOUT;
     public static String DELETE_FROM_EXCLUSIONS;
@@ -189,6 +190,7 @@ public class Localization {
             RESTART_APP_ABOUT = "Это решает 99% всех проблем";
             SEND_SILENCE = "Отправлять без звука";
             ONLY_WITH_GHOST = "Только с призраком";
+            DELETED_MESSAGES_TITLE = "Удаленные сообщения";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -282,5 +284,6 @@ public class Localization {
         RESTART_APP_ABOUT = "This solves 99% of all problems";
         SEND_SILENCE = "Send silence";
         ONLY_WITH_GHOST = "Only with ghost";
+        DELETED_MESSAGES_TITLE = "Deleted messages";
     }
 }

@@ -78,7 +78,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
 
     public static String getSilenceString() {
         switch (Settings.getSendSilence()) {
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 return Localization.ALWAYS;
             case 2:
                 return Localization.ONLY_WITH_GHOST;
@@ -113,7 +113,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 this.isGhostExpanded = !this.isGhostExpanded;
                 this.listView.adapter.update(true);
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 Settings.setHideOnline(!Settings.getHideOnline());
                 refreshCheckBox(item, position, Settings.getHideOnline(), true);
                 break;

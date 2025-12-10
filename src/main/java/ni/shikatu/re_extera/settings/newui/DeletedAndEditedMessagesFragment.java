@@ -13,7 +13,6 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
-import ni.shikatu.re_extera.settings.SettingsFragment$2$$ExternalSyntheticBackport0;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -53,7 +52,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
             @Override // android.text.TextWatcher
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (SettingsFragment$2$$ExternalSyntheticBackport0.m(s.toString())) {
+                if (DeletedAndEditedMessagesFragment$1$$ExternalSyntheticBackport0.m(s.toString())) {
                     Settings.setCustomPrefix("");
                     MeasureTime.notifyMarkChanged(Settings.getCustomPrefix());
                 } else {
@@ -90,7 +89,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 Settings.setSaveDeletedMessages(!Settings.getSaveDeletedMessages());
                 refreshCheckBox(item, position, Settings.getSaveDeletedMessages());
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
                 refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
                 break;

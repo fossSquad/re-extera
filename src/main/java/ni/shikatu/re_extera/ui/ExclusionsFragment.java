@@ -146,7 +146,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
             case Defaults.GLOBAL_VALUE /* 0 */:
                 openChat(exception.dialogId);
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 showEditReadingDialog(exception, position);
                 break;
             case 2:
@@ -265,7 +265,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
                 return Localization.NEVER;
             case Defaults.GLOBAL_VALUE /* 0 */:
                 return Localization.BASED_ON_GLOBAL;
-            case Defaults.ALWAYS /* 1 */:
+            case 1:
                 return Localization.ALWAYS;
             default:
                 return "(" + exclusion + ")";

@@ -14,7 +14,7 @@ public class Settings {
             switch (ordinal()) {
                 case Defaults.GLOBAL_VALUE /* 0 */:
                     return 1;
-                case Defaults.ALWAYS /* 1 */:
+                case 1:
                     return 0;
                 case 2:
                     return 2;
@@ -25,7 +25,7 @@ public class Settings {
 
         public static SendSilence getValue(int value) {
             switch (value) {
-                case Defaults.ALWAYS /* 1 */:
+                case 1:
                     return YES;
                 case 2:
                     return ONLY_WITH_GHOST;

@@ -23,12 +23,13 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
 public class Main {
+    public static final String VERSION = "1.3";
+    public static final int VERSION_CODE = 1;
     public static HookInit hooks;
     private static Method initiateFragment;
     public static Main instance = null;
     public static List<Long> blocked = Main$$ExternalSyntheticBackport0.m(new Object[]{6204645839L});
     public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class});
-    public static String VERSION = "1.2.7pl-noyzewe";
 
     static {
         try {
