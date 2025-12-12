@@ -23,8 +23,8 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
 public class Main {
-    public static final String VERSION = "1.3";
-    public static final int VERSION_CODE = 1;
+    public static final String VERSION = "1.3.1";
+    public static final int VERSION_CODE = 2;
     public static HookInit hooks;
     private static Method initiateFragment;
     public static Main instance = null;

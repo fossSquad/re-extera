@@ -8,6 +8,7 @@ import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
@@ -78,9 +79,9 @@ public class GhostFragment extends BasePreferencesActivityExtended {
 
     public static String getSilenceString() {
         switch (Settings.getSendSilence()) {
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 return Localization.ALWAYS;
-            case 2:
+            case Main.VERSION_CODE /* 2 */:
                 return Localization.ONLY_WITH_GHOST;
             default:
                 return Localization.NEVER;
@@ -113,11 +114,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 this.isGhostExpanded = !this.isGhostExpanded;
                 this.listView.adapter.update(true);
                 break;
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 Settings.setHideOnline(!Settings.getHideOnline());
                 refreshCheckBox(item, position, Settings.getHideOnline(), true);
                 break;
-            case 2:
+            case Main.VERSION_CODE /* 2 */:
                 Settings.setImmediateOffline(!Settings.getImmediateOffline());
                 refreshCheckBox(item, position, Settings.getImmediateOffline(), true);
                 break;

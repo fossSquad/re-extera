@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.DialogExclusion;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
@@ -146,10 +147,10 @@ public class ExclusionsFragment extends BasePreferencesActivity {
             case Defaults.GLOBAL_VALUE /* 0 */:
                 openChat(exception.dialogId);
                 break;
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 showEditReadingDialog(exception, position);
                 break;
-            case 2:
+            case Main.VERSION_CODE /* 2 */:
                 showEditTypingDialog(exception, position);
                 break;
             case 3:
@@ -265,7 +266,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
                 return Localization.NEVER;
             case Defaults.GLOBAL_VALUE /* 0 */:
                 return Localization.BASED_ON_GLOBAL;
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 return Localization.ALWAYS;
             default:
                 return "(" + exclusion + ")";

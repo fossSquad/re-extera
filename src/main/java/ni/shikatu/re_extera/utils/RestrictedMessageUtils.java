@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
@@ -25,17 +24,17 @@ public class RestrictedMessageUtils {
         ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable
             public final void run() {
-                RestrictedMessageUtils.lambda$createMenu$1(toForward, fragment);
+                RestrictedMessageUtils.lambda$createMenu$0(toForward, fragment);
             }
         }).add(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda1
             @Override // java.lang.Runnable
             public final void run() {
                 MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), new ArrayList(Collections.singletonList(toForward)), UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId(), true, 0, null);
             }
-        }).show();
+        }).setOnTopOfScrim().show();
     }
 
-    static /* synthetic */ void lambda$createMenu$1(final MessageObject toForward, final BaseFragment fragment) {
+    static /* synthetic */ void lambda$createMenu$0(final MessageObject toForward, final BaseFragment fragment) {
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", 3);
@@ -44,39 +43,42 @@ public class RestrictedMessageUtils {
         args.putBoolean("allowChannels", true);
         args.putBoolean("allowBots", true);
         DialogsActivity dialogsActivity = new DialogsActivity(args);
-        dialogsActivity.setDelegate(new DialogsActivity.DialogsActivityDelegate() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda2
-            public final boolean didSelectDialogs(DialogsActivity dialogsActivity2, ArrayList arrayList, CharSequence charSequence, boolean z, boolean z2, int i, TopicsFragment topicsFragment) {
-                return RestrictedMessageUtils.lambda$createMenu$0(toForward, fragment, dialogsActivity2, arrayList, charSequence, z, z2, i, topicsFragment);
+        DialogsActivity.DialogsActivityDelegate delegate = new DialogsActivity.DialogsActivityDelegate() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils.1
+            public boolean didSelectDialogs(DialogsActivity fragment1, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, TopicsFragment topicsFragment) {
+                TLRPC.TL_forumTopic topic;
+                if (dids == null || dids.isEmpty()) {
+                    return false;
+                }
+                ArrayList<MessageObject> messages = new ArrayList<>();
+                messages.add(toForward);
+                for (MessagesStorage.TopicKey topicKey : dids) {
+                    long dialogId = topicKey.dialogId;
+                    long topicId = topicKey.topicId;
+                    MessageObject replyToTopMsg = null;
+                    if (topicId != 0 && (topic = MessagesController.getInstance(fragment.getCurrentAccount()).getTopicsController().findTopic(-dialogId, (int) topicId)) != null && topic.top_message != 0) {
+                        replyToTopMsg = new MessageObject(fragment.getCurrentAccount(), topic.topMessage, false, false);
+                    }
+                    MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), messages, dialogId, true, 0, replyToTopMsg);
+                }
+                fragment1.finishFragment();
+                BulletinFactory bulletin = BulletinFactory.of(LaunchActivity.getLastFragment());
+                if (dids.size() == 1) {
+                    bulletin.showForwardedBulletinWithTag(dids.get(0).dialogId, messages.size());
+                } else {
+                    bulletin.createSimpleBulletin(R.raw.forward, LocaleController.formatPluralString("ForwardedMessageCount", messages.size(), new Object[0]), LocaleController.formatPluralString("ForwardedToChatsCount", dids.size(), new Object[0])).show();
+                }
+                return true;
             }
-        });
-        fragment.presentFragment(dialogsActivity);
-    }
 
-    static /* synthetic */ boolean lambda$createMenu$0(MessageObject toForward, BaseFragment fragment, DialogsActivity fragment1, ArrayList dids, CharSequence message, boolean param, boolean notify, int scheduleDate, TopicsFragment topicsFragment) {
-        TLRPC.TL_forumTopic topic;
-        if (dids == null || dids.isEmpty()) {
-            return false;
-        }
-        ArrayList<MessageObject> messages = new ArrayList<>();
-        messages.add(toForward);
-        Iterator it = dids.iterator();
-        while (it.hasNext()) {
-            MessagesStorage.TopicKey topicKey = (MessagesStorage.TopicKey) it.next();
-            long dialogId = topicKey.dialogId;
-            long topicId = topicKey.topicId;
-            MessageObject replyToTopMsg = null;
-            if (topicId != 0 && (topic = MessagesController.getInstance(fragment.getCurrentAccount()).getTopicsController().findTopic(-dialogId, (int) topicId)) != null && topic.top_message != 0) {
-                replyToTopMsg = new MessageObject(fragment.getCurrentAccount(), topic.topMessage, false, false);
+            public boolean canSelectStories() {
+                return false;
             }
-            MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), messages, dialogId, true, 0, replyToTopMsg);
-        }
-        fragment1.finishFragment();
-        BulletinFactory bulletin = BulletinFactory.of(LaunchActivity.getLastFragment());
-        if (dids.size() == 1) {
-            bulletin.showForwardedBulletinWithTag(((MessagesStorage.TopicKey) dids.get(0)).dialogId, messages.size());
-        } else {
-            bulletin.createSimpleBulletin(R.raw.forward, LocaleController.formatPluralString("ForwardedMessageCount", messages.size(), new Object[0]), LocaleController.formatPluralString("ForwardedToChatsCount", dids.size(), new Object[0])).show();
-        }
-        return true;
+
+            public boolean didSelectStories(DialogsActivity fragment2) {
+                return false;
+            }
+        };
+        dialogsActivity.setDelegate(delegate);
+        fragment.presentFragment(dialogsActivity);
     }
 }

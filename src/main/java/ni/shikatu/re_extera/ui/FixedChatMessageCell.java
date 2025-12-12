@@ -7,6 +7,8 @@ import android.os.Looper;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
+import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatMessageSharedResources;
 import org.telegram.messenger.ImageReceiver;
@@ -128,14 +130,14 @@ public class FixedChatMessageCell extends ChatMessageCell {
             return !this.wasScrolling;
         }
         switch (event.getAction()) {
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 this.handler.removeCallbacks(this.longPressRunnable);
                 if (this.isLongPressHandled) {
                     this.isLongPressHandled = false;
                     return true;
                 }
                 break;
-            case 2:
+            case Main.VERSION_CODE /* 2 */:
                 float dx2 = Math.abs(event.getX() - this.startX);
                 float dy2 = Math.abs(event.getY() - this.startY);
                 if ((dx2 > this.touchSlop || dy2 > this.touchSlop) && !this.wasScrolling) {

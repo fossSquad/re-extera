@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
@@ -142,7 +143,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
                     BulletinFactory.of(this).createSimpleBulletin(ContextCompat.getDrawable(getContext(), R.drawable.msg_copy), Localization.COPIED).show();
                 }
                 break;
-            case 2:
+            case Main.VERSION_CODE /* 2 */:
                 showDeleteConfirmation(position);
                 break;
         }
