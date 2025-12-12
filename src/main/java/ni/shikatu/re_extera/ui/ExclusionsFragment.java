@@ -150,10 +150,10 @@ public class ExclusionsFragment extends BasePreferencesActivity {
             case Defaults.ALWAYS /* 1 */:
                 showEditReadingDialog(exception, position);
                 break;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 showEditTypingDialog(exception, position);
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 showDeleteConfirmation(exception, position);
                 break;
         }

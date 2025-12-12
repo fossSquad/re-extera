@@ -90,6 +90,8 @@ public class Localization {
     public static String TYPE;
     public static String TYPE_TO;
     public static String UNKNOWN_DIALOG;
+    public static String UNLOAD_REEXTERA;
+    public static String UNLOAD_SUCCESSFULL;
     public static String USE_COLLAPSED_BLOCKQUOTE;
     public static String USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION;
     public static String USE_SCHEDULE;
@@ -191,6 +193,8 @@ public class Localization {
             SEND_SILENCE = "Отправлять без звука";
             ONLY_WITH_GHOST = "Только с призраком";
             DELETED_MESSAGES_TITLE = "Удаленные сообщения";
+            UNLOAD_REEXTERA = "Выгрузить хуки re:extera";
+            UNLOAD_SUCCESSFULL = "Выгружено успешно";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -285,5 +289,7 @@ public class Localization {
         SEND_SILENCE = "Send silence";
         ONLY_WITH_GHOST = "Only with ghost";
         DELETED_MESSAGES_TITLE = "Deleted messages";
+        UNLOAD_REEXTERA = "Unload re:extera hooks";
+        UNLOAD_SUCCESSFULL = "Unloaded successfully";
     }
 }

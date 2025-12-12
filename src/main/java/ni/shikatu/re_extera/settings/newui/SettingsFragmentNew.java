@@ -109,10 +109,10 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         }
         IDs clicked = IDs.values()[item.id - 1];
         switch (clicked.ordinal()) {
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 presentFragment(new GhostFragment());
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 presentFragment(new DeletedAndEditedMessagesFragment());
                 break;
             case 4:

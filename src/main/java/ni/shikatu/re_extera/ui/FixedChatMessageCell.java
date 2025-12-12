@@ -137,7 +137,7 @@ public class FixedChatMessageCell extends ChatMessageCell {
                     return true;
                 }
                 break;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 float dx2 = Math.abs(event.getX() - this.startX);
                 float dy2 = Math.abs(event.getY() - this.startY);
                 if ((dx2 > this.touchSlop || dy2 > this.touchSlop) && !this.wasScrolling) {
@@ -153,7 +153,7 @@ public class FixedChatMessageCell extends ChatMessageCell {
                     }
                 }
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 this.handler.removeCallbacks(this.longPressRunnable);
                 this.isLongPressHandled = false;
                 this.wasScrolling = false;

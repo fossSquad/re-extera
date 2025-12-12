@@ -8,6 +8,9 @@ import ni.shikatu.re_extera.Main;
 
 public class ReflectionUtils {
     public static <T> T invoke(Method method, Object obj, Object... objArr) {
+        if (method == null) {
+            return null;
+        }
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }
@@ -55,6 +58,9 @@ public class ReflectionUtils {
     }
 
     public static <T> T invokeOriginalMethod(Method method, Object obj, Object[] objArr) {
+        if (method == null) {
+            return null;
+        }
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }

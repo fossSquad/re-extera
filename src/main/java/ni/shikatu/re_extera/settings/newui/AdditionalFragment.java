@@ -30,7 +30,8 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         LOCAL_PREMIUM_ID,
         ADD_SETTINGS_TO_DRAWER,
         FILTERS_ID,
-        CLEAR_DB_ID;
+        CLEAR_DB_ID,
+        UNLOAD_HOOKS;
 
         public int getId() {
             return ordinal() + 1;
@@ -51,6 +52,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
         items.add(UItem.asShadow());
         items.add(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB).setLinkAlias("reExteraClearDb", this));
+        items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
     }
 
     protected void onClick(UItem item, View view, int position, float x, float y) {
@@ -67,7 +69,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 Settings.setNoForward(!Settings.noForward());
                 refreshCheckBox(item, position, Settings.noForward());
                 break;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium() && !Settings.getLocalPremium()) {
                     BulletinFactory.of(this).createEmojiBulletin("❌", Localization.CANT_USE_WITH_PREMIUM).show();
                 } else {
@@ -76,7 +78,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 }
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 Settings.setShowSettingsInDrawer(!Settings.getShowSettingsInDrawer());
                 refreshCheckBox(item, position, Settings.getShowSettingsInDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
@@ -86,6 +88,10 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 break;
             case 5:
                 showClearDbDialog();
+                break;
+            case 6:
+                Main.getInstance().onUnload();
+                BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;
         }
     }

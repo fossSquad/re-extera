@@ -94,11 +94,11 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
                 refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
                 break;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;

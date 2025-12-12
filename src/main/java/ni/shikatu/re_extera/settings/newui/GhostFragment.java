@@ -81,7 +81,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         switch (Settings.getSendSilence()) {
             case Defaults.ALWAYS /* 1 */:
                 return Localization.ALWAYS;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 return Localization.ONLY_WITH_GHOST;
             default:
                 return Localization.NEVER;
@@ -118,11 +118,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setHideOnline(!Settings.getHideOnline());
                 refreshCheckBox(item, position, Settings.getHideOnline(), true);
                 break;
-            case Main.VERSION_CODE /* 2 */:
+            case 2:
                 Settings.setImmediateOffline(!Settings.getImmediateOffline());
                 refreshCheckBox(item, position, Settings.getImmediateOffline(), true);
                 break;
-            case 3:
+            case Main.VERSION_CODE /* 3 */:
                 Settings.setHideTyping(!Settings.getHideTyping());
                 refreshCheckBox(item, position, Settings.getHideTyping(), true);
                 break;
