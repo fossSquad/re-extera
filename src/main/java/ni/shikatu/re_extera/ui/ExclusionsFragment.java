@@ -9,7 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import ni.shikatu.re_extera.Defaults;
-import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.DialogExclusion;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
@@ -153,7 +152,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
             case 2:
                 showEditTypingDialog(exception, position);
                 break;
-            case Main.VERSION_CODE /* 3 */:
+            case 3:
                 showDeleteConfirmation(exception, position);
                 break;
         }

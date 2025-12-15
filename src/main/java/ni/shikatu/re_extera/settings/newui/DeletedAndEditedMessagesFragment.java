@@ -10,7 +10,6 @@ import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
-import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
@@ -98,7 +97,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
-            case Main.VERSION_CODE /* 3 */:
+            case 3:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;

@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import androidx.collection.LongSparseArray;
+import com.exteragram.messenger.plugins.Plugin;
+import com.exteragram.messenger.plugins.PythonPluginsEngine;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
 import ni.shikatu.re_extera.hooks.messagesstorage.UpdateDialogsWithDeletedMessages;
 import ni.shikatu.re_extera.hooks.notificationmanager.RemoveDeletedMessagesFromNotification;
+import ni.shikatu.re_extera.hooks.pluginsengine.OpenSettingsHook;
 import ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
@@ -55,6 +58,7 @@ import org.telegram.tgnet.RequestDelegateTimestamp;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.WriteToSocketDelegate;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.DrawerLayoutAdapter;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.ChatActivity;
@@ -123,6 +127,7 @@ public class HookInit {
         addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("didReceivedNotification", Integer.TYPE, Integer.TYPE, Object[].class), new NotificationCenterDidLoad()));
         addHook(XposedBridge.hookMethod(DrawerLayoutAdapter.class.getDeclaredMethod("resetItems", new Class[0]), new DrawerAdapterReset()));
         addHook(XposedBridge.hookMethod(ProfileActivity.class.getDeclaredMethod("updateProfileData", Boolean.TYPE), new UpdateProfileData()));
+        addHook(XposedBridge.hookMethod(PythonPluginsEngine.class.getDeclaredMethod("openPluginSettings", Plugin.class, BaseFragment.class), new OpenSettingsHook()));
     }
 
     public void onUnload() {

@@ -78,7 +78,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 }
                 break;
-            case Main.VERSION_CODE /* 3 */:
+            case 3:
                 Settings.setShowSettingsInDrawer(!Settings.getShowSettingsInDrawer());
                 refreshCheckBox(item, position, Settings.getShowSettingsInDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
@@ -86,7 +86,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             case 4:
                 presentFragment(new RegexFiltersFragment());
                 break;
-            case 5:
+            case Main.VERSION_CODE /* 5 */:
                 showClearDbDialog();
                 break;
             case 6:

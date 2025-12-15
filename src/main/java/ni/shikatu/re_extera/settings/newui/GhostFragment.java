@@ -122,7 +122,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setImmediateOffline(!Settings.getImmediateOffline());
                 refreshCheckBox(item, position, Settings.getImmediateOffline(), true);
                 break;
-            case Main.VERSION_CODE /* 3 */:
+            case 3:
                 Settings.setHideTyping(!Settings.getHideTyping());
                 refreshCheckBox(item, position, Settings.getHideTyping(), true);
                 break;
@@ -130,7 +130,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setHideReading(!Settings.getHideReading());
                 refreshCheckBox(item, position, Settings.getHideReading(), true);
                 break;
-            case 5:
+            case Main.VERSION_CODE /* 5 */:
                 Settings.setNoReadStories(!Settings.getNoReadStories());
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
