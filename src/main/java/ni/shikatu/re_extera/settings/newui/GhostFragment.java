@@ -126,11 +126,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setHideTyping(!Settings.getHideTyping());
                 refreshCheckBox(item, position, Settings.getHideTyping(), true);
                 break;
-            case 4:
+            case Main.VERSION_CODE /* 4 */:
                 Settings.setHideReading(!Settings.getHideReading());
                 refreshCheckBox(item, position, Settings.getHideReading(), true);
                 break;
-            case Main.VERSION_CODE /* 5 */:
+            case 5:
                 Settings.setNoReadStories(!Settings.getNoReadStories());
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;

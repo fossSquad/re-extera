@@ -115,7 +115,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
             case 3:
                 presentFragment(new DeletedAndEditedMessagesFragment());
                 break;
-            case 4:
+            case Main.VERSION_CODE /* 4 */:
                 presentFragment(new AdditionalFragment());
                 break;
         }
