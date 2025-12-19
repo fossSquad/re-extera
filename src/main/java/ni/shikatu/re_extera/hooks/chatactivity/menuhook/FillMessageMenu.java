@@ -2,6 +2,7 @@ package ni.shikatu.re_extera.hooks.chatactivity.menuhook;
 
 import de.robv.android.xposed.XC_MethodHook;
 import java.util.ArrayList;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.localization.Localization;
@@ -23,7 +24,8 @@ public class FillMessageMenu extends XC_MethodHook {
             items.add(0, Localization.MESSAGE_HISTORY);
             options.add(0, 6363);
         }
-        if ((((Settings.getHideReadingWithGhost() || SendRequest.getCurrentReadingStatus() == -1) && SendRequest.getCurrentReadingStatus() != 1) || oneTime) && !msgObj.isOut()) {
+        Main.log("Settings global: %s, exclusion: %s, shouldfill: %s", Boolean.valueOf(Settings.getHideReading()), Integer.valueOf(SendRequest.getCurrentReadingStatus()), Boolean.valueOf((Settings.getHideReading() || SendRequest.getCurrentReadingStatus() == -1) && SendRequest.getCurrentReadingStatus() != 1));
+        if (((Settings.getHideReading() || SendRequest.getCurrentReadingStatus() == -1) && SendRequest.getCurrentReadingStatus() != 1) || oneTime) {
             icons.add(0, Integer.valueOf(R.drawable.msg_markread));
             items.add(0, Localization.READ_MESSAGE);
             options.add(0, 6565);

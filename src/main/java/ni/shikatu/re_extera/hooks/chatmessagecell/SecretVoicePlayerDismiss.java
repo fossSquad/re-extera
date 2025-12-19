@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.settings.Settings;
-import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.EarListener;
 import org.telegram.ui.Components.VideoPlayer;
@@ -18,7 +17,7 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
     private static Field earListener;
     private static Field hintView;
     private static Field player;
-    private static Method setupTranslation;
+    private static Method setupTransaltion;
     private static Field windowView;
 
     static {
@@ -33,8 +32,8 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
             windowView.setAccessible(true);
             earListener = SecretVoicePlayer.class.getDeclaredField("earListener");
             earListener.setAccessible(true);
-            setupTranslation = SecretVoicePlayer.class.getDeclaredMethod("setupTranslation", new Class[0]);
-            setupTranslation.setAccessible(true);
+            setupTransaltion = SecretVoicePlayer.class.getDeclaredMethod("setupTranslation", new Class[0]);
+            setupTransaltion.setAccessible(true);
         } catch (Exception e) {
             Main.log("SecretVoicePlayerDismiss: %s", e.getMessage());
         }
@@ -70,7 +69,7 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
                 playerC.releasePlayer(true);
                 player.set(param.thisObject, null);
             }
-            ReflectionUtils.invoke(setupTranslation, param.thisObject, new Object[0]);
+            setupTransaltion.invoke(param.thisObject, new Object[0]);
             if (windowViewC != null) {
                 windowViewC.invalidate();
             }

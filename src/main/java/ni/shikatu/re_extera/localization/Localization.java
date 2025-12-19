@@ -7,12 +7,10 @@ public class Localization {
     public static String ADD;
     public static String ADDITIONAL_SETTINGS;
     public static String ADD_REGEX_FILTER;
-    public static String ADD_SETTINGS_TO_DRAWER;
     public static String ALPHA_WARNING;
     public static String ALWAYS;
     public static String BASED_ON_GLOBAL;
     public static String CANCEL;
-    public static String CANT_USE_WITH_PREMIUM;
     public static String CLEARING_NOW;
     public static String CLEAR_DB;
     public static String CLEAR_DELETED;
@@ -21,7 +19,6 @@ public class Localization {
     public static String CUSTOM_PREFIX;
     public static String DELETE;
     public static String DELETED_AND_EDITED_MESSAGES;
-    public static String DELETED_MESSAGES_TITLE;
     public static String DELETE_FILTER;
     public static String DELETE_FILTER_ABOUT;
     public static String DELETE_FROM_EXCLUSIONS;
@@ -42,12 +39,7 @@ public class Localization {
     public static String FORWARDED;
     public static String FORWARDED_TO_SAVED_MESSAGES;
     public static String GENERAL;
-    public static String GHOST_IN_DRAWER;
     public static String GHOST_MODE;
-    public static String GHOST_MODE_DISABLE;
-    public static String GHOST_MODE_DISABLED;
-    public static String GHOST_MODE_ENABLE;
-    public static String GHOST_MODE_ENABLED;
     public static String HIDE_ONLINE_STATUS;
     public static String HIDE_READING_MESSAGE;
     public static String HIDE_TYPING_STATUS;
@@ -55,7 +47,6 @@ public class Localization {
     public static String IMMEDIATE_OFFLINE;
     public static String INFINITY_STARS;
     public static String LEAVE_BLANK_FOR_RECYCLE;
-    public static String LOCAL_PREMIUM;
     public static String MESSAGE_HISTORY;
     public static String MESSAGE_HISTORY_TITLE;
     public static String MESSAGE_HISTORY_TOGGLE;
@@ -64,10 +55,8 @@ public class Localization {
     public static String NOT;
     public static String NO_EXLCUSIONS;
     public static String NO_FORWARD;
-    public static String NO_FORWARD_ABOUT;
     public static String NO_READ_STORIES;
     public static String OFFLINE;
-    public static String ONLY_WITH_GHOST;
     public static String OPEN_CHAT;
     public static String OTHER;
     public static String PATTERN_ERROR;
@@ -76,22 +65,16 @@ public class Localization {
     public static String READ_TO;
     public static String RED_DELETED_MARK;
     public static String REMOVE_FLAG_SECURE;
-    public static String RESTART_APP;
-    public static String RESTART_APP_ABOUT;
     public static String RE_EXTERA_SETTINGS;
     public static String SAVE;
     public static String SAVE_DELETED_MESSAGES;
     public static String SAVE_ONE_TIME_MESSAGES;
     public static String SAVE_OWN_MESSAGES;
     public static String SAVE_SELF_DELETED_MESSAGES;
-    public static String SEND_SILENCE;
-    public static String SPY;
     public static String THANKS;
     public static String TYPE;
     public static String TYPE_TO;
     public static String UNKNOWN_DIALOG;
-    public static String UNLOAD_REEXTERA;
-    public static String UNLOAD_SUCCESSFULL;
     public static String USE_COLLAPSED_BLOCKQUOTE;
     public static String USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION;
     public static String USE_SCHEDULE;
@@ -102,8 +85,8 @@ public class Localization {
         String currentLang = LocaleController.getInstance().getCurrentLocale().getLanguage();
         if ("ru".equals(currentLang)) {
             HIDE_READING_MESSAGE = "Не читать сообщения";
-            HIDE_TYPING_STATUS = "Не отправлять \"печатает\"";
-            HIDE_ONLINE_STATUS = "Не отправлять \"онлайн\"";
+            HIDE_TYPING_STATUS = "Не показывать статус \"печатает\"";
+            HIDE_ONLINE_STATUS = "Не показывать статус \"онлайн\"";
             NO_READ_STORIES = "Не читать истории";
             ENABLE_ALPHA = "Полупрозрачные удаленки";
             ALPHA_WARNING = "Эта функция кушает очень много";
@@ -124,8 +107,7 @@ public class Localization {
             GHOST_MODE = "Режим призрака";
             DELETED_AND_EDITED_MESSAGES = "Измененные и удаленные сообщения";
             OTHER = "Другое";
-            NO_FORWARD = "re:forward";
-            NO_FORWARD_ABOUT = "re:forward позволяет псевдопересылать сообщения из чатов, где это запрещено";
+            NO_FORWARD = "Убрать ограничения на пересылку";
             RED_DELETED_MARK = "Красная метка удаленок";
             EXCLUSIONS = "Исключения";
             EXCEPTION_READING_TEXT = "Исключение нечиталки";
@@ -179,27 +161,11 @@ public class Localization {
             FINALLY_REMOVE_ALL_DELETED_MESSAGES = "Окончательно далить все удаленные сообщения?";
             DELETE = "Удалить";
             VIEW_DELETED = "Посмотреть удаленки";
-            GHOST_MODE_ENABLED = "Режим призрака включен";
-            GHOST_MODE_DISABLED = "Режим призрака выключен";
-            GHOST_IN_DRAWER = "Кнопка призрака в боковом меню";
-            SPY = "Шпион";
-            GHOST_MODE_ENABLE = "Включить призрака";
-            GHOST_MODE_DISABLE = "Выключить призрака";
-            ADD_SETTINGS_TO_DRAWER = "Настройки в боковом меню";
-            LOCAL_PREMIUM = "Локальный премиум";
-            CANT_USE_WITH_PREMIUM = "Нельзя использовать с премиум аккаунтом";
-            RESTART_APP = "Перезапустить приложение";
-            RESTART_APP_ABOUT = "Это решает 99% всех проблем";
-            SEND_SILENCE = "Отправлять без звука";
-            ONLY_WITH_GHOST = "Только с призраком";
-            DELETED_MESSAGES_TITLE = "Удаленные сообщения";
-            UNLOAD_REEXTERA = "Выгрузить хуки re:extera";
-            UNLOAD_SUCCESSFULL = "Выгружено успешно";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
-        HIDE_TYPING_STATUS = "Don't send \"typing\"";
-        HIDE_ONLINE_STATUS = "Don't send \"online\"";
+        HIDE_TYPING_STATUS = "Don't show \"typing\" status";
+        HIDE_ONLINE_STATUS = "Don't show \"online\" status";
         NO_READ_STORIES = "Don't read stories";
         GENERAL = "General";
         THANKS = "Thanks to @bleizix";
@@ -220,8 +186,7 @@ public class Localization {
         GHOST_MODE = "Ghost mode";
         DELETED_AND_EDITED_MESSAGES = "Edited and deleted messages";
         OTHER = "Other";
-        NO_FORWARD = "re:forward";
-        NO_FORWARD_ABOUT = "re:forward allows you to pseudo-forward messages from chats where this is forbidden";
+        NO_FORWARD = "Remove forwarding restrictions";
         RED_DELETED_MARK = "Red deleted mark";
         EXCLUSIONS = "Exclusions";
         EXCEPTION_READING_TEXT = "Exclusion reading";
@@ -275,21 +240,5 @@ public class Localization {
         FINALLY_REMOVE_ALL_DELETED_MESSAGES = "Finally remove all deleted messages?";
         DELETE = "Delete";
         VIEW_DELETED = "View deleted";
-        GHOST_MODE_ENABLED = "Ghost mode enabled";
-        GHOST_MODE_DISABLED = "Ghost mode disabled";
-        GHOST_IN_DRAWER = "Ghost button in side menu";
-        SPY = "Spy";
-        GHOST_MODE_ENABLE = "Enable ghost";
-        GHOST_MODE_DISABLE = "Disable ghost";
-        ADD_SETTINGS_TO_DRAWER = "Settings in side menu";
-        LOCAL_PREMIUM = "Local Premium";
-        CANT_USE_WITH_PREMIUM = "Can't use with premium account";
-        RESTART_APP = "Restart app";
-        RESTART_APP_ABOUT = "This solves 99% of all problems";
-        SEND_SILENCE = "Send silence";
-        ONLY_WITH_GHOST = "Only with ghost";
-        DELETED_MESSAGES_TITLE = "Deleted messages";
-        UNLOAD_REEXTERA = "Unload re:extera hooks";
-        UNLOAD_SUCCESSFULL = "Unloaded successfully";
     }
 }

@@ -58,11 +58,11 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
                     final ChatActivity chatActivity = lastFragment;
                     if (args != null) {
                         try {
-                            if (args.length > 9) {
+                            if (args.length > 8) {
                                 int loadtype = ((Integer) args[8]).intValue();
                                 if (loadtype == 1) {
                                     boolean[] forwardEndReached = (boolean[]) forwardEndReachedField.get(chatActivity);
-                                    if (forwardEndReached != null && ((Boolean) args[9]).booleanValue()) {
+                                    if (forwardEndReached != null) {
                                         forwardEndReached[0] = true;
                                     }
                                     Field loadingField = ChatActivity.class.getDeclaredField("loading");

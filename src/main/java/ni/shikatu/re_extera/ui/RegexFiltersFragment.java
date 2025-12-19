@@ -6,7 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.core.content.ContextCompat;
-import com.exteragram.messenger.preferences.BasePreferencesActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -17,58 +18,91 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
-import ni.shikatu.re_extera.utils.MessageUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Cells.TextInfoPrivacyCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.EditTextBoldCursor;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.UItem;
-import org.telegram.ui.Components.UniversalAdapter;
+import org.telegram.ui.Components.RecyclerListView;
 
-public class RegexFiltersFragment extends BasePreferencesActivity {
-    private static final int ID_ENABLE_FILTERS = 1;
+public class RegexFiltersFragment extends BaseFragment {
+    private FiltersAdapter adapter;
     private ArrayList<String> filters = new ArrayList<>();
-
-    public View createView(Context context) {
-        View view = super.createView(context);
-        if (this.actionBar != null) {
-            this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-            this.actionBar.setAllowOverlayTitle(true);
-            this.actionBar.setTitle(Localization.FILTERS);
-            this.actionBar.createMenu().clearItems();
-            this.actionBar.createMenu().addItem(1, R.drawable.msg_add);
-            this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment.1
-                public void onItemClick(int id) {
-                    if (id == -1) {
-                        RegexFiltersFragment.this.finishFragment();
-                    } else if (id == 1) {
-                        RegexFiltersFragment.this.showAddFilterDialog();
-                    }
-                }
-            });
-        }
-        return view;
-    }
-
-    public String getTitle() {
-        return Localization.FILTERS;
-    }
+    private RecyclerListView listView;
 
     public boolean onFragmentCreate() throws IllegalAccessException, InvocationTargetException {
         loadFilters();
         return super.onFragmentCreate();
     }
 
+    public View createView(Context context) {
+        this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        this.actionBar.setAllowOverlayTitle(true);
+        this.actionBar.setTitle(Localization.FILTERS);
+        this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment.1
+            public void onItemClick(int id) {
+                if (id == -1) {
+                    RegexFiltersFragment.this.finishFragment();
+                } else if (id == 1) {
+                    RegexFiltersFragment.this.showAddFilterDialog();
+                }
+            }
+        });
+        this.actionBar.createMenu().addItemWithWidth(1, R.drawable.msg_add, AndroidUtilities.dp(56.0f));
+        FrameLayout frameLayout = new FrameLayout(context);
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+        this.listView = new RecyclerListView(context);
+        this.listView.setLayoutManager(new LinearLayoutManager(context));
+        this.adapter = new FiltersAdapter(context);
+        this.listView.setAdapter(this.adapter);
+        this.listView.setVerticalScrollBarEnabled(false);
+        this.listView.setOnItemClickListener(new RecyclerListView.OnItemClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda3
+            public final void onItemClick(View view, int i) {
+                this.f$0.lambda$createView$0(view, i);
+            }
+        });
+        this.listView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda4
+            public final boolean onItemClick(View view, int i) {
+                return this.f$0.lambda$createView$1(view, i);
+            }
+        });
+        frameLayout.addView((View) this.listView, (ViewGroup.LayoutParams) LayoutHelper.createFrame(-1, -1.0f));
+        this.fragmentView = frameLayout;
+        return this.fragmentView;
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public /* synthetic */ void lambda$createView$0(View view, int position) {
+        int index = position - 2;
+        if (index >= 0 && index < this.filters.size()) {
+            String filter = this.filters.get(index);
+            showOptionsMenu(filter, index);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public /* synthetic */ boolean lambda$createView$1(View view, int position) {
+        int index = position - 2;
+        if (index >= 0 && index < this.filters.size()) {
+            showDeleteConfirmation(index);
+            return true;
+        }
+        return false;
+    }
+
     public void onResume() throws IllegalAccessException, InvocationTargetException {
         super.onResume();
         loadFilters();
-        if (getAdapter() != null) {
-            getAdapter().update(true);
+        if (this.adapter != null) {
+            this.adapter.notifyDataSetChanged();
         }
     }
 
@@ -80,41 +114,13 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()).setLinkAlias("reExteraFiltersEnable", this));
-        items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
-        if (!this.filters.isEmpty()) {
-            for (int i = 0; i < this.filters.size(); i++) {
-                String filter = this.filters.get(i);
-                UItem item = UItem.asButton(i + 100, filter);
-                items.add(item);
-            }
-        }
-        items.add(UItem.asShadow((CharSequence) null));
+    /* JADX INFO: Access modifiers changed from: private */
+    public void showAddFilterDialog() {
+        showFilterDialog(null, -1, false);
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
-        int filterIndex;
-        if (item.id == 1) {
-            Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
-            if (getAdapter() != null) {
-                getAdapter().update(true);
-                return;
-            }
-            return;
-        }
-        if (item.id >= 100 && (filterIndex = item.id - 100) >= 0 && filterIndex < this.filters.size()) {
-            showOptionsMenu(this.filters.get(filterIndex), filterIndex);
-        }
-    }
-
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
-        int index = item.id - 100;
-        if (index >= 0 && index < this.filters.size()) {
-            showDeleteConfirmation(index);
-            return true;
-        }
-        return false;
+    private void showEditFilterDialog(String existingFilter, int position) {
+        showFilterDialog(existingFilter, position, true);
     }
 
     private void showOptionsMenu(final String filter, final int position) {
@@ -122,22 +128,22 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setTitle(filter);
         CharSequence[] items = {Localization.EDIT_REGEX_FILTER, Localization.COPY_FILTER, Localization.DELETE_FILTER};
         int[] icons = {R.drawable.floating_pencil, R.drawable.msg_copy, R.drawable.msg_delete};
-        builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda3
+        builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda5
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
-                this.f$0.lambda$showOptionsMenu$0(filter, position, dialogInterface, i);
+                this.f$0.lambda$showOptionsMenu$2(filter, position, dialogInterface, i);
             }
         });
         builder.show();
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showOptionsMenu$0(String filter, int position, DialogInterface dialog, int which) {
+    public /* synthetic */ void lambda$showOptionsMenu$2(String filter, int position, DialogInterface dialog, int which) {
         switch (which) {
             case Defaults.GLOBAL_VALUE /* 0 */:
                 showEditFilterDialog(filter, position);
                 break;
-            case 1:
+            case Defaults.ALWAYS /* 1 */:
                 if (AndroidUtilities.addToClipboard(filter)) {
                     BulletinFactory.of(this).createSimpleBulletin(ContextCompat.getDrawable(getContext(), R.drawable.msg_copy), Localization.COPIED).show();
                 }
@@ -146,15 +152,6 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
                 showDeleteConfirmation(position);
                 break;
         }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showAddFilterDialog() {
-        showFilterDialog(null, -1, false);
-    }
-
-    private void showEditFilterDialog(String existingFilter, int position) {
-        showFilterDialog(existingFilter, position, true);
     }
 
     private void showFilterDialog(final String existingFilter, final int position, final boolean isEdit) {
@@ -181,7 +178,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setView(container);
         builder.setPositiveButton(isEdit ? Localization.SAVE : Localization.ADD, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda1
             public final void onClick(AlertDialog alertDialog, int i) throws IllegalAccessException, InvocationTargetException {
-                this.f$0.lambda$showFilterDialog$1(editText, context, isEdit, existingFilter, position, alertDialog, i);
+                this.f$0.lambda$showFilterDialog$3(editText, context, isEdit, existingFilter, position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);
@@ -189,14 +186,14 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         dialog.setOnShowListener(new DialogInterface.OnShowListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda2
             @Override // android.content.DialogInterface.OnShowListener
             public final void onShow(DialogInterface dialogInterface) {
-                RegexFiltersFragment.lambda$showFilterDialog$2(editText, dialogInterface);
+                RegexFiltersFragment.lambda$showFilterDialog$4(editText, dialogInterface);
             }
         });
         dialog.show();
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showFilterDialog$1(EditTextBoldCursor editText, Context context, boolean isEdit, String existingFilter, int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showFilterDialog$3(EditTextBoldCursor editText, Context context, boolean isEdit, String existingFilter, int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
         String regex = editText.getText().toString().trim();
         if (regex.isEmpty()) {
             AndroidUtilities.shakeView(editText);
@@ -207,13 +204,11 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
             if (isEdit) {
                 ReExteraDb.get().updateRegexFilter(existingFilter, regex);
                 this.filters.set(position, regex);
+                this.adapter.notifyItemChanged(position + 2);
             } else {
                 ReExteraDb.get().addRegexFilter(regex);
                 this.filters.add(regex);
-            }
-            MessageUtils.updatePatterns();
-            if (getAdapter() != null) {
-                getAdapter().update(true);
+                this.adapter.notifyItemInserted((this.filters.size() - 1) + 2);
             }
         } catch (PatternSyntaxException e) {
             AlertDialog.Builder errorBuilder = new AlertDialog.Builder(context);
@@ -224,7 +219,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
-    static /* synthetic */ void lambda$showFilterDialog$2(EditTextBoldCursor editText, DialogInterface d) {
+    static /* synthetic */ void lambda$showFilterDialog$4(EditTextBoldCursor editText, DialogInterface d) {
         editText.requestFocus();
         AndroidUtilities.showKeyboard(editText);
     }
@@ -234,8 +229,8 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setTitle(Localization.DELETE_FILTER);
         builder.setMessage(Localization.DELETE_FILTER_ABOUT);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda0
-            public final void onClick(AlertDialog alertDialog, int i) throws IllegalAccessException, InvocationTargetException {
-                this.f$0.lambda$showDeleteConfirmation$3(position, alertDialog, i);
+            public final void onClick(AlertDialog alertDialog, int i) {
+                this.f$0.lambda$showDeleteConfirmation$5(position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);
@@ -243,17 +238,87 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showDeleteConfirmation$3(int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showDeleteConfirmation$5(int position, AlertDialog dialog, int which) {
         String filter = this.filters.get(position);
         ReExteraDb.get().deleteRegexFilter(filter);
         this.filters.remove(position);
-        MessageUtils.updatePatterns();
-        if (getAdapter() != null) {
-            getAdapter().update(true);
-        }
+        this.adapter.notifyItemRemoved(position + 2);
     }
 
-    private UniversalAdapter getAdapter() {
-        return this.listView.adapter;
+    /* JADX INFO: Access modifiers changed from: private */
+    class FiltersAdapter extends RecyclerListView.SelectionAdapter {
+        private static final int VIEW_TYPE_ENABLE = 0;
+        private static final int VIEW_TYPE_FILTER = 2;
+        private static final int VIEW_TYPE_INFO = 1;
+        private final Context context;
+
+        FiltersAdapter(Context context) {
+            this.context = context;
+        }
+
+        public boolean isEnabled(RecyclerView.ViewHolder holder) {
+            int position = holder.getAdapterPosition();
+            return position == 0 || position >= VIEW_TYPE_FILTER;
+        }
+
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return 0;
+            }
+            if (position == 1) {
+                return 1;
+            }
+            return VIEW_TYPE_FILTER;
+        }
+
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            TextCheckCell cell;
+            if (viewType == 0) {
+                cell = new TextCheckCell(this.context);
+                cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            } else if (viewType == 1) {
+                cell = new TextInfoPrivacyCell(this.context);
+            } else {
+                cell = new TextSettingsCell(this.context);
+                cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            }
+            return new RecyclerListView.Holder(cell);
+        }
+
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            int viewType = getItemViewType(position);
+            if (viewType == 0) {
+                final TextCheckCell cell = holder.itemView;
+                cell.setTextAndCheck(Localization.ENABLE_FILTERS, Settings.getFiltersEnabled(), false);
+                cell.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$FiltersAdapter$$ExternalSyntheticLambda0
+                    @Override // android.view.View.OnClickListener
+                    public final void onClick(View view) {
+                        RegexFiltersFragment.FiltersAdapter.lambda$onBindViewHolder$0(cell, view);
+                    }
+                });
+            } else {
+                if (viewType == 1) {
+                    TextInfoPrivacyCell cell2 = holder.itemView;
+                    cell2.setText(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT));
+                    return;
+                }
+                int index = position - 2;
+                if (index >= 0 && index < RegexFiltersFragment.this.filters.size()) {
+                    TextSettingsCell cell3 = holder.itemView;
+                    String filter = (String) RegexFiltersFragment.this.filters.get(index);
+                    boolean divider = index < RegexFiltersFragment.this.filters.size() - 1;
+                    cell3.setText(filter, divider);
+                }
+            }
+        }
+
+        static /* synthetic */ void lambda$onBindViewHolder$0(TextCheckCell cell, View v) {
+            Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
+            cell.setChecked(Settings.getFiltersEnabled());
+        }
+
+        public int getItemCount() {
+            return RegexFiltersFragment.this.filters.size() + VIEW_TYPE_FILTER;
+        }
     }
 }

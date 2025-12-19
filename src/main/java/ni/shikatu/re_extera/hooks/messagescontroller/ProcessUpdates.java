@@ -6,9 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import ni.shikatu.re_extera.db.ReExteraDb;
-import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
-import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
@@ -63,14 +61,10 @@ public class ProcessUpdates extends XC_MethodHook {
             processTL_updateDeleteMessages((TLRPC.TL_updateDeleteMessages) update);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateDeleteChannelMessages) {
-            processTL_updateDeleteChannelMessages((TLRPC.TL_updateDeleteChannelMessages) update, channelDeleted);
+        if (!(update instanceof TLRPC.TL_updateDeleteChannelMessages)) {
             return true;
         }
-        if (!(update instanceof TLRPC.TL_updateDeleteScheduledMessages)) {
-            return true;
-        }
-        processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update);
+        processTL_updateDeleteChannelMessages((TLRPC.TL_updateDeleteChannelMessages) update, channelDeleted);
         return true;
     }
 
@@ -122,14 +116,6 @@ public class ProcessUpdates extends XC_MethodHook {
                 }
             }
         }
-    }
-
-    private void processTL_updateDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update) {
-        long dialogId = DialogObject.getPeerDialogId(update.peer);
-        ArrayList<Integer> allMessages = new ArrayList<>();
-        allMessages.addAll(update.sent_messages);
-        allMessages.addAll(update.messages);
-        InternalUtils.deleteMessages(dialogId, allMessages);
     }
 
     private void processTL_updateDeleteChannelMessages(TLRPC.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {

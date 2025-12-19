@@ -1,7 +1,7 @@
-package ni.shikatu.re_extera.settings.newui;
+package ni.shikatu.re_extera.settings;
 
 /* JADX INFO: compiled from: D8$$SyntheticClass */
-public final /* synthetic */ class DeletedAndEditedMessagesFragment$1$$ExternalSyntheticBackport0 {
+public final /* synthetic */ class SettingsFragment$2$$ExternalSyntheticBackport0 {
     public static /* synthetic */ boolean m(String str) {
         int length = str.length();
         int iCharCount = 0;

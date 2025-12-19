@@ -14,7 +14,6 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
-import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 
@@ -71,16 +70,11 @@ public class ProcessSelectedOption extends XC_MethodHook {
                 Main.requestSendWithUnhook(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.menuhook.ProcessSelectedOption$$ExternalSyntheticLambda0
                     @Override // java.lang.Runnable
                     public final void run() {
-                        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_readHistory, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.chatactivity.menuhook.ProcessSelectedOption$$ExternalSyntheticLambda1
-                            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                                InternalUtils.createShortVibration();
-                            }
-                        });
+                        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_readHistory, (RequestDelegate) null);
                     }
                 });
                 if (messageObject.isSecret() || messageObject.isSecretMedia() || messageObject.isRoundOnce() || messageObject.isVoiceOnce()) {
                     InternalUtils.sendSecretMessageRead(messageObject);
-                    InternalUtils.createShortVibration();
                 }
             }
         }
