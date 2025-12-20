@@ -7,24 +7,25 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
-import ni.shikatu.re_extera.utils.MessageForwarder;
+import ni.shikatu.re_extera.utils.RestrictedMessageUtils;
 import org.telegram.messenger.AccountInstance;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SavedMessagesController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.ChatMessageCell;
-import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.Bulletin;
 
 public class MessageHistoryFragment extends BaseFragment {
     private HistoryAdapter adapter;
@@ -80,9 +81,7 @@ public class MessageHistoryFragment extends BaseFragment {
                         View childView = MessageHistoryFragment.this.list.findChildViewUnder(e.getX(), e.getY());
                         if ((childView instanceof ChatMessageCell) && (position = MessageHistoryFragment.this.list.getChildAdapterPosition(childView)) != -1 && (messageObject = MessageHistoryFragment.this.adapter.getItem(position)) != null) {
                             childView.performHapticFeedback(0);
-                            long savedMessagesDid = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
-                            MessageForwarder.sendMessageCopy(MessageHistoryFragment.this.getAccountInstance(), new ArrayList(Collections.singletonList(messageObject)), savedMessagesDid, true, 0, null);
-                            BulletinFactory.of(MessageHistoryFragment.this).createSimpleBulletin(ContextCompat.getDrawable(context, R.drawable.chats_saved), Localization.FORWARDED_TO_SAVED_MESSAGES).show();
+                            RestrictedMessageUtils.createMenu(MessageHistoryFragment.this, childView, messageObject);
                         }
                     }
                 });
@@ -100,7 +99,7 @@ public class MessageHistoryFragment extends BaseFragment {
             }
         });
         this.fragmentView = frameLayout;
-        this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda0
+        this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda3
             @Override // java.lang.Runnable
             public final void run() throws IllegalAccessException, InvocationTargetException {
                 this.f$0.lambda$createView$0();
@@ -114,20 +113,72 @@ public class MessageHistoryFragment extends BaseFragment {
         this.adapter.reload();
     }
 
+    public static Bulletin createSavedMessagesBulletin(Context context, BaseFragment fragment, FrameLayout containerLayout, int messagesCount, Runnable undoAction, final Runnable delayedAction) {
+        CharSequence text;
+        final Bulletin.LottieLayout layout = new Bulletin.LottieLayout(context, fragment != null ? fragment.getResourceProvider() : null);
+        final boolean[] isCanceled = {false};
+        Runnable delayedActionOnce = delayedAction != null ? new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda0
+            @Override // java.lang.Runnable
+            public final void run() {
+                MessageHistoryFragment.lambda$createSavedMessagesBulletin$1(isCanceled, delayedAction);
+            }
+        } : null;
+        if (messagesCount <= 1) {
+            text = AndroidUtilities.replaceSingleTag(LocaleController.getString(R.string.FwdMessageToSavedMessages), -1, 2, new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda1
+                @Override // java.lang.Runnable
+                public final void run() {
+                    SavedMessagesController.openSavedMessages();
+                }
+            });
+        } else {
+            text = AndroidUtilities.replaceSingleTag(LocaleController.getString(R.string.FwdMessagesToSavedMessages), -1, 2, new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda1
+                @Override // java.lang.Runnable
+                public final void run() {
+                    SavedMessagesController.openSavedMessages();
+                }
+            });
+        }
+        layout.setAnimation(R.raw.saved_messages, 30, 30, new String[0]);
+        layout.textView.setText(text);
+        if (undoAction != null || delayedAction != null) {
+            layout.setButton(new Bulletin.UndoButton(context, true, true, fragment != null ? fragment.getResourceProvider() : null).setUndoAction(undoAction).setDelayedAction(delayedActionOnce));
+        }
+        layout.postDelayed(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda2
+            @Override // java.lang.Runnable
+            public final void run() {
+                layout.performHapticFeedback(3, 2);
+            }
+        }, 300L);
+        if (containerLayout != null) {
+            return Bulletin.make(containerLayout, layout, 2000);
+        }
+        if (fragment != null) {
+            return Bulletin.make(fragment, layout, 2000);
+        }
+        throw new IllegalArgumentException("At least fragment or containerLayout must be not null");
+    }
+
+    static /* synthetic */ void lambda$createSavedMessagesBulletin$1(boolean[] isCanceled, Runnable delayedAction) {
+        if (!isCanceled[0]) {
+            isCanceled[0] = true;
+            delayedAction.run();
+        }
+    }
+
     public void onResume() {
         super.onResume();
         if (this.fragmentView != null) {
-            this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda1
+            this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda4
                 @Override // java.lang.Runnable
                 public final void run() throws IllegalAccessException, InvocationTargetException {
-                    this.f$0.lambda$onResume$1();
+                    this.f$0.lambda$onResume$3();
                 }
             });
         }
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onResume$1() throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$onResume$3() throws IllegalAccessException, InvocationTargetException {
         this.adapter.reload();
     }
 

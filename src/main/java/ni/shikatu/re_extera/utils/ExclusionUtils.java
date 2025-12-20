@@ -36,7 +36,7 @@ public class ExclusionUtils {
             this.reading_cell_Defaults.setTextAndValue(Localization.BASED_ON_GLOBAL, false);
             this.reading_cell_Defaults.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionReadingDialog$$ExternalSyntheticLambda0
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$0(view);
                 }
             });
@@ -46,7 +46,7 @@ public class ExclusionUtils {
             this.reading_cell_never.setTextAndValue(Localization.NEVER + Localization.NOT + Localization.READ, false);
             this.reading_cell_never.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionReadingDialog$$ExternalSyntheticLambda1
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$1(view);
                 }
             });
@@ -56,7 +56,7 @@ public class ExclusionUtils {
             this.reading_cell_always.setTextAndValue(Localization.ALWAYS + " " + Localization.READ, false);
             this.reading_cell_always.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionReadingDialog$$ExternalSyntheticLambda2
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$2(view);
                 }
             });
@@ -67,21 +67,21 @@ public class ExclusionUtils {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$0(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$0(View l) {
             setReadingException(0);
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$1(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$1(View l) {
             setReadingException(-1);
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$2(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$2(View l) {
             setReadingException(1);
         }
 
-        private void setReadingException(int selectedMode) throws IllegalAccessException, InvocationTargetException {
+        private void setReadingException(int selectedMode) {
             if (selectedMode == 1) {
                 ReExteraDb.get().setDialogReading(this.dialogId, 1);
                 this.reading_cell_always.setChecked(true, true);
@@ -138,7 +138,7 @@ public class ExclusionUtils {
             this.typing_cell_Defaults.setTextAndValue(Localization.BASED_ON_GLOBAL, false);
             this.typing_cell_Defaults.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionTypingDialog$$ExternalSyntheticLambda0
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$0(view);
                 }
             });
@@ -148,7 +148,7 @@ public class ExclusionUtils {
             this.typing_cell_never.setTextAndValue(Localization.NEVER + Localization.NOT + Localization.TYPE, false);
             this.typing_cell_never.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionTypingDialog$$ExternalSyntheticLambda1
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$1(view);
                 }
             });
@@ -158,7 +158,7 @@ public class ExclusionUtils {
             this.typing_cell_always.setTextAndValue(Localization.ALWAYS + " " + Localization.TYPE, false);
             this.typing_cell_always.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionTypingDialog$$ExternalSyntheticLambda2
                 @Override // android.view.View.OnClickListener
-                public final void onClick(View view) throws IllegalAccessException, InvocationTargetException {
+                public final void onClick(View view) {
                     this.f$0.lambda$new$2(view);
                 }
             });
@@ -169,21 +169,21 @@ public class ExclusionUtils {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$0(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$0(View l) {
             setTypingException(0);
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$1(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$1(View l) {
             setTypingException(-1);
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$2(View l) throws IllegalAccessException, InvocationTargetException {
+        public /* synthetic */ void lambda$new$2(View l) {
             setTypingException(1);
         }
 
-        private void setTypingException(int selectedMode) throws IllegalAccessException, InvocationTargetException {
+        private void setTypingException(int selectedMode) {
             if (selectedMode == 1) {
                 ReExteraDb.get().setDialogTyping(this.dialogId, 1);
                 this.typing_cell_always.setChecked(true, true);

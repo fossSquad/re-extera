@@ -1,8 +1,40 @@
 package ni.shikatu.re_extera.settings;
 
+import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
 
 public class Settings {
+
+    public enum SendSilence {
+        YES,
+        NO,
+        ONLY_WITH_GHOST;
+
+        public int getType() {
+            switch (ordinal()) {
+                case Defaults.GLOBAL_VALUE /* 0 */:
+                    return 1;
+                case Defaults.ALWAYS /* 1 */:
+                    return 0;
+                case 2:
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        public static SendSilence getValue(int value) {
+            switch (value) {
+                case Defaults.ALWAYS /* 1 */:
+                    return YES;
+                case 2:
+                    return ONLY_WITH_GHOST;
+                default:
+                    return NO;
+            }
+        }
+    }
+
     private static int get(String settingName, int defaultValue) {
         return Main.getApplicationContext().getSharedPreferences("re_extera", 0).getInt(settingName, defaultValue);
     }
@@ -27,14 +59,6 @@ public class Settings {
         Main.getApplicationContext().getSharedPreferences("re_extera", 0).edit().putBoolean(settingName, value).apply();
     }
 
-    public static boolean getDisableAds() {
-        return get("disable_ads", true);
-    }
-
-    public static void setDisableAds(boolean value) {
-        set("disable_ads", value);
-    }
-
     public static boolean getImmediateOffline() {
         return get("immediate_offline", false);
     }
@@ -57,14 +81,6 @@ public class Settings {
 
     public static void setSaveOneTimeMessages(boolean value) {
         set("save_one_time_messages", value);
-    }
-
-    public static boolean getDisableBlurOnOneTimeMessages() {
-        return get("disable_blur", false);
-    }
-
-    public static void setDisableBlurOnOneTimeMessages(boolean value) {
-        set("disable_blur", value);
     }
 
     public static String getCustomPrefix() {
@@ -115,10 +131,6 @@ public class Settings {
         return get("save_edited_messages", false);
     }
 
-    public static boolean getEnableAlpha() {
-        return get("enable_alpha", false);
-    }
-
     public static boolean getSaveDeletedMessages() {
         return get("save_deleted_messages", false);
     }
@@ -131,24 +143,16 @@ public class Settings {
         set("save_edited_messages", value);
     }
 
-    public static boolean getSaveOwnMessages() {
-        return get("save_own_messages", true);
+    public static boolean getGhostModeEnabledGlobal() {
+        return get("ghost_mode_enabled", true);
     }
 
-    public static void setSaveOwnMessages(boolean value) {
-        set("save_own_messages", value);
-    }
-
-    public static void setEnableAlpha(boolean value) {
-        set("enable_alpha", value);
+    public static void setGhostModeEnabledGlobal(boolean value) {
+        set("ghost_mode_enabled", value);
     }
 
     public static void setRemoveFlagSecure(boolean value) {
         set("remove_flag_secure", value);
-    }
-
-    public static void setSaveDeletedMessages() {
-        set("save_deleted_messages", true);
     }
 
     public static boolean getUseSchedule() {
@@ -189,5 +193,71 @@ public class Settings {
 
     public static void setUseExpandableBlockQuote(boolean value) {
         set("use_expandable_blockquote", value);
+    }
+
+    public static boolean getAddGhostToDrawer() {
+        return get("add_ghost_to_drawer", true);
+    }
+
+    public static void setAddGhostToDrawer(boolean value) {
+        set("add_ghost_to_drawer", value);
+    }
+
+    public static void setShowSettingsInDrawer(boolean value) {
+        set("show_settings_in_drawer", value);
+    }
+
+    public static boolean getShowSettingsInDrawer() {
+        return get("show_settings_in_drawer", true);
+    }
+
+    public static void setLocalPremium(boolean value) {
+        set("local_premium", value);
+    }
+
+    public static boolean getLocalPremium() {
+        return get("local_premium", false);
+    }
+
+    public static boolean getHideOnlineWithGhost() {
+        return getHideOnline() && getGhostModeEnabledGlobal();
+    }
+
+    public static boolean getHideTypingWithGhost() {
+        return getHideTyping() && getGhostModeEnabledGlobal();
+    }
+
+    public static boolean getHideReadingWithGhost() {
+        return getHideReading() && getGhostModeEnabledGlobal();
+    }
+
+    public static boolean getNoReadStoriesWithGhost() {
+        return getNoReadStories() && getGhostModeEnabledGlobal();
+    }
+
+    public static boolean getImmediateOfflineWithGhost() {
+        return getImmediateOffline() && getGhostModeEnabledGlobal();
+    }
+
+    public static int countOfGhost() {
+        int c = getHideOnline() ? 0 + 1 : 0;
+        if (getHideTyping()) {
+            c++;
+        }
+        if (getHideReading()) {
+            c++;
+        }
+        if (getNoReadStories()) {
+            c++;
+        }
+        return getImmediateOffline() ? c + 1 : c;
+    }
+
+    public static int getSendSilence() {
+        return get("send_silence", SendSilence.NO.getType());
+    }
+
+    public static void setSendSilence(SendSilence value) {
+        set("send_silence", value.getType());
     }
 }

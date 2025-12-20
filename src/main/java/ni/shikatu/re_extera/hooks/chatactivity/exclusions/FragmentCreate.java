@@ -23,7 +23,6 @@ import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
-import org.telegram.ui.LaunchActivity;
 
 public class FragmentCreate extends XC_MethodHook {
     private static final int MENU_EXCEPTIONS = 6961;
@@ -73,7 +72,7 @@ public class FragmentCreate extends XC_MethodHook {
             return;
         }
         Context context = thisObject.getContext();
-        this.exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, dialog_id), thisObject.getResourceProvider());
+        this.exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, dialog_id, thisObject), thisObject.getResourceProvider());
         this.exceptionsItem = headerItem.addSwipeBackItem(R.drawable.filled_giveaway_premium, (Drawable) null, "re:extera", this.exceptionsPopupWrapper.windowLayout);
         this.exceptionsItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$$ExternalSyntheticLambda0
             @Override // android.view.View.OnClickListener
@@ -88,11 +87,13 @@ public class FragmentCreate extends XC_MethodHook {
         final /* synthetic */ Context val$context;
         final /* synthetic */ long val$dialog_id;
         final /* synthetic */ ActionBarMenuItem val$headerItem;
+        final /* synthetic */ ChatActivity val$thisObject;
 
-        AnonymousClass1(ActionBarMenuItem actionBarMenuItem, Context context, long j) {
+        AnonymousClass1(ActionBarMenuItem actionBarMenuItem, Context context, long j, ChatActivity chatActivity) {
             this.val$headerItem = actionBarMenuItem;
             this.val$context = context;
             this.val$dialog_id = j;
+            this.val$thisObject = chatActivity;
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
@@ -128,7 +129,7 @@ public class FragmentCreate extends XC_MethodHook {
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
         public void showDeletedMessages() {
             DeletedMessagesInChatFragment fragment = DeletedMessagesInChatFragment.newInstance(this.val$dialog_id);
-            LaunchActivity.getLastFragment().presentFragment(fragment);
+            this.val$thisObject.presentFragment(fragment);
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback

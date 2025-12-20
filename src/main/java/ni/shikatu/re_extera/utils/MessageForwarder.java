@@ -395,7 +395,7 @@ public class MessageForwarder {
         }
         if (hasMedia && !mediaInfos.isEmpty()) {
             Main.log("NoforwardsHook: Calling prepareSendingMedia with " + mediaInfos.size() + " items, grouped=" + isGrouped, new Object[0]);
-            SendMessagesHelper.prepareSendingMedia(accountInstance, mediaInfos, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, false, isGrouped, (MessageObject) null, notify, scheduleDate, 0, false, (InputContentInfoCompat) null, (String) null, 0, 0L, false, 0L, 0L, (MessageSuggestionParams) null);
+            SendMessagesHelper.prepareSendingMedia(accountInstance, mediaInfos, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, false, isGrouped, (MessageObject) null, notify, scheduleDate, 0, 0, false, (InputContentInfoCompat) null, (String) null, 0, 0L, false, 0L, 0L, (MessageSuggestionParams) null);
         }
     }
 
@@ -427,13 +427,13 @@ public class MessageForwarder {
         }
         if (original2.media instanceof TLRPC.TL_messageMediaGeo) {
             TLRPC.TL_messageMediaGeo mediaGeo = original2.media;
-            SendMessagesHelper.SendMessageParams sendParams = SendMessagesHelper.SendMessageParams.of(mediaGeo, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate);
+            SendMessagesHelper.SendMessageParams sendParams = SendMessagesHelper.SendMessageParams.of(mediaGeo, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0);
             accountInstance.getSendMessagesHelper().sendMessage(sendParams);
             return;
         }
         if (original2.media instanceof TLRPC.TL_messageMediaVenue) {
             TLRPC.TL_messageMediaVenue venue = original2.media;
-            SendMessagesHelper.SendMessageParams sendParams2 = SendMessagesHelper.SendMessageParams.of(venue, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate);
+            SendMessagesHelper.SendMessageParams sendParams2 = SendMessagesHelper.SendMessageParams.of(venue, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0);
             accountInstance.getSendMessagesHelper().sendMessage(sendParams2);
             return;
         }
@@ -444,20 +444,20 @@ public class MessageForwarder {
             ((TLRPC.User) tL_user).first_name = contact.first_name;
             ((TLRPC.User) tL_user).last_name = contact.last_name;
             ((TLRPC.User) tL_user).phone = contact.phone_number;
-            SendMessagesHelper.SendMessageParams sendParams3 = SendMessagesHelper.SendMessageParams.of(tL_user, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate);
+            SendMessagesHelper.SendMessageParams sendParams3 = SendMessagesHelper.SendMessageParams.of(tL_user, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0);
             accountInstance.getSendMessagesHelper().sendMessage(sendParams3);
             return;
         }
         if (original2.media instanceof TLRPC.TL_messageMediaPoll) {
             TLRPC.TL_messageMediaPoll mediaPoll = original2.media;
-            SendMessagesHelper.SendMessageParams sendParams4 = SendMessagesHelper.SendMessageParams.of(mediaPoll, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate);
+            SendMessagesHelper.SendMessageParams sendParams4 = SendMessagesHelper.SendMessageParams.of(mediaPoll, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0);
             accountInstance.getSendMessagesHelper().sendMessage(sendParams4);
             return;
         }
         if (!(original2.media instanceof TLRPC.TL_messageMediaDocument)) {
             if (original2.message != null && !original2.message.isEmpty()) {
                 Main.log("Message is a text", new Object[0]);
-                SendMessagesHelper.SendMessageParams sendParams5 = SendMessagesHelper.SendMessageParams.of(original2.message, peer, replyToTopMsg, replyToTopMsg, (TLRPC.WebPage) null, true, original2.entities, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, (MessageObject.SendAnimationData) null, false);
+                SendMessagesHelper.SendMessageParams sendParams5 = SendMessagesHelper.SendMessageParams.of(original2.message, peer, replyToTopMsg, replyToTopMsg, (TLRPC.WebPage) null, true, original2.entities, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, (MessageObject.SendAnimationData) null, false);
                 accountInstance.getSendMessagesHelper().sendMessage(sendParams5);
                 return;
             }
@@ -467,10 +467,10 @@ public class MessageForwarder {
         if (MessageObject.isStickerMessage(original2) || MessageObject.isAnimatedStickerMessage(original2) || MessageObject.isVideoSticker(mediaDoc.document)) {
             Main.log("Message is sticker", new Object[0]);
             original = original2;
-            accountInstance.getSendMessagesHelper().sendSticker(mediaDoc.document, (String) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (MessageObject.SendAnimationData) null, notify, scheduleDate, false, msgObj, (String) null, 0, 0L, 0L, (MessageSuggestionParams) null);
+            accountInstance.getSendMessagesHelper().sendSticker(mediaDoc.document, (String) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (MessageObject.SendAnimationData) null, notify, scheduleDate, 0, false, msgObj, (String) null, 0, 0L, 0L, (MessageSuggestionParams) null);
         } else if (MessageObject.isVoiceMessage(original2)) {
             Main.log("Message is voice", new Object[0]);
-            SendMessagesHelper.SendMessageParams sendParams6 = SendMessagesHelper.SendMessageParams.of(msgObj.getDocument(), (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, (String) null, (ArrayList) null, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, msgObj, (MessageObject.SendAnimationData) null, false, false);
+            SendMessagesHelper.SendMessageParams sendParams6 = SendMessagesHelper.SendMessageParams.of(msgObj.getDocument(), (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, (String) null, (ArrayList) null, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, 0, msgObj, (MessageObject.SendAnimationData) null, false, false);
             accountInstance.getSendMessagesHelper().sendMessage(sendParams6);
             original = original2;
         } else if (MessageObject.isRoundVideoMessage(original2)) {
@@ -499,7 +499,7 @@ public class MessageForwarder {
             videoEditedInfo.resultHeight = height;
             videoEditedInfo.originalWidth = width;
             videoEditedInfo.originalHeight = height;
-            SendMessagesHelper.prepareSendingVideo(accountInstance, path, videoEditedInfo, (String) null, (TLRPC.Photo) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (ArrayList) null, 0, (MessageObject) null, notify, 0, false, false, (CharSequence) null, (String) null, 0, 0L, 0L);
+            SendMessagesHelper.prepareSendingVideo(accountInstance, path, videoEditedInfo, (String) null, (TLRPC.Photo) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (ArrayList) null, 0, (MessageObject) null, notify, 0, 0, false, false, (CharSequence) null, (String) null, 0, 0L, 0L);
             original = original2;
         } else {
             Main.log("Message is a document", new Object[0]);

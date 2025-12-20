@@ -432,122 +432,52 @@ public class ReExteraDb {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:35:0x0046 A[EXC_TOP_SPLITTER, SYNTHETIC] */
     public int getDialogReading(long did) throws IllegalAccessException, InvocationTargetException {
         SQLiteDatabase db = this.helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT exception_reading FROM exception_users WHERE did = ?", new String[]{String.valueOf(did)});
         try {
-            Cursor c = db.rawQuery("SELECT exception_reading FROM exception_users WHERE did = ?", new String[]{String.valueOf(did)});
-            try {
-                if (c.moveToFirst()) {
-                    int i = c.getInt(0);
-                    if (c != null) {
-                        c.close();
-                    }
-                    if (db != null) {
-                        db.close();
-                    }
-                    return i;
-                }
+            if (c.moveToFirst()) {
+                int i = c.getInt(0);
                 if (c != null) {
                     c.close();
                 }
-                if (db != null) {
-                    db.close();
-                }
-                return 0;
-            } catch (Throwable th) {
-                if (c != null) {
-                    try {
-                        c.close();
-                    } catch (Throwable th2) {
-                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                    }
-                }
-                throw th;
+                return i;
             }
-        } catch (Throwable th3) {
-            if (db != null) {
+            if (c != null) {
+                c.close();
+            }
+            return 0;
+        } catch (Throwable th) {
+            if (c != null) {
                 try {
-                    db.close();
-                } catch (Throwable th4) {
-                    Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th3, th4);
+                    c.close();
+                } catch (Throwable th2) {
+                    Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
                 }
             }
-            throw th3;
+            throw th;
         }
-        if (db != null) {
-            db.close();
-        }
-        throw th3;
     }
 
-    /* JADX WARN: Code duplicated, block: B:35:0x0046 A[EXC_TOP_SPLITTER, SYNTHETIC] */
     public int getDialogTyping(long did) throws IllegalAccessException, InvocationTargetException {
         SQLiteDatabase db = this.helper.getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT exception_typing FROM exception_users WHERE did = ?", new String[]{String.valueOf(did)});
         try {
-            Cursor c = db.rawQuery("SELECT exception_typing FROM exception_users WHERE did = ?", new String[]{String.valueOf(did)});
-            try {
-                if (c.moveToFirst()) {
-                    int i = c.getInt(0);
-                    if (c != null) {
-                        c.close();
-                    }
-                    if (db != null) {
-                        db.close();
-                    }
-                    return i;
-                }
+            if (c.moveToFirst()) {
+                int i = c.getInt(0);
                 if (c != null) {
                     c.close();
                 }
-                if (db != null) {
-                    db.close();
-                }
-                return 0;
-            } catch (Throwable th) {
-                if (c != null) {
-                    try {
-                        c.close();
-                    } catch (Throwable th2) {
-                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                    }
-                }
-                throw th;
+                return i;
             }
-        } catch (Throwable th3) {
-            if (db != null) {
-                try {
-                    db.close();
-                } catch (Throwable th4) {
-                    Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th3, th4);
-                }
+            if (c != null) {
+                c.close();
             }
-            throw th3;
-        }
-        if (db != null) {
-            db.close();
-        }
-        throw th3;
-    }
-
-    public void setDialogReading(long did, int value) throws IllegalAccessException, InvocationTargetException {
-        SQLiteDatabase db = this.helper.getWritableDatabase();
-        try {
-            ContentValues cv = new ContentValues();
-            cv.put("exception_reading", Integer.valueOf(value));
-            int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
-            if (upd == 0) {
-                cv.put("did", Long.valueOf(did));
-                cv.put("exception_typing", (Integer) 0);
-                db.insert("exception_users", null, cv);
-            }
-            if (db != null) {
-                db.close();
-            }
+            return 0;
         } catch (Throwable th) {
-            if (db != null) {
+            if (c != null) {
                 try {
-                    db.close();
+                    c.close();
                 } catch (Throwable th2) {
                     Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
                 }
@@ -556,29 +486,27 @@ public class ReExteraDb {
         }
     }
 
-    public void setDialogTyping(long did, int value) throws IllegalAccessException, InvocationTargetException {
+    public void setDialogReading(long did, int value) {
         SQLiteDatabase db = this.helper.getWritableDatabase();
-        try {
-            ContentValues cv = new ContentValues();
-            cv.put("exception_typing", Integer.valueOf(value));
-            int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
-            if (upd == 0) {
-                cv.put("did", Long.valueOf(did));
-                cv.put("exception_reading", (Integer) 0);
-                db.insert("exception_users", null, cv);
-            }
-            if (db != null) {
-                db.close();
-            }
-        } catch (Throwable th) {
-            if (db != null) {
-                try {
-                    db.close();
-                } catch (Throwable th2) {
-                    Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                }
-            }
-            throw th;
+        ContentValues cv = new ContentValues();
+        cv.put("exception_reading", Integer.valueOf(value));
+        int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
+        if (upd == 0) {
+            cv.put("did", Long.valueOf(did));
+            cv.put("exception_typing", (Integer) 0);
+            db.insert("exception_users", null, cv);
+        }
+    }
+
+    public void setDialogTyping(long did, int value) {
+        SQLiteDatabase db = this.helper.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("exception_typing", Integer.valueOf(value));
+        int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
+        if (upd == 0) {
+            cv.put("did", Long.valueOf(did));
+            cv.put("exception_reading", (Integer) 0);
+            db.insert("exception_users", null, cv);
         }
     }
 

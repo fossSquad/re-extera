@@ -7,12 +7,15 @@ import java.lang.reflect.Method;
 import ni.shikatu.re_extera.Main;
 
 public class ReflectionUtils {
-    public static Object invoke(Method method, Object object, Object... args) {
+    public static <T> T invoke(Method method, Object obj, Object... objArr) {
+        if (method == null) {
+            return null;
+        }
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }
         try {
-            return method.invoke(object, args);
+            return (T) method.invoke(obj, objArr);
         } catch (IllegalAccessException e) {
             Main.log("IllegalAccessException", e.getMessage());
             return null;
@@ -25,7 +28,7 @@ public class ReflectionUtils {
         }
     }
 
-    public static Object get(Field field, Object object) {
+    public static <T> T get(Field field, Object obj) {
         if (field == null) {
             return null;
         }
@@ -33,7 +36,7 @@ public class ReflectionUtils {
             field.setAccessible(true);
         }
         try {
-            return field.get(object);
+            return (T) field.get(obj);
         } catch (IllegalAccessException e) {
             Main.log("IllegalAccessException", e.getMessage());
             return null;
@@ -54,12 +57,15 @@ public class ReflectionUtils {
         }
     }
 
-    public static Object invokeOriginalMethod(Method method, Object object, Object[] args) {
+    public static <T> T invokeOriginalMethod(Method method, Object obj, Object[] objArr) {
+        if (method == null) {
+            return null;
+        }
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }
         try {
-            return XposedBridge.invokeOriginalMethod(method, object, args);
+            return (T) XposedBridge.invokeOriginalMethod(method, obj, objArr);
         } catch (IllegalAccessException e) {
             Main.log("Exception", e.getMessage());
             return null;
