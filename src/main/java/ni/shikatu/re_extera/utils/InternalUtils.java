@@ -33,6 +33,7 @@ public class InternalUtils {
             updateDialogs = MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
             sendSecretMessageRead = ChatActivity.class.getDeclaredMethod("sendSecretMessageRead", MessageObject.class, Boolean.TYPE);
         } catch (NoSuchMethodException e) {
+            ReflectionUtils.hookError();
             Main.log("No such method", e.getMessage());
         }
     }

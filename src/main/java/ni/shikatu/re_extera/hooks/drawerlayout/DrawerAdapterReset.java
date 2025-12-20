@@ -8,6 +8,7 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.InternalUtils;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -24,6 +25,7 @@ public class DrawerAdapterReset extends XC_MethodHook {
             itemsField = DrawerLayoutAdapter.class.getDeclaredField("items");
             itemsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
+            ReflectionUtils.hookError();
             Main.log("NoSuchFieldException", e.getMessage());
         }
     }

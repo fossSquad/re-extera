@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -36,6 +37,7 @@ public class MeasureTime extends XC_MethodHook {
             timeWidth = ChatMessageCell.class.getDeclaredField("timeWidth");
             timeWidth.setAccessible(true);
         } catch (Exception e) {
+            ReflectionUtils.hookError();
         }
     }
 

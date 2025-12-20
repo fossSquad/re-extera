@@ -36,6 +36,7 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
             setupTranslation = SecretVoicePlayer.class.getDeclaredMethod("setupTranslation", new Class[0]);
             setupTranslation.setAccessible(true);
         } catch (Exception e) {
+            ReflectionUtils.hookError();
             Main.log("SecretVoicePlayerDismiss: %s", e.getMessage());
         }
     }

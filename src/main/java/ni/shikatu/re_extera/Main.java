@@ -35,6 +35,7 @@ public class Main {
         try {
             initiateFragment = SettingsRegistry.class.getDeclaredMethod("initiateFragment", Class.class);
         } catch (NoSuchMethodException e) {
+            ReflectionUtils.hookError();
             log("initiateFragment method not found.", new Object[0]);
         }
     }

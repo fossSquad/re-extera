@@ -8,6 +8,7 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.ui.MessageHistoryFragment;
 import ni.shikatu.re_extera.utils.InternalUtils;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.SendMessagesHelper;
@@ -28,6 +29,7 @@ public class ProcessSelectedOption extends XC_MethodHook {
             selectedObjectField = ChatActivity.class.getDeclaredField("selectedObject");
             selectedObjectField.setAccessible(true);
         } catch (Exception e) {
+            ReflectionUtils.hookError();
             Main.log("Error on ProcessSelectedOption %s", e.getMessage());
         }
     }

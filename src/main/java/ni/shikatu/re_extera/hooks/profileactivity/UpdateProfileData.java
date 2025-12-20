@@ -48,8 +48,10 @@ public class UpdateProfileData extends XC_MethodHook {
             onlineTextView.setAccessible(true);
             hookSetText();
         } catch (NoSuchFieldException e) {
+            ReflectionUtils.hookError();
             Main.log("Not found field: %s", e.getMessage());
         } catch (NoSuchMethodException e2) {
+            ReflectionUtils.hookError();
             Main.log("Not found method: %s", e2.getMessage());
         }
         blockHook = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1

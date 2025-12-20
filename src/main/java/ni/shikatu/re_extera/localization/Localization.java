@@ -11,11 +11,14 @@ public class Localization {
     public static String ALPHA_WARNING;
     public static String ALWAYS;
     public static String BASED_ON_GLOBAL;
+    public static String BROKE_HOOKS_DESCRIPTION;
     public static String CANCEL;
     public static String CANT_USE_WITH_PREMIUM;
     public static String CLEARING_NOW;
     public static String CLEAR_DB;
     public static String CLEAR_DELETED;
+    public static String CLOSE_APPLICATION;
+    public static String CONTINUE_ANYWAY;
     public static String COPIED;
     public static String COPY_FILTER;
     public static String CUSTOM_PREFIX;
@@ -96,6 +99,7 @@ public class Localization {
     public static String USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION;
     public static String USE_SCHEDULE;
     public static String VIEW_DELETED;
+    public static String WE_BROKE_SOMETHING;
     public static String YES;
 
     public static void updateStrings() {
@@ -195,6 +199,10 @@ public class Localization {
             DELETED_MESSAGES_TITLE = "Удаленные сообщения";
             UNLOAD_REEXTERA = "Выгрузить хуки re:extera";
             UNLOAD_SUCCESSFULL = "Выгружено успешно";
+            WE_BROKE_SOMETHING = "Мы что-то сломали...";
+            BROKE_HOOKS_DESCRIPTION = "Приложение не смогло инициализировать необходимые хуки. re:extera не будет работать\n\nЗакрыть приложение или продолжить?";
+            CLOSE_APPLICATION = "Закрыть приложение";
+            CONTINUE_ANYWAY = "Все равно продолжить";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -291,5 +299,9 @@ public class Localization {
         DELETED_MESSAGES_TITLE = "Deleted messages";
         UNLOAD_REEXTERA = "Unload re:extera hooks";
         UNLOAD_SUCCESSFULL = "Unloaded successfully";
+        WE_BROKE_SOMETHING = "We broke something...";
+        BROKE_HOOKS_DESCRIPTION = "The application failed to initialize necessary hooks. re:extera will not work.\n\nWould you like to close the app or continue anyway?";
+        CLOSE_APPLICATION = "Close Application";
+        CONTINUE_ANYWAY = "Continue anyway";
     }
 }

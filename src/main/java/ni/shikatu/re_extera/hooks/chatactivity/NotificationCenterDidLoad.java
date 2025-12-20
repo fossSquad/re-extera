@@ -10,6 +10,7 @@ import java.util.Set;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
@@ -24,6 +25,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             forwardEndReachedField = ChatActivity.class.getDeclaredField("forwardEndReached");
             forwardEndReachedField.setAccessible(true);
         } catch (NoSuchFieldException e) {
+            ReflectionUtils.hookError();
             Main.log("Failed to get forwardEndReached field", e.getMessage());
         }
     }

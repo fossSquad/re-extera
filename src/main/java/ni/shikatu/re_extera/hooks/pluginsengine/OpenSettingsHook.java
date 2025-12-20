@@ -12,7 +12,7 @@ public class OpenSettingsHook extends XC_MethodHook {
         if (plugin == null) {
             return;
         }
-        if (OpenSettingsHook$$ExternalSyntheticBackport0.m(plugin.getId(), "re_extera_dex") || OpenSettingsHook$$ExternalSyntheticBackport0.m(plugin.getId(), "re_extera_dex_local_debug")) {
+        if (OpenSettingsHook$$ExternalSyntheticBackport0.m(plugin.getId(), "re_extera_dex") || OpenSettingsHook$$ExternalSyntheticBackport0.m(plugin.getId(), "re_extera_dex_local_debug") || OpenSettingsHook$$ExternalSyntheticBackport0.m(plugin.getId(), "re_extera_dex_unstable")) {
             fragment.presentFragment(new SettingsFragmentNew());
             param.setResult((Object) null);
         }

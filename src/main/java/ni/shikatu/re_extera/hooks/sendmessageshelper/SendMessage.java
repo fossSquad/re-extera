@@ -35,6 +35,7 @@ public class SendMessage extends XC_MethodHook {
         try {
             isPremium = UserConfig.class.getDeclaredMethod("isPremium", new Class[0]);
         } catch (NoSuchMethodException e) {
+            ReflectionUtils.hookError();
             Main.log("No such method", e.getMessage());
         }
         returnNullHook = new XC_MethodReplacement() { // from class: ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage.1

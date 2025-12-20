@@ -40,6 +40,7 @@ public class FragmentCreate extends XC_MethodHook {
             argumentsField = BaseFragment.class.getDeclaredField("arguments");
             argumentsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
+            ReflectionUtils.hookError();
             Main.log("No headerItem field found", e.getMessage());
         }
     }
