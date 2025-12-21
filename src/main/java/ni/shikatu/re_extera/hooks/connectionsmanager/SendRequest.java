@@ -39,7 +39,7 @@ public class SendRequest extends XC_MethodHook {
         if ((updatestatus instanceof TL_account.updateStatus) && Settings.getHideOnlineWithGhost()) {
             updatestatus.offline = true;
         }
-        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions)) {
+        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions) || (updatestatus instanceof TLRPC.TL_messages_readReactions)) {
             Main.log("Sending onInteract request", new Object[0]);
             if (Settings.getReadOnInteract()) {
                 if (updatestatus instanceof TLRPC.TL_messages_sendReaction) {
