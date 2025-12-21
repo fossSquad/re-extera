@@ -32,7 +32,7 @@ public class DrawerAdapterReset extends XC_MethodHook {
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
         DrawerLayoutAdapter thisObject = (DrawerLayoutAdapter) param.thisObject;
-        ArrayList<DrawerLayoutAdapter.Item> items = (ArrayList) itemsField.get(thisObject);
+        ArrayList<DrawerLayoutAdapter.Item> items = (ArrayList) ReflectionUtils.get(itemsField, thisObject);
         if (Settings.getAddGhostToDrawer()) {
             DrawerLayoutAdapter.Item ghostItem = getGhostItem();
             if (items != null) {

@@ -42,7 +42,7 @@ public class ProcessSelectedOption extends XC_MethodHook {
         if (thisObj == null) {
             return;
         }
-        MessageObject messageObject = (MessageObject) selectedObjectField.get(thisObj);
+        MessageObject messageObject = (MessageObject) ReflectionUtils.get(selectedObjectField, thisObj);
         if (option == 6363) {
             Main.log("Hooked 6363 match", new Object[0]);
             if (messageObject != null) {

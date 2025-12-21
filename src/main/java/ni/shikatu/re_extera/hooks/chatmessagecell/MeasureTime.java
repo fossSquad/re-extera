@@ -75,12 +75,12 @@ public class MeasureTime extends XC_MethodHook {
             }
             spannableStringBuilder.append(" ");
             ((SpannableStringBuilder) charSequence).insert(0, (CharSequence) spannableStringBuilder);
-            currentTimeString.set(chatMessageCell, charSequence);
+            ReflectionUtils.set(currentTimeString, chatMessageCell, charSequence);
             int iCeil = (int) Math.ceil(textPaint.measureText(spannableStringBuilder, 0, spannableStringBuilder.length()));
-            int iIntValue = ((Integer) timeTextWidth.get(chatMessageCell)).intValue();
-            int iIntValue2 = ((Integer) timeWidth.get(chatMessageCell)).intValue();
-            timeTextWidth.set(chatMessageCell, Integer.valueOf(iCeil + iIntValue));
-            timeWidth.set(chatMessageCell, Integer.valueOf(iCeil + iIntValue2));
+            int iIntValue = ((Integer) ReflectionUtils.get(timeTextWidth, chatMessageCell)).intValue();
+            int iIntValue2 = ((Integer) ReflectionUtils.get(timeWidth, chatMessageCell)).intValue();
+            ReflectionUtils.set(timeTextWidth, chatMessageCell, Integer.valueOf(iCeil + iIntValue));
+            ReflectionUtils.set(timeWidth, chatMessageCell, Integer.valueOf(iCeil + iIntValue2));
             chatMessageCell.requestLayout();
             chatMessageCell.invalidate();
         }

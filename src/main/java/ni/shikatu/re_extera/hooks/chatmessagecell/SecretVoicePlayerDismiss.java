@@ -45,23 +45,23 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
         if (Settings.getSaveOneTimeMessages()) {
             Field closeActionF = SecretVoicePlayer.class.getDeclaredField("closeAction");
             closeActionF.setAccessible(true);
-            closeActionF.set(param.thisObject, null);
+            ReflectionUtils.set(closeActionF, param.thisObject, null);
             Field thanosEffectF = SecretVoicePlayer.class.getDeclaredField("thanosEffect");
             thanosEffectF.setAccessible(true);
-            thanosEffectF.set(param.thisObject, null);
+            ReflectionUtils.set(thanosEffectF, param.thisObject, null);
         }
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
         if (Settings.getSaveOneTimeMessages()) {
-            AlertDialog backDialogC = (AlertDialog) backDialog.get(param.thisObject);
-            HintView2 hintViewC = (HintView2) hintView.get(param.thisObject);
-            VideoPlayer playerC = (VideoPlayer) player.get(param.thisObject);
-            FrameLayout windowViewC = (FrameLayout) windowView.get(param.thisObject);
-            EarListener earListenerC = (EarListener) earListener.get(param.thisObject);
+            AlertDialog backDialogC = (AlertDialog) ReflectionUtils.get(backDialog, param.thisObject);
+            HintView2 hintViewC = (HintView2) ReflectionUtils.get(hintView, param.thisObject);
+            VideoPlayer playerC = (VideoPlayer) ReflectionUtils.get(player, param.thisObject);
+            FrameLayout windowViewC = (FrameLayout) ReflectionUtils.get(windowView, param.thisObject);
+            EarListener earListenerC = (EarListener) ReflectionUtils.get(earListener, param.thisObject);
             if (backDialogC != null) {
                 backDialogC.dismiss();
-                backDialog.set(param.thisObject, null);
+                ReflectionUtils.set(backDialog, param.thisObject, null);
             }
             if (hintViewC != null) {
                 hintViewC.hide();
@@ -69,7 +69,7 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
             if (playerC != null) {
                 playerC.pause();
                 playerC.releasePlayer(true);
-                player.set(param.thisObject, null);
+                ReflectionUtils.set(player, param.thisObject, null);
             }
             ReflectionUtils.invoke(setupTranslation, param.thisObject, new Object[0]);
             if (windowViewC != null) {

@@ -27,6 +27,7 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 public class ReflectionUtils {
     public static <T> T invoke(Method method, Object obj, Object... objArr) {
         if (method == null) {
+            hookError();
             return null;
         }
         if (!method.isAccessible()) {
@@ -48,6 +49,7 @@ public class ReflectionUtils {
 
     public static <T> T get(Field field, Object obj) {
         if (field == null) {
+            hookError();
             return null;
         }
         if (!field.isAccessible()) {
@@ -63,6 +65,7 @@ public class ReflectionUtils {
 
     public static void set(Field field, Object object, Object value) {
         if (field == null) {
+            hookError();
             return;
         }
         if (!field.isAccessible()) {
@@ -77,6 +80,7 @@ public class ReflectionUtils {
 
     public static <T> T invokeOriginalMethod(Method method, Object obj, Object[] objArr) {
         if (method == null) {
+            hookError();
             return null;
         }
         if (!method.isAccessible()) {

@@ -68,7 +68,7 @@ public class FragmentCreate extends XC_MethodHook {
         Main.log("Creating menu", new Object[0]);
         ChatActivity thisObject = (ChatActivity) param.thisObject;
         long dialog_id = thisObject.getDialogId();
-        ActionBarMenuItem headerItem = (ActionBarMenuItem) headerItemField.get(thisObject);
+        ActionBarMenuItem headerItem = (ActionBarMenuItem) ReflectionUtils.get(headerItemField, thisObject);
         if (headerItem == null) {
             return;
         }
