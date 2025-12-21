@@ -39,7 +39,7 @@ public class SendRequest extends XC_MethodHook {
         if ((updatestatus instanceof TL_account.updateStatus) && Settings.getHideOnlineWithGhost()) {
             updatestatus.offline = true;
         }
-        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions) || (updatestatus instanceof TLRPC.TL_messages_readReactions) || (updatestatus instanceof TLRPC.TL_messages_sendMessage) || (updatestatus instanceof TLRPC.TL_messages_forwardMessage) || (updatestatus instanceof TLRPC.TL_messages_forwardMessages)) {
+        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions) || (updatestatus instanceof TLRPC.TL_messages_readReactions) || (updatestatus instanceof TLRPC.TL_messages_sendMessage) || (updatestatus instanceof TLRPC.TL_messages_forwardMessages)) {
             Main.log("Sending onInteract request", new Object[0]);
             if (Settings.getReadOnInteract()) {
                 if (updatestatus instanceof TLRPC.TL_messages_sendReaction) {
@@ -50,9 +50,6 @@ public class SendRequest extends XC_MethodHook {
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_sendMessage) {
                     InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendMessage) updatestatus).peer, 0, false);
-                }
-                if (updatestatus instanceof TLRPC.TL_messages_forwardMessage) {
-                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_forwardMessage) updatestatus).peer, 0, false);
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_forwardMessages) {
                     InternalUtils.sendReadMessage(((TLRPC.TL_messages_forwardMessages) updatestatus).to_peer, 0, false);
