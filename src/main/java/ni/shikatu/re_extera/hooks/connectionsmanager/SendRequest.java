@@ -51,8 +51,6 @@ public class SendRequest extends XC_MethodHook {
                 }
                 return;
             }
-            Main.log("ReadOnInteract is disabled, not reading", new Object[0]);
-            param.setResult((Object) null);
             return;
         }
         if (Defaults.readingRequests.contains(updatestatus.getClass())) {
