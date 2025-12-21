@@ -5,7 +5,10 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.HookInit;
@@ -19,6 +22,7 @@ import ni.shikatu.re_extera.ui.RegexFiltersFragment;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
+import org.telegram.tgnet.TLObject;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
@@ -30,6 +34,7 @@ public class Main {
     public static Main instance = null;
     public static List<Long> blocked = Main$$ExternalSyntheticBackport0.m(new Object[]{6204645839L});
     public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class});
+    public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
 
     static {
         try {
@@ -68,12 +73,9 @@ public class Main {
         });
     }
 
-    public static void requestSendWithUnhook(Runnable request) {
-        try {
-            hooks.sendRequestHook.unhook();
-            request.run();
-            hooks.startSendRequestHook();
-        } catch (Exception e) {
+    public static void addIgnoredRequest(TLObject request) {
+        if (request != null) {
+            ignoredRequests.add(request);
         }
     }
 

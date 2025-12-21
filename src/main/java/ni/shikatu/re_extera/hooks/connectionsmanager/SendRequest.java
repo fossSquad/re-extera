@@ -5,6 +5,7 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.InternalUtils;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
@@ -32,15 +33,26 @@ public class SendRequest extends XC_MethodHook {
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
         TL_account.updateStatus updatestatus = (TLObject) param.args[0];
-        if ((updatestatus instanceof TL_account.updateStatus) && Settings.getHideOnlineWithGhost()) {
-            updatestatus.offline = true;
+        if (Main.ignoredRequests.remove(updatestatus)) {
             return;
         }
+        if ((updatestatus instanceof TL_account.updateStatus) && Settings.getHideOnlineWithGhost()) {
+            updatestatus.offline = true;
+        }
         if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions)) {
-            if (!Settings.getReadOnInteract()) {
-                param.setResult((Object) null);
+            Main.log("Sending onInteract request", new Object[0]);
+            if (Settings.getReadOnInteract()) {
+                if (updatestatus instanceof TLRPC.TL_messages_sendReaction) {
+                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendReaction) updatestatus).peer, ((TLRPC.TL_messages_sendReaction) updatestatus).msg_id, false);
+                }
+                if (updatestatus instanceof TLRPC.TL_messages_sendVote) {
+                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendVote) updatestatus).peer, ((TLRPC.TL_messages_sendVote) updatestatus).msg_id, false);
+                    return;
+                }
                 return;
             }
+            Main.log("ReadOnInteract is disabled, not reading", new Object[0]);
+            param.setResult((Object) null);
             return;
         }
         if (Defaults.readingRequests.contains(updatestatus.getClass())) {

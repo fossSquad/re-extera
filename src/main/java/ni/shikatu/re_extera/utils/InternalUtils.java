@@ -12,10 +12,16 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.chatactivity.ProcessDeletedMessages;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
+import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.RequestDelegate;
+import org.telegram.tgnet.TLObject;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
@@ -56,7 +62,7 @@ public class InternalUtils {
             ReflectionUtils.invokeOriginalMethod(markMessagesAsDeleted, storage, args);
             if (shouldNotify) {
                 ProcessDeletedMessages.onRequestToDelete.addAll(messagesIdsParsed);
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda2
+                AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda3
                     @Override // java.lang.Runnable
                     public final void run() {
                         InternalUtils.lambda$deleteMessages$1(messagesIdsParsed, did, storage, rChannelId, messagesIds);
@@ -105,17 +111,21 @@ public class InternalUtils {
     }
 
     public static void sendSecretMessageRead(MessageObject mo) {
-        if (sendSecretMessageRead != null) {
-            ChatActivity lastFragment = LaunchActivity.getLastFragment();
-            if (lastFragment instanceof ChatActivity) {
-                ChatActivity chatActivity = lastFragment;
-                try {
-                    Runnable result = (Runnable) ReflectionUtils.invokeOriginalMethod(sendSecretMessageRead, chatActivity, new Object[]{mo, true});
-                    Main.requestSendWithUnhook(result);
-                } catch (Exception e) {
-                    Main.log("sendSecretMessageRead failed", e.getMessage());
-                }
-            }
+        if (mo == null) {
+            return;
+        }
+        boolean isEncrypted = DialogObject.isEncryptedDialog(mo.getDialogId());
+        if (isEncrypted || !mo.isSecretMedia()) {
+            return;
+        }
+        TLRPC.TL_messages_readMessageContents req = new TLRPC.TL_messages_readMessageContents();
+        req.id.add(Integer.valueOf(mo.getId()));
+        Main.addIgnoredRequest(req);
+        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(req, (RequestDelegate) null);
+        mo.setContentIsRead();
+        if (mo.messageOwner.ttl > 0 && mo.messageOwner.ttl != Integer.MAX_VALUE) {
+            mo.messageOwner.destroyTime = mo.messageOwner.ttl + ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
+            NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.updateMessageMedia, new Object[]{mo.messageOwner});
         }
     }
 
@@ -126,6 +136,67 @@ public class InternalUtils {
                 view.performHapticFeedback(3, 1);
             }
         } catch (Exception e) {
+        }
+    }
+
+    public static void sendReadMessage(TLRPC.InputPeer peer, int max_id, final boolean vibrate) {
+        TLRPC.TL_channels_readHistory tL_messages_readHistory;
+        if (peer.channel_id != 0) {
+            tL_messages_readHistory = new TLRPC.TL_channels_readHistory();
+            tL_messages_readHistory.channel = MessagesController.getInputChannel(peer);
+            tL_messages_readHistory.max_id = max_id;
+        } else {
+            tL_messages_readHistory = new TLRPC.TL_messages_readHistory();
+            ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).peer = peer;
+            ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).max_id = max_id;
+        }
+        Main.addIgnoredRequest(tL_messages_readHistory);
+        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_readHistory, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda4
+            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                InternalUtils.lambda$sendReadMessage$2(vibrate, tLObject, tL_error);
+            }
+        });
+    }
+
+    static /* synthetic */ void lambda$sendReadMessage$2(boolean vibrate, TLObject resp, TLRPC.TL_error error) {
+        if (vibrate) {
+            createShortVibration();
+        }
+    }
+
+    public static void sendReadMessage(MessageObject messageObject, final boolean vibrate) {
+        TLRPC.TL_channels_readHistory tL_messages_readHistory;
+        if (messageObject != null) {
+            MessagesController controller = MessagesController.getInstance(UserConfig.selectedAccount);
+            messageObject.setIsRead();
+            messageObject.setContentIsRead();
+            if (messageObject.isFromChannel()) {
+                tL_messages_readHistory = new TLRPC.TL_channels_readHistory();
+                tL_messages_readHistory.channel = MessagesController.getInputChannel(controller.getInputPeer(messageObject.getDialogId()));
+                tL_messages_readHistory.max_id = messageObject.getId();
+            } else {
+                tL_messages_readHistory = new TLRPC.TL_messages_readHistory();
+                ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).peer = controller.getInputPeer(messageObject.getDialogId());
+                ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).max_id = messageObject.getId();
+            }
+            Main.addIgnoredRequest(tL_messages_readHistory);
+            ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_readHistory, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda2
+                public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                    InternalUtils.lambda$sendReadMessage$3(vibrate, tLObject, tL_error);
+                }
+            });
+            if (messageObject.isSecret() || messageObject.isSecretMedia() || messageObject.isRoundOnce() || messageObject.isVoiceOnce()) {
+                sendSecretMessageRead(messageObject);
+                if (vibrate) {
+                    createShortVibration();
+                }
+            }
+        }
+    }
+
+    static /* synthetic */ void lambda$sendReadMessage$3(boolean vibrate, TLObject resp, TLRPC.TL_error error) {
+        if (vibrate) {
+            createShortVibration();
         }
     }
 }
