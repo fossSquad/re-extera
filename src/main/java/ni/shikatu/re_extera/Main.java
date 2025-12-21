@@ -23,7 +23,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
 public class Main {
-    public static final String VERSION = "1.3.3b-unstable-b1";
+    public static final String VERSION = "1.3.3b-unstable-b2";
     public static final int VERSION_CODE = 5;
     public static HookInit hooks;
     private static Method initiateFragment;
