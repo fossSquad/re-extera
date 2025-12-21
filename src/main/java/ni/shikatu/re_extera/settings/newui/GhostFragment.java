@@ -33,6 +33,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         GHOST_HIDE_TYPING_ID,
         GHOST_HIDE_READING_ID,
         GHOST_NO_READ_STORIES_ID,
+        READ_ON_INTERACT_ID,
         SEND_SILENCE_ID,
         ADD_GHOST_TO_DRAWER_ID,
         USE_SCHEDULE_ID,
@@ -97,8 +98,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_READING_ID.getId(), Localization.HIDE_READING_MESSAGE).setChecked(Settings.getHideReading()).pad());
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_NO_READ_STORIES_ID.getId(), Localization.NO_READ_STORIES).setChecked(Settings.getNoReadStories()).pad());
         }
+        items.add(UItem.asShadow());
+        items.add(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()).setLinkAlias("reExteraReadOnInteract", this));
         items.add(UItem.asCheck(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE).setChecked(Settings.getUseSchedule()).setLinkAlias("reExteraUseSchedule", this));
         items.add(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()).setLinkAlias("reExteraSendSilence", this));
+        items.add(UItem.asShadow());
         items.add(UItem.asCheck(GhostIds.ADD_GHOST_TO_DRAWER_ID.getId(), Localization.GHOST_IN_DRAWER).setChecked(Settings.getAddGhostToDrawer()).setLinkAlias("reExteraAddGhostToDrawer", this));
         items.add(UItem.asShadow());
         items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
@@ -135,6 +139,10 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
             case 6:
+                Settings.setReadOnInteract(!Settings.getReadOnInteract());
+                refreshCheckBox(item, position, Settings.getReadOnInteract());
+                break;
+            case ReExteraDb.DB_VERSION /* 7 */:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda1
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -142,16 +150,16 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case ReExteraDb.DB_VERSION /* 7 */:
+            case 8:
                 Settings.setAddGhostToDrawer(!Settings.getAddGhostToDrawer());
                 refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 break;
-            case 8:
+            case 9:
                 Settings.setUseSchedule(!Settings.getUseSchedule());
                 refreshCheckBox(item, position, Settings.getUseSchedule());
                 break;
-            case 9:
+            case 10:
                 presentFragment(new ExclusionsFragment());
                 break;
         }

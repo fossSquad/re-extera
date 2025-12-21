@@ -76,6 +76,7 @@ public class Localization {
     public static String PATTERN_ERROR;
     public static String READ;
     public static String READ_MESSAGE;
+    public static String READ_ON_INTERACT;
     public static String READ_TO;
     public static String RED_DELETED_MARK;
     public static String REMOVE_FLAG_SECURE;
@@ -203,6 +204,7 @@ public class Localization {
             BROKE_HOOKS_DESCRIPTION = "Приложение не смогло инициализировать необходимые хуки. re:extera не будет работать\n\nЗакрыть приложение или продолжить?";
             CLOSE_APPLICATION = "Закрыть приложение";
             CONTINUE_ANYWAY = "Все равно продолжить";
+            READ_ON_INTERACT = "Читать при действиях";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -303,5 +305,6 @@ public class Localization {
         BROKE_HOOKS_DESCRIPTION = "The application failed to initialize necessary hooks. re:extera will not work.\n\nWould you like to close the app or continue anyway?";
         CLOSE_APPLICATION = "Close Application";
         CONTINUE_ANYWAY = "Continue anyway";
+        READ_ON_INTERACT = "Read on interact";
     }
 }

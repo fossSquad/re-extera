@@ -36,6 +36,13 @@ public class SendRequest extends XC_MethodHook {
             updatestatus.offline = true;
             return;
         }
+        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions)) {
+            if (!Settings.getReadOnInteract()) {
+                param.setResult((Object) null);
+                return;
+            }
+            return;
+        }
         if (Defaults.readingRequests.contains(updatestatus.getClass())) {
             switch (current_reading_status) {
                 case Defaults.NEVER /* -1 */:
@@ -55,6 +62,7 @@ public class SendRequest extends XC_MethodHook {
                     Main.log("Selected ALWAYS, reading", new Object[0]);
                     break;
             }
+            return;
         }
         if (Defaults.typingRequests.contains(updatestatus.getClass())) {
             switch (current_typing_status) {
@@ -75,6 +83,7 @@ public class SendRequest extends XC_MethodHook {
                     Main.log("Selected ALWAYS, typing", new Object[0]);
                     break;
             }
+            return;
         }
         if (Defaults.storiesRequests.contains(updatestatus.getClass()) && Settings.getNoReadStoriesWithGhost()) {
             param.setResult((Object) null);

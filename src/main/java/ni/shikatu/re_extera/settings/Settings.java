@@ -239,6 +239,14 @@ public class Settings {
         return getImmediateOffline() && getGhostModeEnabledGlobal();
     }
 
+    public static boolean getReadOnInteract() {
+        return get("read_on_interact", false);
+    }
+
+    public static void setReadOnInteract(boolean value) {
+        set("read_on_interact", value);
+    }
+
     public static int countOfGhost() {
         int c = getHideOnline() ? 0 + 1 : 0;
         if (getHideTyping()) {
