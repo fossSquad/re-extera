@@ -53,7 +53,9 @@ public class SendRequest extends XC_MethodHook {
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_forwardMessages) {
                     InternalUtils.sendReadMessage(((TLRPC.TL_messages_forwardMessages) updatestatus).to_peer, 0, false);
+                    return;
                 }
+                return;
             }
         }
         if (Defaults.readingRequests.contains(updatestatus.getClass())) {
