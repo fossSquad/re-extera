@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
-import androidx.collection.LongSparseArray;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +13,7 @@ import ni.shikatu.re_extera.db.ShadowbanEntry;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -179,7 +176,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         if (getAdapter() != null) {
             getAdapter().update(true);
         }
-        notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate();
     }
 
     private void showDeleteConfirmation(final ShadowbanEntry entry, final int position) {
@@ -201,13 +198,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         if (getAdapter() != null) {
             getAdapter().update(true);
         }
-        notifyDialogsUpdate();
-    }
-
-    private void notifyDialogsUpdate() {
-        int account = UserConfig.selectedAccount;
-        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogsNeedReload, new Object[0]);
-        MessagesController.getInstance(account).sortDialogs((LongSparseArray) null);
+        ShadowbanCache.notifyDialogsUpdate();
     }
 
     private String buildStatusText(ShadowbanEntry entry) {

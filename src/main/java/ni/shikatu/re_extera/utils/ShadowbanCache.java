@@ -1,9 +1,14 @@
 package ni.shikatu.re_extera.utils;
 
+import androidx.collection.LongSparseArray;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.db.ShadowbanEntry;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
+import org.telegram.messenger.UserConfig;
 
 public class ShadowbanCache {
     private static final ConcurrentHashMap<Long, ShadowbanEntry> cache = new ConcurrentHashMap<>();
@@ -59,5 +64,24 @@ public class ShadowbanCache {
         if (existing != null) {
             cache.put(Long.valueOf(userId), new ShadowbanEntry(userId, hideDialog, hideInGroups, existing.addedTs));
         }
+    }
+
+    public static void notifyDialogsUpdate() {
+        AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.ShadowbanCache$$ExternalSyntheticLambda0
+            @Override // java.lang.Runnable
+            public final void run() {
+                ShadowbanCache.lambda$notifyDialogsUpdate$0();
+            }
+        });
+    }
+
+    static /* synthetic */ void lambda$notifyDialogsUpdate$0() {
+        int account = UserConfig.selectedAccount;
+        MessagesController controller = MessagesController.getInstance(account);
+        NotificationCenter nc = NotificationCenter.getInstance(account);
+        controller.sortDialogs((LongSparseArray) null);
+        nc.postNotificationName(NotificationCenter.dialogsNeedReload, new Object[]{true});
+        nc.postNotificationName(NotificationCenter.dialogsUnreadCounterChanged, new Object[]{0});
+        nc.postNotificationName(NotificationCenter.updateInterfaces, new Object[]{Integer.valueOf(MessagesController.UPDATE_MASK_ALL)});
     }
 }

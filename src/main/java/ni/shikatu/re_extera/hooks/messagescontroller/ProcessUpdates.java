@@ -4,9 +4,11 @@ import androidx.collection.LongSparseArray;
 import de.robv.android.xposed.XC_MethodHook;
 import java.util.ArrayList;
 import java.util.Iterator;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
+import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -66,11 +68,48 @@ public class ProcessUpdates extends XC_MethodHook {
             processTL_updateDeleteChannelMessages((TLRPC.TL_updateDeleteChannelMessages) update, channelDeleted);
             return true;
         }
-        if (!(update instanceof TLRPC.TL_updateDeleteScheduledMessages)) {
+        if (update instanceof TLRPC.TL_updateDeleteScheduledMessages) {
+            processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update);
             return true;
         }
-        processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update);
+        if (update instanceof TLRPC.TL_updateNewMessage) {
+            return processTL_updateNewMessage((TLRPC.TL_updateNewMessage) update);
+        }
+        if (update instanceof TLRPC.TL_updateNewChannelMessage) {
+            return processTL_updateNewChannelMessage((TLRPC.TL_updateNewChannelMessage) update);
+        }
         return true;
+    }
+
+    private boolean processTL_updateNewMessage(TLRPC.TL_updateNewMessage update) {
+        if (update.message == null) {
+            return true;
+        }
+        long fromId = getFromId(update.message);
+        if (fromId <= 0 || !ShadowbanCache.shouldHideDialog(fromId)) {
+            return true;
+        }
+        Main.log("ProcessUpdates: Filtered new message from shadowbanned user %d", Long.valueOf(fromId));
+        return false;
+    }
+
+    private boolean processTL_updateNewChannelMessage(TLRPC.TL_updateNewChannelMessage update) {
+        if (update.message == null) {
+            return true;
+        }
+        long fromId = getFromId(update.message);
+        if (fromId <= 0 || !ShadowbanCache.shouldHideInGroups(fromId)) {
+            return true;
+        }
+        Main.log("ProcessUpdates: Filtered channel message from shadowbanned user %d", Long.valueOf(fromId));
+        return false;
+    }
+
+    private long getFromId(TLRPC.Message message) {
+        if (message.from_id != null && (message.from_id instanceof TLRPC.TL_peerUser)) {
+            return message.from_id.user_id;
+        }
+        return 0L;
     }
 
     private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update) {

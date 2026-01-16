@@ -1,17 +1,13 @@
 package ni.shikatu.re_extera.hooks.profileactivity;
 
 import android.view.View;
-import androidx.collection.LongSparseArray;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.ui.ShadowbanDialog;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
-import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
 import org.telegram.ui.ProfileActivity;
@@ -63,7 +59,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
     static /* synthetic */ void lambda$afterHookedMethod$0(long userId, ActionBarMenuItem otherItem, ProfileActivity activity, View v) {
         ShadowbanCache.remove(userId);
         otherItem.closeSubMenu();
-        notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate();
         activity.finishFragment();
     }
 
@@ -78,13 +74,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
     }
 
     static /* synthetic */ void lambda$afterHookedMethod$1(ProfileActivity activity) {
-        notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate();
         activity.finishFragment();
-    }
-
-    private static void notifyDialogsUpdate() {
-        int account = UserConfig.selectedAccount;
-        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.dialogsNeedReload, new Object[0]);
-        MessagesController.getInstance(account).sortDialogs((LongSparseArray) null);
     }
 }
