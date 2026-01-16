@@ -138,11 +138,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setNoReadStories(!Settings.getNoReadStories());
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
-            case Main.VERSION_CODE /* 6 */:
+            case 6:
                 Settings.setReadOnInteract(!Settings.getReadOnInteract());
                 refreshCheckBox(item, position, Settings.getReadOnInteract());
                 break;
-            case ReExteraDb.DB_VERSION /* 7 */:
+            case Main.VERSION_CODE /* 7 */:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda1
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -150,7 +150,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case 8:
+            case ReExteraDb.DB_VERSION /* 8 */:
                 Settings.setAddGhostToDrawer(!Settings.getAddGhostToDrawer());
                 refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);

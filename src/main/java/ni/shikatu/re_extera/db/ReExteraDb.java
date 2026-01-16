@@ -21,7 +21,7 @@ import org.telegram.tgnet.TLRPC;
 
 public class ReExteraDb {
     public static final String DB_NAME = "re_extera.db";
-    public static final int DB_VERSION = 7;
+    public static final int DB_VERSION = 8;
     private static ReExteraDb instance = null;
     private final Handler dbHandler;
     private final Object dbLock = new Object();
@@ -82,7 +82,7 @@ public class ReExteraDb {
     }
 
     public void putDeletedMessageAsync(final long did, final int mid) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda4
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda6
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$putDeletedMessageAsync$0(did, mid);
@@ -143,7 +143,7 @@ public class ReExteraDb {
             return;
         }
         final ArrayList<Integer> copy = new ArrayList<>(mids);
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda5
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda7
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$batchPutDeletedMessagesAsync$1(did, copy);
@@ -386,7 +386,7 @@ public class ReExteraDb {
     }
 
     public void saveOriginalMessageAsync(final long did, final int mid, final TLRPC.Message message) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda1
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda2
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$saveOriginalMessageAsync$2(did, mid, message);
@@ -461,7 +461,7 @@ public class ReExteraDb {
     }
 
     public void saveNewVersionMessageAsync(final long did, final int mid, final TLRPC.Message msg) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda6
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda9
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$saveNewVersionMessageAsync$3(did, mid, msg);
@@ -738,7 +738,7 @@ public class ReExteraDb {
     }
 
     public void setDialogReadingAsync(final long did, final int value) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda3
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda5
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$setDialogReadingAsync$4(did, value);
@@ -775,7 +775,7 @@ public class ReExteraDb {
     }
 
     public void setDialogTypingAsync(final long did, final int value) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda2
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda4
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$setDialogTypingAsync$5(did, value);
@@ -918,6 +918,201 @@ public class ReExteraDb {
         return zMoveToFirst;
     }
 
+    /* JADX INFO: renamed from: addShadowban, reason: merged with bridge method [inline-methods] */
+    public void lambda$addShadowbanAsync$6(long userId, boolean hideDialog, boolean hideInGroups) {
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getWritableDatabase();
+            try {
+                SQLiteStatement st = db.compileStatement("INSERT OR REPLACE INTO shadowban_users(user_id, hide_dialog, hide_in_groups, added_ts) VALUES(?, ?, ?, ?)");
+                try {
+                    st.bindLong(1, userId);
+                    long j = 1;
+                    st.bindLong(2, hideDialog ? 1L : 0L);
+                    if (!hideInGroups) {
+                        j = 0;
+                    }
+                    st.bindLong(3, j);
+                    st.bindLong(4, System.currentTimeMillis());
+                    st.executeInsert();
+                    if (st != null) {
+                        st.close();
+                    }
+                } catch (Throwable th) {
+                    if (st != null) {
+                        try {
+                            st.close();
+                        } catch (Throwable th2) {
+                            Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                        }
+                    }
+                    throw th;
+                }
+            } catch (Exception e) {
+                Main.log("addShadowban error: %s", e.getMessage());
+            }
+        }
+    }
+
+    public void addShadowbanAsync(final long userId, final boolean hideDialog, final boolean hideInGroups) {
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda3
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$addShadowbanAsync$6(userId, hideDialog, hideInGroups);
+            }
+        });
+    }
+
+    /* JADX INFO: renamed from: removeShadowban, reason: merged with bridge method [inline-methods] */
+    public void lambda$removeShadowbanAsync$7(long userId) {
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getWritableDatabase();
+            try {
+                db.delete("shadowban_users", "user_id = ?", new String[]{String.valueOf(userId)});
+            } catch (Exception e) {
+                Main.log("removeShadowban error: %s", e.getMessage());
+            }
+        }
+    }
+
+    public void removeShadowbanAsync(final long userId) {
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda8
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$removeShadowbanAsync$7(userId);
+            }
+        });
+    }
+
+    public boolean isShadowbanned(long userId) {
+        boolean zMoveToFirst;
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getReadableDatabase();
+            try {
+                Cursor c = db.rawQuery("SELECT 1 FROM shadowban_users WHERE user_id = ? LIMIT 1", new String[]{String.valueOf(userId)});
+                try {
+                    zMoveToFirst = c.moveToFirst();
+                    if (c != null) {
+                        c.close();
+                    }
+                } catch (Throwable th) {
+                    if (c != null) {
+                        try {
+                            c.close();
+                        } catch (Throwable th2) {
+                            Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                        }
+                    }
+                    throw th;
+                }
+            } catch (Exception e) {
+                Main.log("isShadowbanned error: %s", e.getMessage());
+                return false;
+            }
+        }
+        return zMoveToFirst;
+    }
+
+    public ShadowbanEntry getShadowban(long userId) {
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getReadableDatabase();
+            try {
+                Cursor c = db.rawQuery("SELECT user_id, hide_dialog, hide_in_groups, added_ts FROM shadowban_users WHERE user_id = ?", new String[]{String.valueOf(userId)});
+                try {
+                    if (c.moveToFirst()) {
+                        ShadowbanEntry shadowbanEntry = new ShadowbanEntry(c.getLong(0), c.getInt(1) == 1, c.getInt(2) == 1, c.getLong(3));
+                        if (c != null) {
+                            c.close();
+                        }
+                        return shadowbanEntry;
+                    }
+                    if (c != null) {
+                        c.close();
+                    }
+                    return null;
+                } catch (Throwable th) {
+                    if (c == null) {
+                        throw th;
+                    }
+                    try {
+                        c.close();
+                        throw th;
+                    } catch (Throwable th2) {
+                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                        throw th;
+                    }
+                }
+            } catch (Exception e) {
+                Main.log("getShadowban error: %s", e.getMessage());
+            }
+        }
+    }
+
+    public List<ShadowbanEntry> getAllShadowbanned() {
+        ArrayList<ShadowbanEntry> result;
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getReadableDatabase();
+            result = new ArrayList<>();
+            try {
+                Cursor c = db.rawQuery("SELECT user_id, hide_dialog, hide_in_groups, added_ts FROM shadowban_users ORDER BY added_ts DESC", new String[0]);
+                while (c.moveToNext()) {
+                    try {
+                        result.add(new ShadowbanEntry(c.getLong(0), c.getInt(1) == 1, c.getInt(2) == 1, c.getLong(3)));
+                    } catch (Throwable th) {
+                        if (c == null) {
+                            throw th;
+                        }
+                        try {
+                            c.close();
+                            throw th;
+                        } catch (Throwable th2) {
+                            Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                            throw th;
+                        }
+                    }
+                }
+                if (c != null) {
+                    c.close();
+                }
+            } catch (Exception e) {
+                Main.log("getAllShadowbanned error: %s", e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    /* JADX INFO: renamed from: updateShadowban, reason: merged with bridge method [inline-methods] */
+    public void lambda$updateShadowbanAsync$8(long userId, boolean hideDialog, boolean hideInGroups) {
+        synchronized (this.dbLock) {
+            SQLiteDatabase db = this.helper.getWritableDatabase();
+            db.beginTransaction();
+            try {
+                try {
+                    ContentValues cv = new ContentValues();
+                    cv.put("hide_dialog", Integer.valueOf(hideDialog ? 1 : 0));
+                    cv.put("hide_in_groups", Integer.valueOf(hideInGroups ? 1 : 0));
+                    db.update("shadowban_users", cv, "user_id = ?", new String[]{String.valueOf(userId)});
+                    db.setTransactionSuccessful();
+                    db.endTransaction();
+                } catch (Throwable th) {
+                    db.endTransaction();
+                    throw th;
+                }
+            } catch (Exception e) {
+                Main.log("updateShadowban error: %s", e.getMessage());
+                db.endTransaction();
+            }
+        }
+    }
+
+    public void updateShadowbanAsync(final long userId, final boolean hideDialog, final boolean hideInGroups) {
+        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda1
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$updateShadowbanAsync$8(userId, hideDialog, hideInGroups);
+            }
+        });
+    }
+
     private static byte[] serializeMessage(TLRPC.Message m) {
         if (m == null) {
             return null;
@@ -942,7 +1137,7 @@ public class ReExteraDb {
 
     private static final class Helper extends SQLiteOpenHelper {
         Helper(Context context, String path) {
-            super(context, path, (SQLiteDatabase.CursorFactory) null, 7);
+            super(context, path, (SQLiteDatabase.CursorFactory) null, 8);
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
@@ -954,6 +1149,7 @@ public class ReExteraDb {
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_edits_did_mid ON message_edits(did, mid)");
             db.execSQL("CREATE TABLE IF NOT EXISTS exception_users(did INTEGER NOT NULL,exception_reading INTEGER NOT NULL,exception_typing INTEGER NOT NULL,PRIMARY KEY(did))");
             db.execSQL("CREATE TABLE IF NOT EXISTS regex_filters(regex TEXT NOT NULL,PRIMARY KEY(regex))");
+            db.execSQL("CREATE TABLE IF NOT EXISTS shadowban_users(user_id INTEGER PRIMARY KEY,hide_dialog INTEGER DEFAULT 1,hide_in_groups INTEGER DEFAULT 1,added_ts INTEGER NOT NULL)");
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
@@ -969,6 +1165,9 @@ public class ReExteraDb {
             }
             if (oldV < 7) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS regex_filters(regex TEXT NOT NULL,PRIMARY KEY(regex))");
+            }
+            if (oldV < 8) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS shadowban_users(user_id INTEGER PRIMARY KEY,hide_dialog INTEGER DEFAULT 1,hide_in_groups INTEGER DEFAULT 1,added_ts INTEGER NOT NULL)");
             }
         }
     }

@@ -136,18 +136,22 @@ public class MessageUtils {
     }
 
     public static boolean shouldFilterMessage(MessageObject message) {
-        if (message == null) {
+        if (message == null || compiledPatterns == null || compiledPatterns.isEmpty()) {
             return false;
         }
-        String text = message.messageOwner.message != null ? message.messageOwner.message : "";
-        Main.log("Text is %s", text);
+        String text = "";
+        if (message.messageOwner != null && message.messageOwner.message != null && !message.messageOwner.message.isEmpty()) {
+            text = message.messageOwner.message;
+        } else if (message.messageText != null && !message.messageText.toString().isEmpty()) {
+            text = message.messageText.toString();
+        }
         if (text.isEmpty()) {
             return false;
         }
         for (Pattern pattern : compiledPatterns) {
             try {
                 if (pattern.matcher(text).find()) {
-                    Main.log("Message filtered", new Object[0]);
+                    Main.log("Message filtered by regex", new Object[0]);
                     return true;
                 }
                 continue;
@@ -155,7 +159,6 @@ public class MessageUtils {
                 Main.log("Regex matching error: %s", e.getMessage());
             }
         }
-        Main.log("Message not filtered", new Object[0]);
         return false;
     }
 

@@ -19,7 +19,9 @@ import ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment;
 import ni.shikatu.re_extera.settings.newui.GhostFragment;
 import ni.shikatu.re_extera.settings.newui.SettingsFragmentNew;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
+import ni.shikatu.re_extera.ui.ShadowbanFragment;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
+import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.TLObject;
@@ -27,13 +29,13 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
 public class Main {
-    public static final String VERSION = "1.3.3b-unstable-b3";
-    public static final int VERSION_CODE = 6;
+    public static final String VERSION = "1.4-unstable";
+    public static final int VERSION_CODE = 7;
     public static HookInit hooks;
     private static Method initiateFragment;
     public static Main instance = null;
     public static List<Long> blocked = Main$$ExternalSyntheticBackport0.m(new Object[]{6204645839L});
-    public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class});
+    public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
     public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
 
     static {
@@ -52,6 +54,7 @@ public class Main {
     public void start() {
         Context context = getApplicationContext();
         ReExteraDb.init(context);
+        ShadowbanCache.init();
         MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
         Localization.updateStrings();
         hooks = new HookInit();

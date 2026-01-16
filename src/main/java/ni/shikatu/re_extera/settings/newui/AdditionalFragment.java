@@ -11,6 +11,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
+import ni.shikatu.re_extera.ui.ShadowbanFragment;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -30,6 +31,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         LOCAL_PREMIUM_ID,
         ADD_SETTINGS_TO_DRAWER,
         FILTERS_ID,
+        SHADOWBAN_ID,
         CLEAR_DB_ID,
         UNLOAD_HOOKS;
 
@@ -50,7 +52,8 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(AdditionalIds.ADD_SETTINGS_TO_DRAWER.getId(), Localization.ADD_SETTINGS_TO_DRAWER).setChecked(Settings.getShowSettingsInDrawer()).setLinkAlias("reExteraAddSettingsToDrawer", this));
         items.add(UItem.asShadow());
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
-        items.add(UItem.asShadow());
+        items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
+        items.add(UItem.asShadow(Localization.SHADOWBAN_ABOUT));
         items.add(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB).setLinkAlias("reExteraClearDb", this));
         items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
     }
@@ -87,9 +90,12 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 presentFragment(new RegexFiltersFragment());
                 break;
             case 5:
+                presentFragment(new ShadowbanFragment());
+                break;
+            case 6:
                 showClearDbDialog();
                 break;
-            case Main.VERSION_CODE /* 6 */:
+            case Main.VERSION_CODE /* 7 */:
                 Main.getInstance().onUnload();
                 BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;

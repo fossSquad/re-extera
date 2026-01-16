@@ -11,6 +11,7 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
+import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
@@ -31,16 +32,18 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
     }
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        if (Settings.getFiltersEnabled()) {
-            int id = ((Integer) param.args[0]).intValue();
-            Object[] args = (Object[]) param.args[2];
-            if (id == NotificationCenter.messagesDidLoad && args != null && args.length > 2) {
+        int id = ((Integer) param.args[0]).intValue();
+        Object[] args = (Object[]) param.args[2];
+        if (id == NotificationCenter.messagesDidLoad) {
+            if (args != null && args.length > 2) {
                 ArrayList<MessageObject> messArr = (ArrayList) args[2];
                 int originalSize = messArr.size();
                 int originalCount = ((Integer) args[1]).intValue();
                 boolean isCache = ((Boolean) args[3]).booleanValue();
+                long dialogId = ((Long) args[0]).longValue();
+                boolean isGroup = dialogId < 0;
                 Main.log("BEFORE: count=%d, messArr.size=%d, isCache=%b", Integer.valueOf(originalCount), Integer.valueOf(originalSize), Boolean.valueOf(isCache));
-                filterMessagesList(messArr);
+                filterMessagesList(messArr, isGroup);
                 int filteredSize = messArr.size();
                 if (filteredSize != originalSize) {
                     args[1] = Integer.valueOf(filteredSize);
@@ -105,16 +108,19 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
         }
     }
 
-    private void filterMessagesList(ArrayList<MessageObject> messagesList) {
+    private void filterMessagesList(ArrayList<MessageObject> messagesList, boolean isGroup) {
         if (messagesList == null || messagesList.isEmpty()) {
             return;
         }
+        boolean filtersEnabled = Settings.getFiltersEnabled();
         Set<Long> bannedGroupIds = new HashSet<>();
-        for (MessageObject messageObject : messagesList) {
-            if (!messageObject.isOut() && MessageUtils.shouldFilterMessage(messageObject)) {
-                long groupId = messageObject.getGroupId();
-                if (groupId != 0) {
-                    bannedGroupIds.add(Long.valueOf(groupId));
+        if (filtersEnabled) {
+            for (MessageObject messageObject : messagesList) {
+                if (!messageObject.isOut() && MessageUtils.shouldFilterMessage(messageObject)) {
+                    long groupId = messageObject.getGroupId();
+                    if (groupId != 0) {
+                        bannedGroupIds.add(Long.valueOf(groupId));
+                    }
                 }
             }
         }
@@ -123,20 +129,25 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             MessageObject messageObject2 = iterator.next();
             try {
                 if (!messageObject2.isOut()) {
-                    boolean byRegex = MessageUtils.shouldFilterMessage(messageObject2);
-                    long groupId2 = messageObject2.getGroupId();
-                    boolean byGroup = groupId2 != 0 && bannedGroupIds.contains(Long.valueOf(groupId2));
-                    if (byRegex || byGroup) {
-                        if (groupId2 != 0) {
-                            Main.log("Filtered message (load): id=%s, groupId=%s", Integer.valueOf(messageObject2.getId()), Long.valueOf(groupId2));
-                        } else {
-                            Main.log("Filtered message (load): id=%s, no group", Integer.valueOf(messageObject2.getId()));
+                    if (isGroup) {
+                        long fromId = messageObject2.getFromChatId();
+                        if (fromId > 0 && ShadowbanCache.shouldHideInGroups(fromId)) {
+                            Main.log("Filtered message (load/shadowban): id=%s, fromId=%s", Integer.valueOf(messageObject2.getId()), Long.valueOf(fromId));
+                            iterator.remove();
                         }
-                        iterator.remove();
+                    }
+                    if (filtersEnabled) {
+                        boolean byRegex = MessageUtils.shouldFilterMessage(messageObject2);
+                        long groupId2 = messageObject2.getGroupId();
+                        boolean byGroup = groupId2 != 0 && bannedGroupIds.contains(Long.valueOf(groupId2));
+                        if (byRegex || byGroup) {
+                            Main.log("Filtered message (load/regex): id=%s, groupId=%s", Integer.valueOf(messageObject2.getId()), Long.valueOf(groupId2));
+                            iterator.remove();
+                        }
                     }
                 }
             } catch (Exception e) {
-                Main.log("Error", e.getMessage());
+                Main.log("Error filtering message: %s", e.getMessage());
             }
         }
     }

@@ -8,6 +8,7 @@ public class Localization {
     public static String ADDITIONAL_SETTINGS;
     public static String ADD_REGEX_FILTER;
     public static String ADD_SETTINGS_TO_DRAWER;
+    public static String ADD_TO_SHADOWBAN;
     public static String ALPHA_WARNING;
     public static String ALWAYS;
     public static String BASED_ON_GLOBAL;
@@ -33,12 +34,14 @@ public class Localization {
     public static String EDIT_READ;
     public static String EDIT_REGEX_FILTER;
     public static String EDIT_REGEX_PATTERN;
+    public static String EDIT_SHADOWBAN;
     public static String EDIT_TYPING;
     public static String ENABLE_ALPHA;
     public static String ENABLE_FILTERS;
     public static String EXCEPTION_READING_TEXT;
     public static String EXCEPTION_TYPING_TEXT;
     public static String EXCLUSIONS;
+    public static String FILTERED_MESSAGE;
     public static String FILTERS;
     public static String FILTERS_ABOUT;
     public static String FINALLY_REMOVE_ALL_DELETED_MESSAGES;
@@ -51,6 +54,8 @@ public class Localization {
     public static String GHOST_MODE_DISABLED;
     public static String GHOST_MODE_ENABLE;
     public static String GHOST_MODE_ENABLED;
+    public static String HIDE_DIALOG;
+    public static String HIDE_IN_GROUPS;
     public static String HIDE_ONLINE_STATUS;
     public static String HIDE_READING_MESSAGE;
     public static String HIDE_TYPING_STATUS;
@@ -69,6 +74,7 @@ public class Localization {
     public static String NO_FORWARD;
     public static String NO_FORWARD_ABOUT;
     public static String NO_READ_STORIES;
+    public static String NO_SHADOWBANNED;
     public static String OFFLINE;
     public static String ONLY_WITH_GHOST;
     public static String OPEN_CHAT;
@@ -80,6 +86,7 @@ public class Localization {
     public static String READ_TO;
     public static String RED_DELETED_MARK;
     public static String REMOVE_FLAG_SECURE;
+    public static String REMOVE_FROM_SHADOWBAN;
     public static String RESTART_APP;
     public static String RESTART_APP_ABOUT;
     public static String RE_EXTERA_SETTINGS;
@@ -89,6 +96,8 @@ public class Localization {
     public static String SAVE_OWN_MESSAGES;
     public static String SAVE_SELF_DELETED_MESSAGES;
     public static String SEND_SILENCE;
+    public static String SHADOWBAN;
+    public static String SHADOWBAN_ABOUT;
     public static String SPY;
     public static String THANKS;
     public static String TYPE;
@@ -205,6 +214,15 @@ public class Localization {
             CLOSE_APPLICATION = "Закрыть приложение";
             CONTINUE_ANYWAY = "Все равно продолжить";
             READ_ON_INTERACT = "Читать при действиях";
+            SHADOWBAN = "Теневой бан";
+            ADD_TO_SHADOWBAN = "Добавить в теневой бан";
+            REMOVE_FROM_SHADOWBAN = "Убрать из теневого бана";
+            EDIT_SHADOWBAN = "Редактировать";
+            NO_SHADOWBANNED = "Список пуст";
+            HIDE_DIALOG = "Скрыть диалог";
+            HIDE_IN_GROUPS = "Скрыть в группах";
+            SHADOWBAN_ABOUT = "Shadowban позволяет скрыть диалог пользователя и/или его сообщения в группах";
+            FILTERED_MESSAGE = "Отфильтровано";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -306,5 +324,14 @@ public class Localization {
         CLOSE_APPLICATION = "Close Application";
         CONTINUE_ANYWAY = "Continue anyway";
         READ_ON_INTERACT = "Read on interact";
+        SHADOWBAN = "Shadowban";
+        ADD_TO_SHADOWBAN = "Add to shadowban";
+        REMOVE_FROM_SHADOWBAN = "Remove from shadowban";
+        EDIT_SHADOWBAN = "Edit";
+        NO_SHADOWBANNED = "List is empty";
+        HIDE_DIALOG = "Hide dialog";
+        HIDE_IN_GROUPS = "Hide in groups";
+        SHADOWBAN_ABOUT = "Shadowban allows you to hide user's dialog and/or their messages in groups";
+        FILTERED_MESSAGE = "Filtered";
     }
 }
