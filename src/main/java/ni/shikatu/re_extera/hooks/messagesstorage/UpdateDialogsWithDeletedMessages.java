@@ -15,7 +15,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
             long channelId = ((Long) param.args[1]).longValue();
             long did = channelId != 0 ? channelId : uid;
             ArrayList<Integer> ids = (ArrayList) param.args[2];
-            this.redb.batchPutDeletedMessages(did, ids);
+            this.redb.lambda$batchPutDeletedMessagesAsync$1(did, ids);
             MessageUtils.forceUpdateViews(did, ids);
         }
     }

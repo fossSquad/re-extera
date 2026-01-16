@@ -15,7 +15,7 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
         if (Settings.getSaveDeletedMessages()) {
             long did = ((Long) param.args[0]).longValue();
             ArrayList<Integer> originalMessages = (ArrayList) param.args[1];
-            this.redb.batchPutDeletedMessages(did, originalMessages);
+            this.redb.lambda$batchPutDeletedMessagesAsync$1(did, originalMessages);
             MessageUtils.forceUpdateViews(did, originalMessages);
             param.setResult((Object) null);
         }

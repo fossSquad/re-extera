@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
@@ -101,7 +100,7 @@ public class MessageHistoryFragment extends BaseFragment {
         this.fragmentView = frameLayout;
         this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda3
             @Override // java.lang.Runnable
-            public final void run() throws IllegalAccessException, InvocationTargetException {
+            public final void run() {
                 this.f$0.lambda$createView$0();
             }
         });
@@ -109,7 +108,7 @@ public class MessageHistoryFragment extends BaseFragment {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$0() throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$createView$0() {
         this.adapter.reload();
     }
 
@@ -170,7 +169,7 @@ public class MessageHistoryFragment extends BaseFragment {
         if (this.fragmentView != null) {
             this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda4
                 @Override // java.lang.Runnable
-                public final void run() throws IllegalAccessException, InvocationTargetException {
+                public final void run() {
                     this.f$0.lambda$onResume$3();
                 }
             });
@@ -178,7 +177,7 @@ public class MessageHistoryFragment extends BaseFragment {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onResume$3() throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$onResume$3() {
         this.adapter.reload();
     }
 
@@ -201,7 +200,7 @@ public class MessageHistoryFragment extends BaseFragment {
             return null;
         }
 
-        void reload() throws IllegalAccessException, InvocationTargetException {
+        void reload() {
             this.versionRows.clear();
             ArrayList<TLRPC.Message> versions = ReExteraDb.get().listVersionsOfEditedMessage(this.did, this.mid);
             if (!versions.isEmpty()) {

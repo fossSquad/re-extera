@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.View;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.localization.Localization;
@@ -134,7 +133,7 @@ public class FragmentCreate extends XC_MethodHook {
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
-        public void openReading() throws IllegalAccessException, InvocationTargetException {
+        public void openReading() {
             Context context = this.val$context;
             long j = this.val$dialog_id;
             final long j2 = this.val$dialog_id;
@@ -147,7 +146,7 @@ public class FragmentCreate extends XC_MethodHook {
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
-        public void openTyping() throws IllegalAccessException, InvocationTargetException {
+        public void openTyping() {
             Context context = this.val$context;
             long j = this.val$dialog_id;
             final long j2 = this.val$dialog_id;

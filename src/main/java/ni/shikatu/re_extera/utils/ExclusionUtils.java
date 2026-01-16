@@ -3,7 +3,6 @@ package ni.shikatu.re_extera.utils;
 import android.content.Context;
 import android.view.View;
 import android.widget.LinearLayout;
-import java.lang.reflect.InvocationTargetException;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import org.telegram.messenger.AndroidUtilities;
@@ -83,17 +82,17 @@ public class ExclusionUtils {
 
         private void setReadingException(int selectedMode) {
             if (selectedMode == 1) {
-                ReExteraDb.get().setDialogReading(this.dialogId, 1);
+                ReExteraDb.get().setDialogReadingAsync(this.dialogId, 1);
                 this.reading_cell_always.setChecked(true, true);
                 this.reading_cell_Defaults.setChecked(false, true);
                 this.reading_cell_never.setChecked(false, true);
             } else if (selectedMode == -1) {
-                ReExteraDb.get().setDialogReading(this.dialogId, -1);
+                ReExteraDb.get().setDialogReadingAsync(this.dialogId, -1);
                 this.reading_cell_never.setChecked(true, true);
                 this.reading_cell_Defaults.setChecked(false, true);
                 this.reading_cell_always.setChecked(false, true);
             } else if (selectedMode == 0) {
-                ReExteraDb.get().setDialogReading(this.dialogId, 0);
+                ReExteraDb.get().setDialogReadingAsync(this.dialogId, 0);
                 this.reading_cell_Defaults.setChecked(true, true);
                 this.reading_cell_never.setChecked(false, true);
                 this.reading_cell_always.setChecked(false, true);
@@ -103,7 +102,7 @@ public class ExclusionUtils {
             }
         }
 
-        public void show() throws IllegalAccessException, InvocationTargetException {
+        public void show() {
             int selectedModeReading = ReExteraDb.get().getDialogReading(this.dialogId);
             this.reading_cell_always.setChecked(selectedModeReading == 1, false);
             this.reading_cell_never.setChecked(selectedModeReading == -1, false);
@@ -185,17 +184,17 @@ public class ExclusionUtils {
 
         private void setTypingException(int selectedMode) {
             if (selectedMode == 1) {
-                ReExteraDb.get().setDialogTyping(this.dialogId, 1);
+                ReExteraDb.get().setDialogTypingAsync(this.dialogId, 1);
                 this.typing_cell_always.setChecked(true, true);
                 this.typing_cell_Defaults.setChecked(false, true);
                 this.typing_cell_never.setChecked(false, true);
             } else if (selectedMode == -1) {
-                ReExteraDb.get().setDialogTyping(this.dialogId, -1);
+                ReExteraDb.get().setDialogTypingAsync(this.dialogId, -1);
                 this.typing_cell_never.setChecked(true, true);
                 this.typing_cell_Defaults.setChecked(false, true);
                 this.typing_cell_always.setChecked(false, true);
             } else if (selectedMode == 0) {
-                ReExteraDb.get().setDialogTyping(this.dialogId, 0);
+                ReExteraDb.get().setDialogTypingAsync(this.dialogId, 0);
                 this.typing_cell_Defaults.setChecked(true, true);
                 this.typing_cell_never.setChecked(false, true);
                 this.typing_cell_always.setChecked(false, true);
@@ -205,7 +204,7 @@ public class ExclusionUtils {
             }
         }
 
-        public void show() throws IllegalAccessException, InvocationTargetException {
+        public void show() {
             int selectedModeTyping = ReExteraDb.get().getDialogTyping(this.dialogId);
             this.typing_cell_always.setChecked(selectedModeTyping == 1, false);
             this.typing_cell_never.setChecked(selectedModeTyping == -1, false);

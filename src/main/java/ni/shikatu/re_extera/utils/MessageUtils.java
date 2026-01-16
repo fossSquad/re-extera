@@ -2,7 +2,6 @@ package ni.shikatu.re_extera.utils;
 
 import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -123,7 +122,7 @@ public class MessageUtils {
         return visibleCells;
     }
 
-    public static void updatePatterns() throws IllegalAccessException, InvocationTargetException {
+    public static void updatePatterns() {
         List<String> regexFilters = ReExteraDb.get().getAllRegexFilters();
         compiledPatterns = new ArrayList();
         for (String regex : regexFilters) {

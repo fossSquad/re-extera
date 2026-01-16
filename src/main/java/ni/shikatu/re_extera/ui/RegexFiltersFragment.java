@@ -8,7 +8,6 @@ import android.widget.FrameLayout;
 import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.utils.text.LocaleUtils;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -59,12 +58,12 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         return Localization.FILTERS;
     }
 
-    public boolean onFragmentCreate() throws IllegalAccessException, InvocationTargetException {
+    public boolean onFragmentCreate() {
         loadFilters();
         return super.onFragmentCreate();
     }
 
-    public void onResume() throws IllegalAccessException, InvocationTargetException {
+    public void onResume() {
         super.onResume();
         loadFilters();
         if (getAdapter() != null) {
@@ -72,7 +71,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
-    private void loadFilters() throws IllegalAccessException, InvocationTargetException {
+    private void loadFilters() {
         this.filters.clear();
         List<String> dbFilters = ReExteraDb.get().getAllRegexFilters();
         if (dbFilters != null) {
@@ -180,7 +179,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         container.addView((View) editText, (ViewGroup.LayoutParams) LayoutHelper.createFrame(-1, -2.0f, 0, 24.0f, 12.0f, 24.0f, 0.0f));
         builder.setView(container);
         builder.setPositiveButton(isEdit ? Localization.SAVE : Localization.ADD, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda1
-            public final void onClick(AlertDialog alertDialog, int i) throws IllegalAccessException, InvocationTargetException {
+            public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showFilterDialog$1(editText, context, isEdit, existingFilter, position, alertDialog, i);
             }
         });
@@ -196,7 +195,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showFilterDialog$1(EditTextBoldCursor editText, Context context, boolean isEdit, String existingFilter, int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showFilterDialog$1(EditTextBoldCursor editText, Context context, boolean isEdit, String existingFilter, int position, AlertDialog dialog, int which) {
         String regex = editText.getText().toString().trim();
         if (regex.isEmpty()) {
             AndroidUtilities.shakeView(editText);
@@ -234,7 +233,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setTitle(Localization.DELETE_FILTER);
         builder.setMessage(Localization.DELETE_FILTER_ABOUT);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda0
-            public final void onClick(AlertDialog alertDialog, int i) throws IllegalAccessException, InvocationTargetException {
+            public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showDeleteConfirmation$3(position, alertDialog, i);
             }
         });
@@ -243,7 +242,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showDeleteConfirmation$3(int position, AlertDialog dialog, int which) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showDeleteConfirmation$3(int position, AlertDialog dialog, int which) {
         String filter = this.filters.get(position);
         ReExteraDb.get().deleteRegexFilter(filter);
         this.filters.remove(position);

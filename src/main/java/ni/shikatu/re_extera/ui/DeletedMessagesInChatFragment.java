@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -76,7 +75,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         this.fragmentView = frameLayout;
         this.fragmentView.post(new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable
-            public final void run() throws IllegalAccessException, InvocationTargetException {
+            public final void run() {
                 this.f$0.lambda$createView$0();
             }
         });
@@ -84,7 +83,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$0() throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$createView$0() {
         this.adapter.reload();
     }
 
@@ -175,7 +174,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             this.resourcesProvider = provider;
         }
 
-        void reload() throws IllegalAccessException, InvocationTargetException {
+        void reload() {
             this.items.clear();
             ArrayList<Integer> mids = ReExteraDb.get().allMessageIdsByDid(this.did);
             if (mids != null) {

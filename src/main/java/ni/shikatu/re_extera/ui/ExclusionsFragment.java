@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import ni.shikatu.re_extera.Defaults;
@@ -50,12 +49,12 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         return Localization.EXCLUSIONS;
     }
 
-    public boolean onFragmentCreate() throws IllegalAccessException, InvocationTargetException {
+    public boolean onFragmentCreate() {
         loadExceptions();
         return super.onFragmentCreate();
     }
 
-    public void onResume() throws IllegalAccessException, InvocationTargetException {
+    public void onResume() {
         super.onResume();
         loadExceptions();
         if (getAdapter() != null) {
@@ -63,7 +62,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
     }
 
-    private void loadExceptions() throws IllegalAccessException, InvocationTargetException {
+    private void loadExceptions() {
         this.exceptions.clear();
         List<DialogExclusion> allExceptions = ReExteraDb.get().getActiveExceptions();
         if (allExceptions != null) {
@@ -133,7 +132,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         int[] icons = {R.drawable.msg_openprofile, R.drawable.msg_archive_hide, R.drawable.floating_pencil, R.drawable.msg_delete};
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda3
             @Override // android.content.DialogInterface.OnClickListener
-            public final void onClick(DialogInterface dialogInterface, int i) throws IllegalAccessException, InvocationTargetException {
+            public final void onClick(DialogInterface dialogInterface, int i) {
                 this.f$0.lambda$showOptionsMenu$1(exception, position, dialogInterface, i);
             }
         });
@@ -141,7 +140,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showOptionsMenu$1(DialogExclusion exception, int position, DialogInterface dialog, int which) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showOptionsMenu$1(DialogExclusion exception, int position, DialogInterface dialog, int which) {
         switch (which) {
             case Defaults.GLOBAL_VALUE /* 0 */:
                 openChat(exception.dialogId);
@@ -168,17 +167,17 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         presentFragment(new ChatActivity(args));
     }
 
-    private void showEditReadingDialog(final DialogExclusion exception, final int position) throws IllegalAccessException, InvocationTargetException {
+    private void showEditReadingDialog(final DialogExclusion exception, final int position) {
         new ExclusionUtils.ExclusionReadingDialog(getContext(), exception.dialogId, new Runnable() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda5
             @Override // java.lang.Runnable
-            public final void run() throws IllegalAccessException, InvocationTargetException {
+            public final void run() {
                 this.f$0.lambda$showEditReadingDialog$2(exception, position);
             }
         }).show();
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showEditReadingDialog$2(DialogExclusion exception, int position) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showEditReadingDialog$2(DialogExclusion exception, int position) {
         DialogExclusion updated = ReExteraDb.get().getException(exception.dialogId);
         if (updated != null) {
             this.exceptions.set(position, updated);
@@ -188,17 +187,17 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
     }
 
-    private void showEditTypingDialog(final DialogExclusion exception, final int position) throws IllegalAccessException, InvocationTargetException {
+    private void showEditTypingDialog(final DialogExclusion exception, final int position) {
         new ExclusionUtils.ExclusionTypingDialog(getContext(), exception.dialogId, new Runnable() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda1
             @Override // java.lang.Runnable
-            public final void run() throws IllegalAccessException, InvocationTargetException {
+            public final void run() {
                 this.f$0.lambda$showEditTypingDialog$3(exception, position);
             }
         }).show();
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showEditTypingDialog$3(DialogExclusion exception, int position) throws IllegalAccessException, InvocationTargetException {
+    public /* synthetic */ void lambda$showEditTypingDialog$3(DialogExclusion exception, int position) {
         DialogExclusion updated = ReExteraDb.get().getException(exception.dialogId);
         if (updated != null) {
             this.exceptions.set(position, updated);
@@ -222,8 +221,8 @@ public class ExclusionsFragment extends BasePreferencesActivity {
 
     /* JADX INFO: Access modifiers changed from: private */
     public /* synthetic */ void lambda$showDeleteConfirmation$4(DialogExclusion exception, int position, AlertDialog dialog, int which) {
-        ReExteraDb.get().setDialogReading(exception.dialogId, 0);
-        ReExteraDb.get().setDialogTyping(exception.dialogId, 0);
+        ReExteraDb.get().lambda$setDialogReadingAsync$4(exception.dialogId, 0);
+        ReExteraDb.get().lambda$setDialogTypingAsync$5(exception.dialogId, 0);
         this.exceptions.remove(position);
         if (getAdapter() != null) {
             getAdapter().update(true);

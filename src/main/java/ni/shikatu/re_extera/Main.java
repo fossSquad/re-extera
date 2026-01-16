@@ -28,7 +28,7 @@ import org.telegram.ui.LaunchActivity;
 
 public class Main {
     public static final String VERSION = "1.3.3b-unstable-b3";
-    public static final int VERSION_CODE = 5;
+    public static final int VERSION_CODE = 6;
     public static HookInit hooks;
     private static Method initiateFragment;
     public static Main instance = null;

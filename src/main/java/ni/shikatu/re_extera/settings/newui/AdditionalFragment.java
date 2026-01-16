@@ -86,10 +86,10 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             case 4:
                 presentFragment(new RegexFiltersFragment());
                 break;
-            case Main.VERSION_CODE /* 5 */:
+            case 5:
                 showClearDbDialog();
                 break;
-            case 6:
+            case Main.VERSION_CODE /* 6 */:
                 Main.getInstance().onUnload();
                 BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;

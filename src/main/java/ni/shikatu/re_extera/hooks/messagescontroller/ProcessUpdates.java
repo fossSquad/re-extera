@@ -2,7 +2,6 @@ package ni.shikatu.re_extera.hooks.messagescontroller;
 
 import androidx.collection.LongSparseArray;
 import de.robv.android.xposed.XC_MethodHook;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import ni.shikatu.re_extera.db.ReExteraDb;
@@ -40,7 +39,7 @@ public class ProcessUpdates extends XC_MethodHook {
                     long did = channelDeleted.keyAt(i);
                     ArrayList<Integer> ids = (ArrayList) channelDeleted.get(did);
                     if (ids != null && !ids.isEmpty()) {
-                        this.redb.batchPutDeletedMessages(did, ids);
+                        this.redb.batchPutDeletedMessagesAsync(did, ids);
                         MessageUtils.forceUpdateViews(did, ids);
                     }
                 }
@@ -50,7 +49,7 @@ public class ProcessUpdates extends XC_MethodHook {
         param.args[0] = updates;
     }
 
-    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted) throws IllegalAccessException, InvocationTargetException {
+    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
         if (update instanceof TLRPC.TL_updateEditMessage) {
             processTL_updateEditMessage((TLRPC.TL_updateEditMessage) update);
             return true;
@@ -74,22 +73,22 @@ public class ProcessUpdates extends XC_MethodHook {
         return true;
     }
 
-    private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update) throws IllegalAccessException, InvocationTargetException {
+    private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update) {
         processEditedMessage(update.message);
     }
 
-    private void processTL_updateEditChannelMessage(TLRPC.TL_updateEditChannelMessage update) throws IllegalAccessException, InvocationTargetException {
+    private void processTL_updateEditChannelMessage(TLRPC.TL_updateEditChannelMessage update) {
         processEditedMessage(update.message);
     }
 
-    private void processEditedMessage(TLRPC.Message message) throws IllegalAccessException, InvocationTargetException {
+    private void processEditedMessage(TLRPC.Message message) {
         long did = MessageUtils.getDialogIdFromMessage(message);
         MessageObject oldObj = MessageUtils.getMessage(did, message.id);
         if (oldObj != null && !oldObj.isOut()) {
             if (!this.redb.messageHasSavedEdits(did, message.id)) {
-                this.redb.saveOriginalMessage(did, message.id, oldObj.messageOwner);
+                this.redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
             }
-            this.redb.saveNewVersionMessage(did, message.id, message);
+            this.redb.saveNewVersionMessageAsync(did, message.id, message);
         }
     }
 
@@ -116,7 +115,7 @@ public class ProcessUpdates extends XC_MethodHook {
                     long did2 = toUpdateGrouped.keyAt(i);
                     ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
                     if (ids != null && !ids.isEmpty()) {
-                        this.redb.batchPutDeletedMessages(did2, ids);
+                        this.redb.batchPutDeletedMessagesAsync(did2, ids);
                         MessageUtils.forceUpdateViews(did2, ids);
                     }
                 }

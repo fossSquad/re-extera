@@ -84,7 +84,7 @@ public class Settings {
     }
 
     public static String getCustomPrefix() {
-        return get("custom_prefix", "️");
+        return get("custom_prefix", "");
     }
 
     public static void setCustomPrefix(String value) {
