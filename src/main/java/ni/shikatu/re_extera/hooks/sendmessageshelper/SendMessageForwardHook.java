@@ -16,7 +16,7 @@ public class SendMessageForwardHook extends XC_MethodHook {
         long peer = ((Long) param.args[1]).longValue();
         boolean notify = ((Boolean) param.args[4]).booleanValue();
         int scheduleDate = ((Integer) param.args[5]).intValue();
-        MessageObject replyToTopMsg = (MessageObject) param.args[6];
+        MessageObject replyToTopMsg = (MessageObject) param.args[7];
         ArrayList<MessageObject> noForwards = new ArrayList<>();
         ArrayList<MessageObject> forwards = new ArrayList<>();
         for (MessageObject obj : objects) {

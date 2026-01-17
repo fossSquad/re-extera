@@ -129,7 +129,7 @@ public class HookInit {
             addHook(XposedBridge.hookMethod(Window.class.getDeclaredMethod("setFlags", Integer.TYPE, Integer.TYPE), new WindowSetFlags()));
             addHook(XposedBridge.hookMethod(FlagSecureReason.class.getDeclaredMethod("attach", new Class[0]), new FlagSecureReasonAttach()));
             addHook(XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", SendMessagesHelper.SendMessageParams.class), new SendMessage()));
-            addHook(XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, MessageObject.class, Integer.TYPE, Long.TYPE, Long.TYPE, MessageSuggestionParams.class), new SendMessageForwardHook()));
+            addHook(XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE, MessageObject.class, Integer.TYPE, Long.TYPE, Long.TYPE, MessageSuggestionParams.class), new SendMessageForwardHook()));
             addHook(XposedBridge.hookMethod(NotificationsController.class.getDeclaredMethod("removeDeletedMessagesFromNotifications", LongSparseArray.class, Boolean.TYPE), new RemoveDeletedMessagesFromNotification()));
             addHook(XposedBridge.hookMethod(MessageObject.class.getDeclaredMethod("canDeleteMessage", Boolean.TYPE, TLRPC.Chat.class), new CanDeleteMessage()));
             addHook(XposedBridge.hookMethod(MessageObject.class.getDeclaredMethod("canForwardMessage", new Class[0]), new CanForwardMessage()));

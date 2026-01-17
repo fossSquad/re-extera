@@ -44,7 +44,7 @@ public class RestrictedMessageUtils {
         args.putBoolean("allowBots", true);
         DialogsActivity dialogsActivity = new DialogsActivity(args);
         DialogsActivity.DialogsActivityDelegate delegate = new DialogsActivity.DialogsActivityDelegate() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils.1
-            public boolean didSelectDialogs(DialogsActivity fragment1, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, TopicsFragment topicsFragment) {
+            public boolean didSelectDialogs(DialogsActivity fragment1, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
                 TLRPC.TL_forumTopic topic;
                 if (dids == null || dids.isEmpty()) {
                     return false;

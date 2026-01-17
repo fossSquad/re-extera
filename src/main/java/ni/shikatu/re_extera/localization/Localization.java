@@ -221,7 +221,7 @@ public class Localization {
             NO_SHADOWBANNED = "Список пуст";
             HIDE_DIALOG = "Скрыть диалог";
             HIDE_IN_GROUPS = "Скрыть в группах";
-            SHADOWBAN_ABOUT = "Shadowban позволяет скрыть диалог пользователя и/или его сообщения в группах";
+            SHADOWBAN_ABOUT = "Теневой бан позволяет скрыть диалог пользователя и/или его сообщения в группах";
             FILTERED_MESSAGE = "Отфильтровано";
             return;
         }

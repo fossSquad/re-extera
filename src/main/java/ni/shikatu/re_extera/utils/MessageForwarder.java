@@ -4,6 +4,10 @@ import android.content.Context;
 import android.net.Uri;
 import androidx.core.view.inputmethod.InputContentInfoCompat;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +26,7 @@ import org.telegram.messenger.MessageSuggestionParams;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
@@ -96,7 +101,7 @@ public class MessageForwarder {
         }
         for (Map.Entry<Long, ArrayList<MessageObject>> entry : groupedMessages.entrySet()) {
             final ArrayList<MessageObject> group2 = entry.getValue();
-            sendQueue.enqueue(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda1
+            sendQueue.enqueue(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda3
                 @Override // java.lang.Runnable
                 public final void run() {
                     MessageForwarder.lambda$sendMessageCopy$1(group2, accountInstance, peer, notify, scheduleDate, replyToTopMsg);
@@ -106,7 +111,7 @@ public class MessageForwarder {
         for (MessageObject msgObj2 : singleMessages) {
             final ArrayList<MessageObject> single = new ArrayList<>();
             single.add(msgObj2);
-            sendQueue.enqueue(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda2
+            sendQueue.enqueue(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda4
                 @Override // java.lang.Runnable
                 public final void run() {
                     MessageForwarder.lambda$sendMessageCopy$3(accountInstance, single, peer, notify, scheduleDate, replyToTopMsg);
@@ -132,7 +137,7 @@ public class MessageForwarder {
 
     static /* synthetic */ void lambda$sendMessageCopy$3(final AccountInstance accountInstance, final ArrayList single, final long peer, final boolean notify, final int scheduleDate, final MessageObject replyToTopMsg) {
         Main.log("NoforwardsHook: Processing single message", new Object[0]);
-        ensureMediaDownloadedForGroup(accountInstance, single, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda4
+        ensureMediaDownloadedForGroup(accountInstance, single, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda6
             @Override // java.lang.Runnable
             public final void run() {
                 MessageForwarder.lambda$sendMessageCopy$2(accountInstance, single, peer, notify, scheduleDate, replyToTopMsg);
@@ -145,12 +150,188 @@ public class MessageForwarder {
         sendQueue.signalComplete();
     }
 
+    private static File getMediaFile(AccountInstance accountInstance, TLRPC.Message message) {
+        FileLoader fileLoader = FileLoader.getInstance(accountInstance.getCurrentAccount());
+        if (message.media instanceof TLRPC.TL_messageMediaPhoto) {
+            TLRPC.TL_messageMediaPhoto mediaPhoto = message.media;
+            TLRPC.PhotoSize photoSize = FileLoader.getClosestPhotoSizeWithSize(mediaPhoto.photo.sizes, AndroidUtilities.getPhotoSize());
+            if (photoSize == null) {
+                return null;
+            }
+            File file = fileLoader.getPathToAttach(photoSize, false);
+            if (file != null && file.exists()) {
+                Main.log("NoforwardsHook: Found photo at: " + file.getAbsolutePath(), new Object[0]);
+                return file;
+            }
+            File file2 = fileLoader.getPathToAttach(photoSize, true);
+            if (file2 != null && file2.exists()) {
+                Main.log("NoforwardsHook: Found photo in cache: " + file2.getAbsolutePath(), new Object[0]);
+                return file2;
+            }
+            String fileName = FileLoader.getAttachFileName(photoSize);
+            File cacheDir = FileLoader.getDirectory(4);
+            File file3 = new File(cacheDir, fileName);
+            if (file3.exists()) {
+                Main.log("NoforwardsHook: Found photo in MEDIA_DIR_CACHE: " + file3.getAbsolutePath(), new Object[0]);
+                return file3;
+            }
+            File imageDir = FileLoader.getDirectory(0);
+            File file4 = new File(imageDir, fileName);
+            if (file4.exists()) {
+                Main.log("NoforwardsHook: Found photo in MEDIA_DIR_IMAGE: " + file4.getAbsolutePath(), new Object[0]);
+                return file4;
+            }
+            File file5 = extractPhotoFromImageCache(mediaPhoto.photo, photoSize, fileName);
+            if (file5 == null || !file5.exists()) {
+                Main.log("NoforwardsHook: Photo not found anywhere for: " + fileName, new Object[0]);
+                return null;
+            }
+            Main.log("NoforwardsHook: Extracted photo from ImageLoader cache: " + file5.getAbsolutePath(), new Object[0]);
+            return file5;
+        }
+        if (message.media instanceof TLRPC.TL_messageMediaDocument) {
+            return fileLoader.getPathToMessage(message);
+        }
+        return null;
+    }
+
+    private static File extractPhotoFromImageCache(TLRPC.Photo photo, TLRPC.PhotoSize photoSize, String fileName) {
+        File file;
+        final String baseKey;
+        File[] files;
+        File[] files2;
+        File file2 = null;
+        try {
+            if (photoSize.location != null) {
+                baseKey = photoSize.location.volume_id + "_" + photoSize.location.local_id;
+            } else {
+                baseKey = null;
+            }
+            if (baseKey == null) {
+                Main.log("NoforwardsHook: Cannot generate base key for photo search", new Object[0]);
+                return null;
+            }
+            Main.log("NoforwardsHook: Searching for photo with base key: " + baseKey, new Object[0]);
+            File cacheDir = FileLoader.getDirectory(4);
+            File encFile = null;
+            if (cacheDir == null || !cacheDir.exists() || (files2 = cacheDir.listFiles(new FilenameFilter() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda1
+                @Override // java.io.FilenameFilter
+                public final boolean accept(File file3, String str) {
+                    return str.contains(baseKey);
+                }
+            })) == null || files2.length <= 0) {
+                file = null;
+            } else {
+                int length = files2.length;
+                int i = 0;
+                while (i < length) {
+                    File f = files2[i];
+                    file = file2;
+                    try {
+                        Main.log("NoforwardsHook: Found matching file in cache: " + f.getName() + " size: " + f.length(), new Object[0]);
+                        if (!f.getName().endsWith(".jpg") && !f.getName().endsWith(".png")) {
+                            if (f.getName().endsWith(".enc")) {
+                                encFile = f;
+                            }
+                            i++;
+                            file2 = file;
+                        }
+                        return f;
+                    } catch (Exception e) {
+                        e = e;
+                        Main.log("NoforwardsHook: Error searching photo in cache: " + e.getMessage(), new Object[0]);
+                        return file;
+                    }
+                }
+                file = file2;
+            }
+            File imageDir = FileLoader.getDirectory(0);
+            if (imageDir != null && imageDir.exists() && (files = imageDir.listFiles(new FilenameFilter() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda2
+                @Override // java.io.FilenameFilter
+                public final boolean accept(File file3, String str) {
+                    return str.contains(baseKey);
+                }
+            })) != null && files.length > 0) {
+                int length2 = files.length;
+                int i2 = 0;
+                while (i2 < length2) {
+                    File f2 = files[i2];
+                    File imageDir2 = imageDir;
+                    File[] files3 = files;
+                    Main.log("NoforwardsHook: Found matching file in image dir: " + f2.getName() + " size: " + f2.length(), new Object[0]);
+                    if (!f2.getName().endsWith(".jpg") && !f2.getName().endsWith(".png")) {
+                        if (f2.getName().endsWith(".enc") && encFile == null) {
+                            encFile = f2;
+                        }
+                        i2++;
+                        imageDir = imageDir2;
+                        files = files3;
+                    }
+                    return f2;
+                }
+            }
+            if (encFile != null) {
+                Main.log("NoforwardsHook: Only encrypted file found, trying to decrypt: " + encFile.getName(), new Object[0]);
+                try {
+                    File decrypted = decryptEncFile(encFile, fileName, photoSize);
+                    if (decrypted != null && decrypted.exists()) {
+                        return decrypted;
+                    }
+                } catch (Exception e2) {
+                    e = e2;
+                    Main.log("NoforwardsHook: Error searching photo in cache: " + e.getMessage(), new Object[0]);
+                    return file;
+                }
+            }
+            Main.log("NoforwardsHook: No matching files found for key: " + baseKey, new Object[0]);
+            return file;
+        } catch (Exception e3) {
+            e = e3;
+            file = null;
+        }
+    }
+
+    private static File decryptEncFile(File encFile, String outputFileName, TLRPC.PhotoSize photoSize) {
+        if (photoSize != null) {
+            try {
+                if (photoSize.location != null) {
+                    byte[] key = photoSize.location.key;
+                    byte[] iv = photoSize.location.iv;
+                    if (key != null && iv != null) {
+                        Main.log("NoforwardsHook: Decrypting file with key length: " + key.length, new Object[0]);
+                        RandomAccessFile raf = new RandomAccessFile(encFile, "r");
+                        byte[] encryptedData = new byte[(int) raf.length()];
+                        raf.readFully(encryptedData);
+                        raf.close();
+                        byte[] ivCopy = new byte[iv.length];
+                        System.arraycopy(iv, 0, ivCopy, 0, iv.length);
+                        Utilities.aesIgeEncryption(ByteBuffer.wrap(encryptedData), key, ivCopy, false, true, 0, encryptedData.length);
+                        File cacheDir = FileLoader.getDirectory(4);
+                        File outputFile = new File(cacheDir, outputFileName);
+                        FileOutputStream fos = new FileOutputStream(outputFile);
+                        fos.write(encryptedData);
+                        fos.close();
+                        Main.log("NoforwardsHook: Decrypted file saved to: " + outputFile.getAbsolutePath(), new Object[0]);
+                        return outputFile;
+                    }
+                    Main.log("NoforwardsHook: Cannot decrypt - no key/iv in location", new Object[0]);
+                    return null;
+                }
+            } catch (Exception e) {
+                Main.log("NoforwardsHook: Error decrypting file: " + e.getMessage(), new Object[0]);
+                return null;
+            }
+        }
+        Main.log("NoforwardsHook: Cannot decrypt - no location info", new Object[0]);
+        return null;
+    }
+
     private static void ensureMediaDownloadedForGroup(AccountInstance accountInstance, ArrayList<MessageObject> messages, final Runnable onComplete) {
         final AtomicInteger downloadCount = new AtomicInteger(0);
         Iterator<MessageObject> it = messages.iterator();
         while (it.hasNext()) {
             TLRPC.Message original = it.next().messageOwner;
-            File file = FileLoader.getInstance(accountInstance.getCurrentAccount()).getPathToMessage(original);
+            File file = getMediaFile(accountInstance, original);
             if (file == null || !file.exists()) {
                 if ((original.media instanceof TLRPC.TL_messageMediaPhoto) || (original.media instanceof TLRPC.TL_messageMediaDocument)) {
                     downloadCount.incrementAndGet();
@@ -168,13 +349,13 @@ public class MessageForwarder {
         }
         for (MessageObject msgObj : messages) {
             TLRPC.Message original2 = msgObj.messageOwner;
-            File file2 = FileLoader.getInstance(accountInstance.getCurrentAccount()).getPathToMessage(original2);
+            File file2 = getMediaFile(accountInstance, original2);
             if (file2 == null || !file2.exists()) {
                 if ((original2.media instanceof TLRPC.TL_messageMediaPhoto) || (original2.media instanceof TLRPC.TL_messageMediaDocument)) {
-                    ensureMediaDownloaded(accountInstance, msgObj, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda3
+                    ensureMediaDownloaded(accountInstance, msgObj, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda5
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MessageForwarder.lambda$ensureMediaDownloadedForGroup$4(downloadCount, onComplete);
+                            MessageForwarder.lambda$ensureMediaDownloadedForGroup$6(downloadCount, onComplete);
                         }
                     });
                 }
@@ -182,7 +363,7 @@ public class MessageForwarder {
         }
     }
 
-    static /* synthetic */ void lambda$ensureMediaDownloadedForGroup$4(AtomicInteger downloadCount, Runnable onComplete) {
+    static /* synthetic */ void lambda$ensureMediaDownloadedForGroup$6(AtomicInteger downloadCount, Runnable onComplete) {
         int remaining = downloadCount.decrementAndGet();
         Main.log("NoforwardsHook: File downloaded, remaining: " + remaining, new Object[0]);
         if (remaining == 0) {
@@ -194,9 +375,11 @@ public class MessageForwarder {
     }
 
     private static void ensureMediaDownloaded(AccountInstance accountInstance, MessageObject msgObj, Runnable onComplete) {
+        String fileName;
+        Main.log(msgObj.toString(), new Object[0]);
         TLRPC.Message original = msgObj.messageOwner;
         FileLoader fileLoader = FileLoader.getInstance(accountInstance.getCurrentAccount());
-        File file = fileLoader.getPathToMessage(original);
+        File file = getMediaFile(accountInstance, original);
         if (file != null && file.exists()) {
             Main.log("NoforwardsHook: File already exists: " + file.getAbsolutePath(), new Object[0]);
             if (onComplete != null) {
@@ -205,41 +388,58 @@ public class MessageForwarder {
             }
             return;
         }
-        String fileName = FileLoader.getAttachFileName(msgObj.getDocument());
-        Main.log("NoforwardsHook: Starting download for: " + fileName, new Object[0]);
-        NotificationCenter.NotificationCenterDelegate observer = new AnonymousClass1(fileName, msgObj, onComplete);
-        NotificationCenter nc = NotificationCenter.getInstance(accountInstance.getCurrentAccount());
-        nc.addObserver(observer, NotificationCenter.fileLoaded);
-        nc.addObserver(observer, NotificationCenter.fileLoadFailed);
-        nc.addObserver(observer, NotificationCenter.fileLoadProgressChanged);
-        if (!(original.media instanceof TLRPC.TL_messageMediaPhoto)) {
-            if (original.media instanceof TLRPC.TL_messageMediaDocument) {
-                TLRPC.TL_messageMediaDocument mediaDoc = original.media;
-                Main.log("NoforwardsHook: Loading document...", new Object[0]);
-                fileLoader.loadFile(mediaDoc.document, msgObj, 3, 0);
+        if (original.media instanceof TLRPC.TL_messageMediaDocument) {
+            TLRPC.Document document = original.media.document;
+            Main.log("NoforwardsHook: Doc is: %s", document);
+            String fileName2 = FileLoader.getAttachFileName(document);
+            fileName = fileName2;
+        } else if (original.media instanceof TLRPC.TL_messageMediaPhoto) {
+            TLRPC.PhotoSize photoSize = FileLoader.getClosestPhotoSizeWithSize(original.media.photo.sizes, AndroidUtilities.getPhotoSize());
+            Main.log("NoforwardsHook: Photo size is: %s", photoSize);
+            String fileName3 = FileLoader.getAttachFileName(photoSize);
+            fileName = fileName3;
+        } else {
+            Main.log("NoforwardsHook: Unknown media type: %s", original.media);
+            if (onComplete != null) {
+                onComplete.run();
                 return;
             }
             return;
         }
-        TLRPC.TL_messageMediaPhoto mediaPhoto = original.media;
-        TLRPC.PhotoSize photoSize = FileLoader.getClosestPhotoSizeWithSize(mediaPhoto.photo.sizes, AndroidUtilities.getPhotoSize());
-        if (photoSize == null) {
+        Main.log("NoforwardsHook: Starting download for: " + fileName, new Object[0]);
+        NotificationCenter.NotificationCenterDelegate observer = new AnonymousClass1(fileName, original, onComplete);
+        NotificationCenter nc = NotificationCenter.getInstance(accountInstance.getCurrentAccount());
+        nc.addObserver(observer, NotificationCenter.fileLoaded);
+        nc.addObserver(observer, NotificationCenter.fileLoadFailed);
+        nc.addObserver(observer, NotificationCenter.fileLoadProgressChanged);
+        if (original.media instanceof TLRPC.TL_messageMediaPhoto) {
+            TLRPC.TL_messageMediaPhoto mediaPhoto = original.media;
+            TLRPC.PhotoSize photoSize2 = FileLoader.getClosestPhotoSizeWithSize(mediaPhoto.photo.sizes, AndroidUtilities.getPhotoSize());
+            if (photoSize2 != null) {
+                Main.log("NoforwardsHook: Loading photo, photoSize type: " + photoSize2.getClass().getSimpleName(), new Object[0]);
+                Main.log("NoforwardsHook: Photo location: " + photoSize2.location, new Object[0]);
+                fileLoader.loadFile(ImageLocation.getForPhoto(photoSize2, mediaPhoto.photo), msgObj, (String) null, 3, 1);
+                return;
+            }
             Main.log("NoforwardsHook: PhotoSize is null!", new Object[0]);
-        } else {
-            Main.log("NoforwardsHook: Loading photo...", new Object[0]);
-            fileLoader.loadFile(ImageLocation.getForPhoto(photoSize, mediaPhoto.photo), msgObj, (String) null, 3, 0);
+            return;
+        }
+        if (original.media instanceof TLRPC.TL_messageMediaDocument) {
+            TLRPC.TL_messageMediaDocument mediaDoc = original.media;
+            Main.log("NoforwardsHook: Loading document...", new Object[0]);
+            fileLoader.loadFile(mediaDoc.document, msgObj, 3, 0);
         }
     }
 
     /* JADX INFO: renamed from: ni.shikatu.re_extera.utils.MessageForwarder$1, reason: invalid class name */
     class AnonymousClass1 implements NotificationCenter.NotificationCenterDelegate {
         final /* synthetic */ String val$fileName;
-        final /* synthetic */ MessageObject val$msgObj;
         final /* synthetic */ Runnable val$onComplete;
+        final /* synthetic */ TLRPC.Message val$original;
 
-        AnonymousClass1(String str, MessageObject messageObject, Runnable runnable) {
+        AnonymousClass1(String str, TLRPC.Message message, Runnable runnable) {
             this.val$fileName = str;
-            this.val$msgObj = messageObject;
+            this.val$original = message;
             this.val$onComplete = runnable;
         }
 
@@ -265,10 +465,10 @@ public class MessageForwarder {
                             MessageForwarder.alertForward.setCancelable(false);
                             AlertDialog alertDialog = MessageForwarder.alertForward;
                             String str = Localization.CANCEL;
-                            final MessageObject messageObject = this.val$msgObj;
+                            final TLRPC.Message message = this.val$original;
                             alertDialog.setNegativeButton(str, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$1$$ExternalSyntheticLambda0
                                 public final void onClick(AlertDialog alertDialog2, int i) {
-                                    this.f$0.lambda$didReceivedNotification$0(messageObject, nc, alertDialog2, i);
+                                    this.f$0.lambda$didReceivedNotification$0(message, nc, alertDialog2, i);
                                 }
                             });
                             MessageForwarder.alertForward.show();
@@ -312,11 +512,19 @@ public class MessageForwarder {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$didReceivedNotification$0(MessageObject msgObj, NotificationCenter nc, AlertDialog dialog, int which) {
+        public /* synthetic */ void lambda$didReceivedNotification$0(TLRPC.Message original, NotificationCenter nc, AlertDialog dialog, int which) {
             if (dialog != null) {
                 dialog.cancel();
             }
-            FileLoader.getInstance(UserConfig.selectedAccount).cancelLoadFile(msgObj.getDocument(), false);
+            if (original.media instanceof TLRPC.TL_messageMediaDocument) {
+                FileLoader.getInstance(UserConfig.selectedAccount).cancelLoadFile(original.media.document, false);
+            } else if (original.media instanceof TLRPC.TL_messageMediaPhoto) {
+                TLRPC.TL_messageMediaPhoto mp = original.media;
+                TLRPC.PhotoSize ps = FileLoader.getClosestPhotoSizeWithSize(mp.photo.sizes, AndroidUtilities.getPhotoSize());
+                if (ps != null) {
+                    FileLoader.getInstance(UserConfig.selectedAccount).cancelLoadFile(ps, false);
+                }
+            }
             nc.removeObserver(this, NotificationCenter.fileLoaded);
             nc.removeObserver(this, NotificationCenter.fileLoadFailed);
             nc.removeObserver(this, NotificationCenter.fileLoadProgressChanged);
@@ -324,9 +532,11 @@ public class MessageForwarder {
     }
 
     /* JADX WARN: Multi-variable type inference failed */
-    /* JADX WARN: Type inference failed for: r1v20 */
+    /* JADX WARN: Type inference failed for: r1v18 */
     /* JADX WARN: Type inference failed for: r1v3 */
     private static void sendGroup(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+        int duration;
+        int height;
         if (messages.isEmpty()) {
             return;
         }
@@ -341,55 +551,71 @@ public class MessageForwarder {
             TLRPC.Message original = msgObj.messageOwner;
             if ((original.media instanceof TLRPC.TL_messageMediaPhoto) || ((original.media instanceof TLRPC.TL_messageMediaDocument) && MessageObject.isVideoDocument(original.media.document) && !MessageObject.isVideoSticker(original.media.document))) {
                 SendMessagesHelper.SendingMediaInfo info = new SendMessagesHelper.SendingMediaInfo();
-                String path = FileLoader.getInstance(accountInstance.getCurrentAccount()).getPathToMessage(original).getAbsolutePath();
-                Main.log("NoforwardsHook: Media path: " + path, new Object[i]);
-                info.path = path;
-                if (i2 == 0 && original.message != null) {
-                    info.caption = original.message;
-                    info.entities = original.entities;
-                }
-                if (original.media instanceof TLRPC.TL_messageMediaPhoto) {
-                    info.isVideo = i;
+                File mediaFile = getMediaFile(accountInstance, original);
+                if (mediaFile == null || !mediaFile.exists()) {
+                    Main.log("NoforwardsHook: Media file not found, skipping", new Object[0]);
                 } else {
-                    TLRPC.TL_messageMediaDocument mediaDoc = original.media;
-                    info.isVideo = MessageObject.isVideoDocument(mediaDoc.document) && !MessageObject.isVideoSticker(mediaDoc.document);
-                    info.ttl = i;
-                    TLRPC.Document document = original.media.document;
-                    if (info.isVideo) {
-                        int width = -1;
-                        int height = -1;
-                        int duration = -1;
-                        for (TLRPC.TL_documentAttributeVideo tL_documentAttributeVideo : document.attributes) {
-                            boolean hasMedia2 = hasMedia;
-                            boolean hasMedia3 = tL_documentAttributeVideo instanceof TLRPC.TL_documentAttributeVideo;
-                            if (hasMedia3) {
-                                TLRPC.TL_documentAttributeVideo videoAttr = tL_documentAttributeVideo;
-                                width = videoAttr.w;
-                                height = videoAttr.h;
-                                duration = (int) videoAttr.duration;
-                                break;
-                            }
-                            hasMedia = hasMedia2;
-                        }
-                        VideoEditedInfo videoEditedInfo = new VideoEditedInfo();
-                        videoEditedInfo.roundVideo = MessageObject.isRoundVideoDocument(mediaDoc.document);
-                        videoEditedInfo.startTime = -1L;
-                        videoEditedInfo.endTime = -1L;
-                        videoEditedInfo.bitrate = -1;
-                        videoEditedInfo.originalPath = path;
-                        videoEditedInfo.estimatedSize = 0L;
-                        videoEditedInfo.estimatedDuration = duration;
-                        videoEditedInfo.resultWidth = width;
-                        videoEditedInfo.resultHeight = height;
-                        videoEditedInfo.originalWidth = width;
-                        videoEditedInfo.originalHeight = height;
+                    String path = mediaFile.getAbsolutePath();
+                    Main.log("NoforwardsHook: Media path: " + path, new Object[i]);
+                    info.path = path;
+                    if (i2 == 0 && original.message != null) {
+                        info.caption = original.message;
+                        info.entities = original.entities;
                     }
+                    if (original.media instanceof TLRPC.TL_messageMediaPhoto) {
+                        info.isVideo = i;
+                    } else {
+                        TLRPC.TL_messageMediaDocument mediaDoc = original.media;
+                        info.isVideo = MessageObject.isVideoDocument(mediaDoc.document) && !MessageObject.isVideoSticker(mediaDoc.document);
+                        info.ttl = i;
+                        TLRPC.Document document = original.media.document;
+                        if (info.isVideo) {
+                            int width = -1;
+                            Iterator it = document.attributes.iterator();
+                            while (true) {
+                                if (!it.hasNext()) {
+                                    duration = -1;
+                                    height = -1;
+                                    break;
+                                }
+                                TLRPC.TL_documentAttributeVideo tL_documentAttributeVideo = (TLRPC.DocumentAttribute) it.next();
+                                boolean hasMedia2 = hasMedia;
+                                boolean hasMedia3 = tL_documentAttributeVideo instanceof TLRPC.TL_documentAttributeVideo;
+                                if (hasMedia3) {
+                                    TLRPC.TL_documentAttributeVideo videoAttr = tL_documentAttributeVideo;
+                                    width = videoAttr.w;
+                                    int height2 = videoAttr.h;
+                                    duration = (int) videoAttr.duration;
+                                    height = height2;
+                                    break;
+                                }
+                                hasMedia = hasMedia2;
+                            }
+                            VideoEditedInfo videoEditedInfo = new VideoEditedInfo();
+                            videoEditedInfo.roundVideo = MessageObject.isRoundVideoDocument(mediaDoc.document);
+                            videoEditedInfo.startTime = -1L;
+                            videoEditedInfo.endTime = -1L;
+                            videoEditedInfo.bitrate = -1;
+                            videoEditedInfo.originalPath = path;
+                            videoEditedInfo.estimatedSize = 0L;
+                            videoEditedInfo.estimatedDuration = duration;
+                            videoEditedInfo.resultWidth = width;
+                            videoEditedInfo.resultHeight = height;
+                            videoEditedInfo.originalWidth = width;
+                            videoEditedInfo.originalHeight = height;
+                        }
+                    }
+                    mediaInfos.add(info);
+                    hasMedia = true;
                 }
-                mediaInfos.add(info);
-                hasMedia = true;
+                i2++;
+                i = 0;
             } else {
                 sendNonMediaMessage(accountInstance, msgObj, peer, notify, scheduleDate, replyToTopMsg);
+                hasMedia = hasMedia;
+                i2 = i2;
             }
+            hasMedia = hasMedia;
             i2++;
             i = 0;
         }
