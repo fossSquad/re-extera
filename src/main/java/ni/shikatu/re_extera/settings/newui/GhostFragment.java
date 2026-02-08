@@ -155,11 +155,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 break;
-            case Main.VERSION_CODE /* 9 */:
+            case 9:
                 Settings.setUseSchedule(!Settings.getUseSchedule());
                 refreshCheckBox(item, position, Settings.getUseSchedule());
                 break;
-            case 10:
+            case Main.VERSION_CODE /* 10 */:
                 presentFragment(new ExclusionsFragment());
                 break;
         }
