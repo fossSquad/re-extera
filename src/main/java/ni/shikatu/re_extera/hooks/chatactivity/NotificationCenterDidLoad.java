@@ -86,6 +86,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
                                 }
                             }
                         } catch (Exception e) {
+                            ReflectionUtils.hookError();
                             Main.log("Error in afterHookedMethod", e.getMessage());
                         }
                     }

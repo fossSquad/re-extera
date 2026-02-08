@@ -95,7 +95,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             case 6:
                 showClearDbDialog();
                 break;
-            case Main.VERSION_CODE /* 7 */:
+            case 7:
                 Main.getInstance().onUnload();
                 BulletinFactory.of(this).createSuccessBulletin(Localization.UNLOAD_SUCCESSFULL).show();
                 break;

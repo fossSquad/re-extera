@@ -55,7 +55,7 @@ public class MeasureTime extends XC_MethodHook {
         if (messageObject == null || (message = messageObject.messageOwner) == null) {
             return;
         }
-        if (this.redb.messageIsDeleted(MessageUtils.getDialogIdFromMessage(message), message.id) && (charSequence = (CharSequence) currentTimeString.get(chatMessageCell)) != null && (textPaint = Theme.chat_timePaint) != null) {
+        if (this.redb.messageIsDeleted(MessageUtils.getDialogIdFromMessage(message), message.id) && (charSequence = (CharSequence) ReflectionUtils.get(currentTimeString, chatMessageCell)) != null && (textPaint = Theme.chat_timePaint) != null) {
             if (mark != null && !mark.isEmpty()) {
                 SpannableStringBuilder spannableStringBuilder2 = new SpannableStringBuilder(LocaleUtils.fullyFormatText(mark));
                 spannableStringBuilder2.setSpan(spannableStringBuilder2, 0, spannableStringBuilder2.length(), 33);

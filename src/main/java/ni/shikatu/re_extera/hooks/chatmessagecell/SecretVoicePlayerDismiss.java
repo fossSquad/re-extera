@@ -43,12 +43,17 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
         if (Settings.getSaveOneTimeMessages()) {
-            Field closeActionF = SecretVoicePlayer.class.getDeclaredField("closeAction");
-            closeActionF.setAccessible(true);
-            ReflectionUtils.set(closeActionF, param.thisObject, null);
-            Field thanosEffectF = SecretVoicePlayer.class.getDeclaredField("thanosEffect");
-            thanosEffectF.setAccessible(true);
-            ReflectionUtils.set(thanosEffectF, param.thisObject, null);
+            try {
+                Field closeActionF = SecretVoicePlayer.class.getDeclaredField("closeAction");
+                closeActionF.setAccessible(true);
+                ReflectionUtils.set(closeActionF, param.thisObject, null);
+                Field thanosEffectF = SecretVoicePlayer.class.getDeclaredField("thanosEffect");
+                thanosEffectF.setAccessible(true);
+                ReflectionUtils.set(thanosEffectF, param.thisObject, null);
+            } catch (Exception e) {
+                ReflectionUtils.hookError();
+                Main.log("SecretVoicePlayerDismiss.before: %s", e.getMessage());
+            }
         }
     }
 

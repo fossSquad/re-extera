@@ -25,7 +25,6 @@ import org.telegram.ui.ProfileActivity;
 
 public class UpdateProfileData extends XC_MethodHook {
     private static final long REQUEST_COOLDOWN = 5000;
-    private static XC_MethodHook blockHook;
     private static Method needLayout;
     private static Field onlineTextView;
     private static Field userId;
@@ -33,6 +32,13 @@ public class UpdateProfileData extends XC_MethodHook {
     private static volatile boolean blockUpdates = false;
     private static String cachedText = null;
     private static long lastRequestTime = 0;
+    private static final XC_MethodHook blockHook = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1
+        protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+            if (UpdateProfileData.blockUpdates && UpdateProfileData.trackedViews.contains(param.thisObject)) {
+                param.setResult(false);
+            }
+        }
+    };
 
     interface TimeCallback {
         void onTime(int i);
@@ -54,13 +60,6 @@ public class UpdateProfileData extends XC_MethodHook {
             ReflectionUtils.hookError();
             Main.log("Not found method: %s", e2.getMessage());
         }
-        blockHook = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1
-            protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                if (UpdateProfileData.blockUpdates && UpdateProfileData.trackedViews.contains(param.thisObject)) {
-                    param.setResult(false);
-                }
-            }
-        };
     }
 
     private static void hookSetText() {
@@ -70,6 +69,7 @@ public class UpdateProfileData extends XC_MethodHook {
             Method setTextWithBoolean = SimpleTextView.class.getDeclaredMethod("setText", CharSequence.class, Boolean.TYPE);
             XposedBridge.hookMethod(setTextWithBoolean, blockHook);
         } catch (Exception e) {
+            ReflectionUtils.hookError();
             Main.log("Failed to hook setText: %s", e.getMessage());
         }
     }

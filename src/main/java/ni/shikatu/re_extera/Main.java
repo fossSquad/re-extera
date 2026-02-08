@@ -29,13 +29,12 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
 public class Main {
-    public static final String VERSION = "1.4-unstable";
-    public static final int VERSION_CODE = 7;
+    public static final String VERSION = "1.5";
+    public static final int VERSION_CODE = 8;
     public static HookInit hooks;
     private static Method initiateFragment;
     public static Main instance = null;
-    public static List<Long> blocked = Main$$ExternalSyntheticBackport0.m(new Object[]{6204645839L});
-    public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
+    public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport1.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
     public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
 
     static {
@@ -60,7 +59,6 @@ public class Main {
         hooks = new HookInit();
         hooks.init();
         initFragments();
-        checkBlocked();
     }
 
     private static void initFragments() {
@@ -68,7 +66,7 @@ public class Main {
             return;
         }
         final SettingsRegistry instance2 = SettingsRegistry.getInstance();
-        fragments.forEach(new Consumer() { // from class: ni.shikatu.re_extera.Main$$ExternalSyntheticLambda3
+        fragments.forEach(new Consumer() { // from class: ni.shikatu.re_extera.Main$$ExternalSyntheticLambda2
             @Override // java.util.function.Consumer
             public final void accept(Object obj) {
                 ReflectionUtils.invoke(Main.initiateFragment, instance2, (Class) obj);
@@ -100,9 +98,6 @@ public class Main {
     public void showSettings() {
         SettingsFragmentNew settingsFragment = new SettingsFragmentNew();
         LaunchActivity.instance.presentFragment(settingsFragment);
-    }
-
-    public static void checkBlocked() {
     }
 
     public void onUnload() {

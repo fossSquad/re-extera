@@ -8,8 +8,6 @@ import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
-import ni.shikatu.re_extera.Main;
-import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.ExclusionsFragment;
@@ -142,7 +140,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setReadOnInteract(!Settings.getReadOnInteract());
                 refreshCheckBox(item, position, Settings.getReadOnInteract());
                 break;
-            case Main.VERSION_CODE /* 7 */:
+            case 7:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda1
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -150,7 +148,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case ReExteraDb.DB_VERSION /* 8 */:
+            case 8:
                 Settings.setAddGhostToDrawer(!Settings.getAddGhostToDrawer());
                 refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);

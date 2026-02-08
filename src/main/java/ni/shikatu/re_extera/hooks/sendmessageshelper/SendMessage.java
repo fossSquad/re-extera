@@ -50,6 +50,7 @@ public class SendMessage extends XC_MethodHook {
             openScheduledMessages = ChatActivity.class.getDeclaredMethod("openScheduledMessages", Integer.TYPE, Boolean.TYPE);
             updateBottomOverlay = ChatActivity.class.getDeclaredMethod("updateBottomOverlay", new Class[0]);
         } catch (NoSuchMethodException e) {
+            ReflectionUtils.hookError();
             Main.log("No such method", e.getMessage());
         }
     }

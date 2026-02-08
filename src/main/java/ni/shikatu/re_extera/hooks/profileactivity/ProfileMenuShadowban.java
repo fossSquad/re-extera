@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.ui.ShadowbanDialog;
+import ni.shikatu.re_extera.utils.ReflectionUtils;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -23,36 +24,40 @@ public class ProfileMenuShadowban extends XC_MethodHook {
             userIdField = ProfileActivity.class.getDeclaredField("userId");
             userIdField.setAccessible(true);
         } catch (NoSuchFieldException e) {
+            ReflectionUtils.hookError();
             Main.log("ProfileMenuShadowban: field not found: %s", e.getMessage());
         }
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        if (otherItemField == null || userIdField == null) {
-            return;
-        }
-        final ProfileActivity activity = (ProfileActivity) param.thisObject;
-        final ActionBarMenuItem otherItem = (ActionBarMenuItem) otherItemField.get(activity);
-        final long userId = userIdField.getLong(activity);
-        if (otherItem == null || userId <= 0) {
-            return;
-        }
-        if (ShadowbanCache.isShadowbanned(userId)) {
-            ActionBarMenuSubItem subItem = otherItem.addSubItem(0, R.drawable.msg_block2, Localization.REMOVE_FROM_SHADOWBAN);
-            subItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda0
-                @Override // android.view.View.OnClickListener
-                public final void onClick(View view) {
-                    ProfileMenuShadowban.lambda$afterHookedMethod$0(userId, otherItem, activity, view);
+        try {
+            if (otherItemField != null && userIdField != null) {
+                final ProfileActivity activity = (ProfileActivity) param.thisObject;
+                final ActionBarMenuItem otherItem = (ActionBarMenuItem) ReflectionUtils.get(otherItemField, activity);
+                final long userId = ((Long) ReflectionUtils.get(userIdField, activity)).longValue();
+                if (otherItem != null && userId > 0) {
+                    if (ShadowbanCache.isShadowbanned(userId)) {
+                        ActionBarMenuSubItem subItem = otherItem.addSubItem(0, R.drawable.msg_block2, Localization.REMOVE_FROM_SHADOWBAN);
+                        subItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda0
+                            @Override // android.view.View.OnClickListener
+                            public final void onClick(View view) {
+                                ProfileMenuShadowban.lambda$afterHookedMethod$0(userId, otherItem, activity, view);
+                            }
+                        });
+                    } else {
+                        ActionBarMenuSubItem subItem2 = otherItem.addSubItem(0, R.drawable.msg_block, Localization.ADD_TO_SHADOWBAN);
+                        subItem2.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda1
+                            @Override // android.view.View.OnClickListener
+                            public final void onClick(View view) {
+                                ProfileMenuShadowban.lambda$afterHookedMethod$2(otherItem, activity, userId, view);
+                            }
+                        });
+                    }
                 }
-            });
-        } else {
-            ActionBarMenuSubItem subItem2 = otherItem.addSubItem(0, R.drawable.msg_block, Localization.ADD_TO_SHADOWBAN);
-            subItem2.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda1
-                @Override // android.view.View.OnClickListener
-                public final void onClick(View view) {
-                    ProfileMenuShadowban.lambda$afterHookedMethod$2(otherItem, activity, userId, view);
-                }
-            });
+            }
+        } catch (Exception e) {
+            ReflectionUtils.hookError();
+            Main.log("ProfileMenuShadowban: %s", e.getMessage());
         }
     }
 

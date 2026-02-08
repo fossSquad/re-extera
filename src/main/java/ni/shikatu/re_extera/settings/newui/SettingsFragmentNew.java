@@ -40,10 +40,6 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         }
     }
 
-    public SettingsFragmentNew() {
-        Main.checkBlocked();
-    }
-
     public View createView(Context context) {
         GHOST_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.ghost), AndroidUtilities.dp(28.0f), AndroidUtilities.dp(28.0f));
         DELETED_ICON = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.menu_hide_gift), AndroidUtilities.dp(28.0f), AndroidUtilities.dp(28.0f));
