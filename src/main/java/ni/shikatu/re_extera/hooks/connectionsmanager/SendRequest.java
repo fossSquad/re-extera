@@ -106,14 +106,13 @@ public class SendRequest extends XC_MethodHook {
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
-        if (!Settings.getImmediateOfflineWithGhost() || (param.args[0] instanceof TL_account.updateStatus)) {
-            return;
+        if (Defaults.onlineRequests.contains(param.args[0].getClass()) && Settings.getImmediateOfflineWithGhost()) {
+            ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(offlineStatus, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
+                public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                    SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
+                }
+            });
         }
-        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(offlineStatus, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
-            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
-            }
-        });
     }
 
     static /* synthetic */ void lambda$afterHookedMethod$0(TLObject __, TLRPC.TL_error ___) {
