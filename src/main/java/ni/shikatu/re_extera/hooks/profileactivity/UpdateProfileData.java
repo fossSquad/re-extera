@@ -33,7 +33,7 @@ public class UpdateProfileData extends XC_MethodHook {
     private static String cachedText = null;
     private static long lastRequestTime = 0;
     private static final XC_MethodHook blockHook = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1
-        protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
             if (UpdateProfileData.blockUpdates && UpdateProfileData.trackedViews.contains(param.thisObject)) {
                 param.setResult(false);
             }
@@ -160,12 +160,15 @@ public class UpdateProfileData extends XC_MethodHook {
     public /* synthetic */ void lambda$getRealLastSeenTime$2(TimeCallback callback, TLObject response, TLRPC.TL_error error) {
         if (response instanceof Vector) {
             Vector<?> vector = (Vector) response;
-            if (!vector.objects.isEmpty() && (vector.objects.get(0) instanceof TLRPC.User)) {
-                TLRPC.User user = (TLRPC.User) vector.objects.get(0);
-                if (user.status != null) {
-                    int time = getTimeFromStatus(user.status);
-                    callback.onTime(time);
-                    return;
+            if (!vector.objects.isEmpty()) {
+                Object patt0$temp = vector.objects.get(0);
+                if (patt0$temp instanceof TLRPC.User) {
+                    TLRPC.User user = (TLRPC.User) patt0$temp;
+                    if (user.status != null) {
+                        int time = getTimeFromStatus(user.status);
+                        callback.onTime(time);
+                        return;
+                    }
                 }
             }
         }

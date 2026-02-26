@@ -24,9 +24,6 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
 
 public class FragmentCreate extends XC_MethodHook {
-    private static final int MENU_EXCEPTIONS = 6961;
-    private static final int MENU_EXCEPTION_READING = 6364;
-    private static final int MENU_EXCEPTION_TYPING = 6365;
     private static Field argumentsField;
     private static Field headerItemField;
     private ActionBarMenuSubItem exceptionsItem;

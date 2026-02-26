@@ -268,4 +268,28 @@ public class Settings {
     public static void setSendSilence(SendSilence value) {
         set("send_silence", value.getType());
     }
+
+    public static boolean getGhostInMainMenu() {
+        return get("ghost_in_main_menu", false);
+    }
+
+    public static void setGhostInMainMenu(boolean value) {
+        set("ghost_in_main_menu", value);
+    }
+
+    public static int getGhostMenuIndex() {
+        return get("ghost_menu_index", 0);
+    }
+
+    public static void setGhostMenuIndex(int value) {
+        set("ghost_menu_index", value);
+    }
+
+    public static boolean isGhostPositionInitialized() {
+        return get("ghost_position_initialized", false);
+    }
+
+    public static void setGhostPositionInitialized(boolean value) {
+        set("ghost_position_initialized", value);
+    }
 }

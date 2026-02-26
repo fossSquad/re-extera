@@ -8,6 +8,8 @@ import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
+import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.ExclusionsFragment;
@@ -148,7 +150,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case 8:
+            case ReExteraDb.DB_VERSION /* 8 */:
                 Settings.setAddGhostToDrawer(!Settings.getAddGhostToDrawer());
                 refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
@@ -157,7 +159,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setUseSchedule(!Settings.getUseSchedule());
                 refreshCheckBox(item, position, Settings.getUseSchedule());
                 break;
-            case 10:
+            case Main.VERSION_CODE /* 10 */:
                 presentFragment(new ExclusionsFragment());
                 break;
         }
