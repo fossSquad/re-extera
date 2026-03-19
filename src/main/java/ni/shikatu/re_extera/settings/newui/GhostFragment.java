@@ -13,6 +13,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.ExclusionsFragment;
+import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -103,7 +104,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE).setChecked(Settings.getUseSchedule()).setLinkAlias("reExteraUseSchedule", this));
         items.add(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()).setLinkAlias("reExteraSendSilence", this));
         items.add(UItem.asShadow());
-        items.add(UItem.asCheck(GhostIds.ADD_GHOST_TO_DRAWER_ID.getId(), Localization.GHOST_IN_DRAWER).setChecked(Settings.getAddGhostToDrawer()).setLinkAlias("reExteraAddGhostToDrawer", this));
+        items.add(UItem.asCheck(GhostIds.ADD_GHOST_TO_DRAWER_ID.getId(), Localization.GHOST_IN_DRAWER).setChecked(GhostMenuHelper.isGhostMenuVisible()).setLinkAlias("reExteraAddGhostToDrawer", this));
         items.add(UItem.asShadow());
         items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
     }
@@ -151,8 +152,8 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 }).show();
                 break;
             case ReExteraDb.DB_VERSION /* 8 */:
-                Settings.setAddGhostToDrawer(!Settings.getAddGhostToDrawer());
-                refreshCheckBox(item, position, Settings.getAddGhostToDrawer());
+                GhostMenuHelper.setGhostMenuVisible(!GhostMenuHelper.isGhostMenuVisible());
+                refreshCheckBox(item, position, GhostMenuHelper.isGhostMenuVisible());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 break;
             case 9:

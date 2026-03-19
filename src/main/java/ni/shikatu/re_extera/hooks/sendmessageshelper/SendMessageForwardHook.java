@@ -20,7 +20,7 @@ public class SendMessageForwardHook extends XC_MethodHook {
         ArrayList<MessageObject> noForwards = new ArrayList<>();
         ArrayList<MessageObject> forwards = new ArrayList<>();
         for (MessageObject obj : objects) {
-            boolean isNoForwards = obj.isNoforwards() || this.redb.messageIsDeleted(obj) || obj.isSecret() || obj.isSecretMedia() || obj.isVoiceOnce() || obj.isRoundOnce();
+            boolean isNoForwards = !obj.canForwardMessage() || this.redb.messageIsDeleted(obj) || obj.isSecret() || obj.isSecretMedia() || obj.isVoiceOnce() || obj.isRoundOnce();
             if (isNoForwards) {
                 noForwards.add(obj);
             } else {
