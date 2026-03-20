@@ -3,6 +3,7 @@ package ni.shikatu.re_extera.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -73,6 +75,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
     private TLRPC.User currentUser;
     private long did;
     private TextView emptyView;
+    private boolean loadingMessages;
     private final PhotoViewer.PhotoViewerProvider provider = new PhotoViewer.EmptyPhotoViewerProvider() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.1
         public PhotoViewer.PlaceProviderObject getPlaceForPhoto(MessageObject messageObject, TLRPC.FileLocation fileLocation, int index, boolean needPreview, boolean closing) {
             ChatMessageCell cell;
@@ -100,6 +103,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             return null;
         }
     };
+    private int reloadGeneration;
     private TextSelectionHelper.ChatListTextSelectionHelper textSelectionHelper;
 
     public static DeletedMessagesInChatFragment newInstance(long did) {
@@ -208,14 +212,84 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             }
         });
         int topInset = ActionBar.getCurrentActionBarHeight() + (this.actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
-        this.chatListView = new RecyclerListView(context, this.resourceProvider);
+        this.chatListView = new RecyclerListView(context, this.resourceProvider) { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.6
+            public boolean drawChild(Canvas canvas, View child, long drawingTime) {
+                ChatMessageCell chatMessageCell;
+                ImageReceiver imageReceiver;
+                int cellBottom;
+                RecyclerView.ViewHolder prevHolder;
+                boolean result = super.drawChild(canvas, child, drawingTime);
+                if (!(child instanceof ChatMessageCell) || (imageReceiver = (chatMessageCell = (ChatMessageCell) child).getAvatarImage()) == null) {
+                    return result;
+                }
+                int top = (int) child.getY();
+                if (chatMessageCell.drawPinnedBottom()) {
+                    RecyclerView.ViewHolder holder = getChildViewHolder(child);
+                    int position = holder.getAdapterPosition();
+                    if (position >= 0) {
+                        RecyclerView.ViewHolder nextHolder = findViewHolderForAdapterPosition(position + 1);
+                        if (nextHolder != null) {
+                            imageReceiver.setVisible(false, false);
+                            return result;
+                        }
+                    }
+                }
+                float tx = chatMessageCell.getSlidingOffsetX() + chatMessageCell.getCheckBoxTranslation();
+                int y = ((int) child.getY()) + chatMessageCell.getLayoutHeight();
+                int maxY = getMeasuredHeight() - getPaddingBottom();
+                if (y > maxY) {
+                    y = maxY;
+                }
+                if (chatMessageCell.drawPinnedTop()) {
+                    RecyclerView.ViewHolder holder2 = getChildViewHolder(child);
+                    int position2 = holder2.getAdapterPosition();
+                    if (position2 >= 0) {
+                        int tries = 0;
+                        while (true) {
+                            int tries2 = tries + 1;
+                            if (tries < 20 && (prevHolder = findViewHolderForAdapterPosition(position2 - 1)) != null) {
+                                top = prevHolder.itemView.getTop();
+                                ChatMessageCell chatMessageCell2 = prevHolder.itemView;
+                                if (!(chatMessageCell2 instanceof ChatMessageCell)) {
+                                    break;
+                                }
+                                ChatMessageCell prevCell = chatMessageCell2;
+                                if (!prevCell.drawPinnedTop()) {
+                                    break;
+                                }
+                                position2--;
+                                tries = tries2;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (y - AndroidUtilities.dp(48.0f) < top) {
+                    y = top + AndroidUtilities.dp(48.0f);
+                }
+                if (!chatMessageCell.drawPinnedBottom() && y > (cellBottom = (int) (chatMessageCell.getY() + chatMessageCell.getMeasuredHeight()))) {
+                    y = cellBottom;
+                }
+                canvas.save();
+                if (tx != 0.0f) {
+                    canvas.translate(tx, 0.0f);
+                }
+                imageReceiver.setImageY(y - AndroidUtilities.dp(44.0f));
+                imageReceiver.setAlpha(chatMessageCell.shouldDrawAlphaLayer() ? chatMessageCell.getAlpha() : 1.0f);
+                imageReceiver.setVisible(true, false);
+                imageReceiver.draw(canvas);
+                canvas.restore();
+                return result;
+            }
+        };
         this.chatListView.setClipChildren(false);
         this.chatListView.setClipToPadding(false);
         this.chatListView.setPadding(0, AndroidUtilities.dp(8.0f) + topInset, 0, AndroidUtilities.dp(8.0f));
         this.chatLayoutManager = new LinearLayoutManager(context);
         this.chatListView.setLayoutManager(this.chatLayoutManager);
         this.chatListView.setItemAnimator((RecyclerView.ItemAnimator) null);
-        this.chatListView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListenerExtended() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.6
+        this.chatListView.setOnItemLongClickListener(new RecyclerListView.OnItemLongClickListenerExtended() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.7
             public boolean onItemClick(View view, int position, float x, float y) {
                 if (DeletedMessagesInChatFragment.this.textSelectionHelper != null && (DeletedMessagesInChatFragment.this.textSelectionHelper.isTryingSelect() || DeletedMessagesInChatFragment.this.textSelectionHelper.isInSelectionMode())) {
                     return false;
@@ -223,7 +297,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
                 return DeletedMessagesInChatFragment.this.showMessageMenu(view, x, y);
             }
         });
-        this.chatListView.addOnScrollListener(new RecyclerView.OnScrollListener() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.7
+        this.chatListView.addOnScrollListener(new RecyclerView.OnScrollListener() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment.8
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 if (DeletedMessagesInChatFragment.this.textSelectionHelper != null && newState == 0) {
                     DeletedMessagesInChatFragment.this.textSelectionHelper.stopScrolling();
@@ -293,10 +367,32 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         if (this.adapter == null) {
             return;
         }
-        this.adapter.reload(this.did);
+        this.loadingMessages = true;
         updateHeader(this.adapter.getMessageCount());
         if (this.emptyView != null) {
+            this.emptyView.setText(LocaleController.getString(R.string.Loading));
             this.emptyView.setVisibility(this.adapter.getItemCount() == 0 ? 0 : 8);
+        }
+        final int currentGeneration = this.reloadGeneration + 1;
+        this.reloadGeneration = currentGeneration;
+        this.adapter.reloadAsync(this.did, new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$$ExternalSyntheticLambda1
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$reloadMessages$0(currentGeneration);
+            }
+        });
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public /* synthetic */ void lambda$reloadMessages$0(int currentGeneration) {
+        if (currentGeneration != this.reloadGeneration) {
+            return;
+        }
+        this.loadingMessages = false;
+        updateHeader(this.adapter.getMessageCount());
+        if (this.emptyView != null) {
+            this.emptyView.setText(LocaleController.getString(R.string.NoResult));
+            this.emptyView.setVisibility(this.adapter.getItemCount() != 0 ? 8 : 0);
         }
     }
 
@@ -313,7 +409,9 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         } else {
             this.avatarContainer.setTitle(Localization.DELETED_MESSAGES_TITLE);
         }
-        if (messageCount <= 0) {
+        if (this.loadingMessages) {
+            this.avatarContainer.setSubtitle(LocaleController.getString(R.string.Loading));
+        } else if (messageCount <= 0) {
             this.avatarContainer.setSubtitle(LocaleController.getString(R.string.NoResult));
         } else {
             this.avatarContainer.setSubtitle(LocaleController.formatPluralString("MessagesDeletedHint", messageCount, new Object[0]));
@@ -848,6 +946,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         private final TLRPC.Chat currentChat;
         private final TLRPC.User currentUser;
         private final ChatMessageCell.ChatMessageCellDelegate delegate;
+        private int loadGeneration;
         private final Theme.ResourcesProvider resourcesProvider;
         private final ArrayList<MessageObject> items = new ArrayList<>();
         private final ArrayList<MessageObject> rows = new ArrayList<>();
@@ -880,38 +979,71 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             return -1;
         }
 
-        void reload(long did) {
-            this.items.clear();
+        void reloadAsync(final long did, final Runnable onDone) {
+            final int currentGeneration = this.loadGeneration + 1;
+            this.loadGeneration = currentGeneration;
+            Utilities.globalQueue.postRunnable(new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda0
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$reloadAsync$2(did, currentGeneration, onDone);
+                }
+            });
+        }
+
+        /* JADX INFO: Access modifiers changed from: private */
+        public /* synthetic */ void lambda$reloadAsync$2(long did, final int currentGeneration, final Runnable onDone) {
+            final ArrayList<MessageObject> loadedItems = new ArrayList<>();
             ArrayList<Integer> mids = ReExteraDb.get().allMessageIdsByDid(did);
             if (mids != null) {
                 for (Integer mid : mids) {
                     MessageObject msgObj = MessageUtils.getMessage(did, mid.intValue());
                     if (msgObj != null) {
-                        this.items.add(msgObj);
+                        loadedItems.add(msgObj);
                     }
                 }
             }
-            this.items.sort(Comparator.comparingInt(new ToIntFunction() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda0
+            loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda1
                 @Override // java.util.function.ToIntFunction
                 public final int applyAsInt(Object obj) {
                     return ((MessageObject) obj).messageOwner.date;
                 }
             }));
-            rebuildRows();
-            notifyDataSetChanged();
+            final ArrayList<MessageObject> loadedRows = buildRows(loadedItems);
+            AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda2
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);
+                }
+            });
         }
 
-        private void rebuildRows() {
+        /* JADX INFO: Access modifiers changed from: private */
+        public /* synthetic */ void lambda$reloadAsync$1(int currentGeneration, ArrayList loadedItems, ArrayList loadedRows, Runnable onDone) {
+            if (currentGeneration != this.loadGeneration) {
+                return;
+            }
+            this.items.clear();
+            this.items.addAll(loadedItems);
             this.rows.clear();
+            this.rows.addAll(loadedRows);
+            notifyDataSetChanged();
+            if (onDone != null) {
+                onDone.run();
+            }
+        }
+
+        private ArrayList<MessageObject> buildRows(ArrayList<MessageObject> source) {
+            ArrayList<MessageObject> result = new ArrayList<>();
             String previousKey = null;
-            for (MessageObject item : this.items) {
+            for (MessageObject item : source) {
                 String key = getDateKey(item);
                 if (!key.equals(previousKey)) {
-                    this.rows.add(createDateObject(item.messageOwner.date));
+                    result.add(createDateObject(item.messageOwner.date));
                     previousKey = key;
                 }
-                this.rows.add(item);
+                result.add(item);
             }
+            return result;
         }
 
         private String getDateKey(MessageObject messageObject) {
