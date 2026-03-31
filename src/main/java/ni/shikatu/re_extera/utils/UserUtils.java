@@ -6,10 +6,18 @@ import org.telegram.tgnet.TLRPC;
 
 public class UserUtils {
     public static TLRPC.User getUser(long peer) {
-        return MessagesController.getInstance(UserConfig.selectedAccount).getUser(Long.valueOf(peer));
+        return getUser(UserConfig.selectedAccount, peer);
+    }
+
+    public static TLRPC.User getUser(int currentAccount, long peer) {
+        return MessagesController.getInstance(currentAccount).getUser(Long.valueOf(peer));
     }
 
     public static TLRPC.User getSelf() {
-        return getUser(UserConfig.getInstance(UserConfig.selectedAccount).clientUserId);
+        return getSelf(UserConfig.selectedAccount);
+    }
+
+    public static TLRPC.User getSelf(int currentAccount) {
+        return getUser(currentAccount, UserConfig.getInstance(currentAccount).clientUserId);
     }
 }

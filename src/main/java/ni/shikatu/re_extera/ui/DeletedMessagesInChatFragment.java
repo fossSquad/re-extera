@@ -996,7 +996,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             ArrayList<Integer> mids = ReExteraDb.get().allMessageIdsByDid(did);
             if (mids != null) {
                 for (Integer mid : mids) {
-                    MessageObject msgObj = MessageUtils.getMessage(did, mid.intValue());
+                    MessageObject msgObj = MessageUtils.getMessage(this.currentAccount, did, mid.intValue());
                     if (msgObj != null) {
                         loadedItems.add(msgObj);
                     }

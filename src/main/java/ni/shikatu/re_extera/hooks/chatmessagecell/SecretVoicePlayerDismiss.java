@@ -36,7 +36,6 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
             setupTranslation = SecretVoicePlayer.class.getDeclaredMethod("setupTranslation", new Class[0]);
             setupTranslation.setAccessible(true);
         } catch (Exception e) {
-            ReflectionUtils.hookError();
             Main.log("SecretVoicePlayerDismiss: %s", e.getMessage());
         }
     }
@@ -51,38 +50,38 @@ public class SecretVoicePlayerDismiss extends XC_MethodHook {
                 thanosEffectF.setAccessible(true);
                 ReflectionUtils.set(thanosEffectF, param.thisObject, null);
             } catch (Exception e) {
-                ReflectionUtils.hookError();
                 Main.log("SecretVoicePlayerDismiss.before: %s", e.getMessage());
             }
         }
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        if (Settings.getSaveOneTimeMessages()) {
-            AlertDialog backDialogC = (AlertDialog) ReflectionUtils.get(backDialog, param.thisObject);
-            HintView2 hintViewC = (HintView2) ReflectionUtils.get(hintView, param.thisObject);
-            VideoPlayer playerC = (VideoPlayer) ReflectionUtils.get(player, param.thisObject);
-            FrameLayout windowViewC = (FrameLayout) ReflectionUtils.get(windowView, param.thisObject);
-            EarListener earListenerC = (EarListener) ReflectionUtils.get(earListener, param.thisObject);
-            if (backDialogC != null) {
-                backDialogC.dismiss();
-                ReflectionUtils.set(backDialog, param.thisObject, null);
-            }
-            if (hintViewC != null) {
-                hintViewC.hide();
-            }
-            if (playerC != null) {
-                playerC.pause();
-                playerC.releasePlayer(true);
-                ReflectionUtils.set(player, param.thisObject, null);
-            }
-            ReflectionUtils.invoke(setupTranslation, param.thisObject, new Object[0]);
-            if (windowViewC != null) {
-                windowViewC.invalidate();
-            }
-            if (earListenerC != null) {
-                earListenerC.detach();
-            }
+        if (!Settings.getSaveOneTimeMessages() || backDialog == null || hintView == null || player == null || windowView == null || earListener == null || setupTranslation == null) {
+            return;
+        }
+        AlertDialog backDialogC = (AlertDialog) ReflectionUtils.get(backDialog, param.thisObject);
+        HintView2 hintViewC = (HintView2) ReflectionUtils.get(hintView, param.thisObject);
+        VideoPlayer playerC = (VideoPlayer) ReflectionUtils.get(player, param.thisObject);
+        FrameLayout windowViewC = (FrameLayout) ReflectionUtils.get(windowView, param.thisObject);
+        EarListener earListenerC = (EarListener) ReflectionUtils.get(earListener, param.thisObject);
+        if (backDialogC != null) {
+            backDialogC.dismiss();
+            ReflectionUtils.set(backDialog, param.thisObject, null);
+        }
+        if (hintViewC != null) {
+            hintViewC.hide();
+        }
+        if (playerC != null) {
+            playerC.pause();
+            playerC.releasePlayer(true);
+            ReflectionUtils.set(player, param.thisObject, null);
+        }
+        ReflectionUtils.invoke(setupTranslation, param.thisObject, new Object[0]);
+        if (windowViewC != null) {
+            windowViewC.invalidate();
+        }
+        if (earListenerC != null) {
+            earListenerC.detach();
         }
     }
 }

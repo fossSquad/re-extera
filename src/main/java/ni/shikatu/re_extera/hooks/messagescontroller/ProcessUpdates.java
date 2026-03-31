@@ -6,33 +6,30 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
+import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
 
 public class ProcessUpdates extends XC_MethodHook {
     private ReExteraDb redb = ReExteraDb.get();
 
-    private static MessagesController getController() {
-        return MessagesController.getInstance(UserConfig.selectedAccount);
-    }
-
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         TLRPC.Updates updates = (TLRPC.Updates) param.args[0];
         ArrayList<TLRPC.Update> filtered = new ArrayList<>();
         LongSparseArray<ArrayList<Integer>> channelDeleted = new LongSparseArray<>();
         if (updates.update != null) {
-            if (processSingleUpdate(updates.update, channelDeleted)) {
+            if (processSingleUpdate(updates.update, channelDeleted, currentAccount)) {
                 filtered.add(updates.update);
             }
         } else {
             for (TLRPC.Update update : updates.updates) {
-                if (processSingleUpdate(update, channelDeleted)) {
+                if (processSingleUpdate(update, channelDeleted, currentAccount)) {
                     filtered.add(update);
                 }
             }
@@ -42,7 +39,7 @@ public class ProcessUpdates extends XC_MethodHook {
                     ArrayList<Integer> ids = (ArrayList) channelDeleted.get(did);
                     if (ids != null && !ids.isEmpty()) {
                         this.redb.batchPutDeletedMessagesAsync(did, ids);
-                        MessageUtils.forceUpdateViews(did, ids);
+                        MessageUtils.forceUpdateViews(currentAccount, did, ids);
                     }
                 }
             }
@@ -51,17 +48,17 @@ public class ProcessUpdates extends XC_MethodHook {
         param.args[0] = updates;
     }
 
-    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
+    private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
         if (update instanceof TLRPC.TL_updateEditMessage) {
-            processTL_updateEditMessage((TLRPC.TL_updateEditMessage) update);
+            processTL_updateEditMessage((TLRPC.TL_updateEditMessage) update, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateEditChannelMessage) {
-            processTL_updateEditChannelMessage((TLRPC.TL_updateEditChannelMessage) update);
+            processTL_updateEditChannelMessage((TLRPC.TL_updateEditChannelMessage) update, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteMessages) {
-            processTL_updateDeleteMessages((TLRPC.TL_updateDeleteMessages) update);
+            processTL_updateDeleteMessages((TLRPC.TL_updateDeleteMessages) update, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteChannelMessages) {
@@ -69,7 +66,7 @@ public class ProcessUpdates extends XC_MethodHook {
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteScheduledMessages) {
-            processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update);
+            processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateNewMessage) {
@@ -112,17 +109,17 @@ public class ProcessUpdates extends XC_MethodHook {
         return 0L;
     }
 
-    private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update) {
-        processEditedMessage(update.message);
+    private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update, int currentAccount) {
+        processEditedMessage(update.message, currentAccount);
     }
 
-    private void processTL_updateEditChannelMessage(TLRPC.TL_updateEditChannelMessage update) {
-        processEditedMessage(update.message);
+    private void processTL_updateEditChannelMessage(TLRPC.TL_updateEditChannelMessage update, int currentAccount) {
+        processEditedMessage(update.message, currentAccount);
     }
 
-    private void processEditedMessage(TLRPC.Message message) {
+    private void processEditedMessage(TLRPC.Message message, int currentAccount) {
         long did = MessageUtils.getDialogIdFromMessage(message);
-        MessageObject oldObj = MessageUtils.getMessage(did, message.id);
+        MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
         if (oldObj != null && !oldObj.isOut()) {
             if (!this.redb.messageHasSavedEdits(did, message.id)) {
                 this.redb.saveOriginalMessageAsync(did, message.id, oldObj.messageOwner);
@@ -131,15 +128,15 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processTL_updateDeleteMessages(TLRPC.TL_updateDeleteMessages update) {
-        MessagesController controller = getController();
+    private void processTL_updateDeleteMessages(TLRPC.TL_updateDeleteMessages update, int currentAccount) {
+        MessagesController controller = MessagesController.getInstance(currentAccount);
         LongSparseArray<ArrayList<Integer>> toUpdateGrouped = new LongSparseArray<>();
         synchronized (controller) {
             if (update.messages != null) {
                 Iterator it = update.messages.iterator();
                 while (it.hasNext()) {
                     int id = ((Integer) it.next()).intValue();
-                    MessageObject obj = MessageUtils.getMessage(0L, id);
+                    MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
                     if (obj != null) {
                         long did = obj.getDialogId();
                         ArrayList<Integer> listx = (ArrayList) toUpdateGrouped.get(did);
@@ -155,19 +152,19 @@ public class ProcessUpdates extends XC_MethodHook {
                     ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
                     if (ids != null && !ids.isEmpty()) {
                         this.redb.batchPutDeletedMessagesAsync(did2, ids);
-                        MessageUtils.forceUpdateViews(did2, ids);
+                        MessageUtils.forceUpdateViews(currentAccount, did2, ids);
                     }
                 }
             }
         }
     }
 
-    private void processTL_updateDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update) {
+    private void processTL_updateDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update, int currentAccount) {
         long dialogId = DialogObject.getPeerDialogId(update.peer);
         ArrayList<Integer> allMessages = new ArrayList<>();
         allMessages.addAll(update.sent_messages);
         allMessages.addAll(update.messages);
-        InternalUtils.deleteMessages(dialogId, allMessages);
+        InternalUtils.deleteMessages(currentAccount, dialogId, allMessages, null, true);
     }
 
     private void processTL_updateDeleteChannelMessages(TLRPC.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {

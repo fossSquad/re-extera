@@ -39,6 +39,7 @@ import ni.shikatu.re_extera.hooks.messagescontroller.CheckDeletingTask;
 import ni.shikatu.re_extera.hooks.messagescontroller.DeleteMessages;
 import ni.shikatu.re_extera.hooks.messagescontroller.FilterShadowbannedDialogs;
 import ni.shikatu.re_extera.hooks.messagescontroller.IsChatNoForwards;
+import ni.shikatu.re_extera.hooks.messagescontroller.IsUserNoForwards;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessLoadedDialogs;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates;
 import ni.shikatu.re_extera.hooks.messagescontroller.SortDialogsHook;
@@ -55,7 +56,6 @@ import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
 import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.settings.Settings;
-import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
@@ -86,6 +86,11 @@ public class HookInit {
     private ArrayList<XC_MethodHook.Unhook> hooks = new ArrayList<>();
     public XC_MethodHook.Unhook sendRequestHook;
 
+    /* JADX INFO: Access modifiers changed from: private */
+    interface HookRegistrar {
+        XC_MethodHook.Unhook register() throws Throwable;
+    }
+
     public void init() {
         try {
             startIntercepting();
@@ -95,100 +100,100 @@ public class HookInit {
     }
 
     public void addHook(XC_MethodHook.Unhook hook) {
-        this.hooks.add(hook);
+        if (hook != null) {
+            this.hooks.add(hook);
+        }
+    }
+
+    private void tryAddHook(String name, HookRegistrar registrar) {
+        try {
+            addHook(registrar.register());
+        } catch (Throwable e) {
+            Main.log("Failed to hook %s: %s", name, e.getMessage());
+        }
+    }
+
+    private void tryHook(String name, final Class<?> clazz, final String methodName, final XC_MethodHook hook, final Class<?>... parameterTypes) {
+        tryAddHook(name, new HookRegistrar() { // from class: ni.shikatu.re_extera.hooks.HookInit$$ExternalSyntheticLambda0
+            @Override // ni.shikatu.re_extera.hooks.HookInit.HookRegistrar
+            public final XC_MethodHook.Unhook register() {
+                return XposedBridge.hookMethod(clazz.getDeclaredMethod(methodName, parameterTypes), hook);
+            }
+        });
     }
 
     public void startSendRequestHook() {
         try {
             this.sendRequestHook = XposedBridge.hookMethod(ConnectionsManager.class.getDeclaredMethod("sendRequestInternal", TLObject.class, RequestDelegate.class, RequestDelegateTimestamp.class, QuickAckDelegate.class, WriteToSocketDelegate.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE), new SendRequest());
-        } catch (Exception e) {
-            ReflectionUtils.hookError();
+        } catch (Throwable e) {
+            Main.log("Failed to hook ConnectionsManager.sendRequestInternal: %s", e.getMessage());
         }
     }
 
     public void startIntercepting() {
-        char c;
-        try {
-            startSendRequestHook();
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("processUpdates", TLRPC.Updates.class, Boolean.TYPE), new ProcessUpdates()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("isChatNoForwards", TLRPC.Chat.class), new IsChatNoForwards()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("isChatNoForwards", Long.TYPE), new IsChatNoForwards()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("isChatNoForwards", TLRPC.Chat.class), new IsChatNoForwards()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("checkDeletingTask", Boolean.TYPE), new CheckDeletingTask()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("deleteMessages", ArrayList.class, ArrayList.class, TLRPC.EncryptedChat.class, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE), new DeleteMessages()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("getDialogs", Integer.TYPE), new FilterShadowbannedDialogs()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("sortDialogs", LongSparseArray.class), new SortDialogsHook()));
-            addHook(XposedBridge.hookMethod(MessagesController.class.getDeclaredMethod("processLoadedDialogs", TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE), new ProcessLoadedDialogs()));
-            addHook(XposedBridge.hookMethod(SecretVoicePlayer.class.getDeclaredMethod("dismiss", new Class[0]), new SecretVoicePlayerDismiss()));
-            addHook(XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("markMessagesAsDeletedInternal", Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE), new MarkMessagesAsDeletedInternal()));
-            addHook(XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessages", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE), new UpdateDialogsWithDeletedMessages()));
-            addHook(XposedBridge.hookMethod(MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class), new UpdateDialogsWithDeletedMessages()));
-            addHook(XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("didPressButton", Boolean.TYPE, Boolean.TYPE), new DidPressButton()));
-            addHook(XposedBridge.hookMethod(ChatMessageCell.class.getDeclaredMethod("measureTime", MessageObject.class), new MeasureTime()));
-            if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
-                Settings.setLocalPremium(false);
-            }
-            addHook(XposedBridge.hookMethod(UserConfig.class.getDeclaredMethod("isPremium", new Class[0]), new isPremium()));
-            try {
-                Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
-                addHook(XposedBridge.hookMethod(clazz.getDeclaredMethod("addView", View.class, ViewGroup.LayoutParams.class), new WindowManagerImpl()));
-                c = 7;
-            } catch (ClassNotFoundException e) {
-                c = 7;
-                Main.log("WindowManagerImpl not found: %s", e.getMessage());
-            }
-            addHook(XposedBridge.hookMethod(Window.class.getDeclaredMethod("setFlags", Integer.TYPE, Integer.TYPE), new WindowSetFlags()));
-            addHook(XposedBridge.hookMethod(FlagSecureReason.class.getDeclaredMethod("attach", new Class[0]), new FlagSecureReasonAttach()));
-            addHook(XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", SendMessagesHelper.SendMessageParams.class), new SendMessage()));
-            Class[] clsArr = new Class[12];
-            clsArr[0] = ArrayList.class;
-            clsArr[1] = Long.TYPE;
-            clsArr[2] = Boolean.TYPE;
-            clsArr[3] = Boolean.TYPE;
-            clsArr[4] = Boolean.TYPE;
-            clsArr[5] = Integer.TYPE;
-            clsArr[6] = Integer.TYPE;
-            clsArr[c] = MessageObject.class;
-            clsArr[8] = Integer.TYPE;
-            clsArr[9] = Long.TYPE;
-            clsArr[10] = Long.TYPE;
-            clsArr[11] = MessageSuggestionParams.class;
-            addHook(XposedBridge.hookMethod(SendMessagesHelper.class.getDeclaredMethod("sendMessage", clsArr), new SendMessageForwardHook()));
-            addHook(XposedBridge.hookMethod(NotificationsController.class.getDeclaredMethod("removeDeletedMessagesFromNotifications", LongSparseArray.class, Boolean.TYPE), new RemoveDeletedMessagesFromNotification()));
-            addHook(XposedBridge.hookMethod(NotificationsController.class.getDeclaredMethod("processNewMessages", ArrayList.class, Boolean.TYPE, Boolean.TYPE, CountDownLatch.class), new FilterShadowbannedNotifications()));
-            addHook(XposedBridge.hookMethod(MessageObject.class.getDeclaredMethod("canDeleteMessage", Boolean.TYPE, TLRPC.Chat.class), new CanDeleteMessage()));
-            addHook(XposedBridge.hookMethod(MessageObject.class.getDeclaredMethod("canForwardMessage", new Class[0]), new CanForwardMessage()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("fillMessageMenu", MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class), new FillMessageMenu()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("processSelectedOption", Integer.TYPE), new ProcessSelectedOption()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("createView", Context.class), new FragmentCreate()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("hasSelectedNoforwardsMessage", new Class[0]), new HasSelectedNoForwardsMessage()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("sendSecretMediaDelete", MessageObject.class), new SendSecretMediaDelete()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("sendSecretMessageRead", MessageObject.class, Boolean.TYPE), new SendSecretMessageRead()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("processDeletedMessages", ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE), new ProcessDeletedMessages()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("processNewMessages", ArrayList.class, Boolean.TYPE), new ProcessNewMessages()));
-            addHook(XposedBridge.hookMethod(ChatActivity.class.getDeclaredMethod("didReceivedNotification", Integer.TYPE, Integer.TYPE, Object[].class), new NotificationCenterDidLoad()));
-            addHook(XposedBridge.hookMethod(DialogCell.class.getDeclaredMethod("update", Integer.TYPE, Boolean.TYPE), new FilterDialogCellPreview()));
-            addHook(XposedBridge.hookMethod(DialogsActivity.class.getDeclaredMethod("getDialogsArray", Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE), new GetDialogsArray()));
-            addHook(XposedBridge.hookMethod(DialogsActivity.class.getDeclaredMethod("addMainMenuConfiguredItems", ItemOptions.class), new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS)));
-            addHook(XposedBridge.hookMethod(DialogsActivity.class.getDeclaredMethod("addMainMenuConfiguredItem", ItemOptions.class, Integer.TYPE), new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM)));
-            Main.log(String.valueOf(ProfileActivity.class.getDeclaredMethod("updateProfileData", Boolean.TYPE)), new Object[0]);
-            addHook(XposedBridge.hookMethod(ProfileActivity.class.getDeclaredMethod("updateProfileData", Boolean.TYPE), new UpdateProfileData()));
-            addHook(XposedBridge.hookMethod(ProfileActivity.class.getDeclaredMethod("createActionBarMenu", Boolean.TYPE), new ProfileMenuShadowban()));
-            addHook(XposedBridge.hookMethod(PythonPluginsEngine.class.getDeclaredMethod("openPluginSettings", Plugin.class, BaseFragment.class), new OpenSettingsHook()));
-            addHook(XposedBridge.hookMethod(DrawerMenuView.class.getDeclaredMethod("rebuildMenu", Integer.TYPE, BaseFragment.class), new DrawerMenuGhostHook()));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("initItemDetails", new Class[0]), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS)));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("addMenuSection", ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION)));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("fillItems", ArrayList.class, UniversalAdapter.class), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.FILL_ITEMS)));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("onClick", UItem.class, View.class, Integer.TYPE, Float.TYPE, Float.TYPE), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ON_CLICK)));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("updateConfigFromReorder", Integer.TYPE, ArrayList.class), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.UPDATE_REORDER)));
-            addHook(XposedBridge.hookMethod(AppNavigationPreferencesActivity.class.getDeclaredMethod("resetToDefault", new Class[0]), new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT)));
-        } catch (Exception e2) {
-            ReflectionUtils.hookError();
+        startSendRequestHook();
+        tryHook("MessagesController.processUpdates", MessagesController.class, "processUpdates", new ProcessUpdates(), TLRPC.Updates.class, Boolean.TYPE);
+        tryHook("MessagesController.isChatNoForwards(Chat)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), TLRPC.Chat.class);
+        tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);
+        tryHook("MessagesController.isUserNoForwards", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), TLRPC.UserFull.class);
+        tryHook("MessagesController.checkDeletingTask", MessagesController.class, "checkDeletingTask", new CheckDeletingTask(), Boolean.TYPE);
+        tryHook("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", new DeleteMessages(), ArrayList.class, ArrayList.class, TLRPC.EncryptedChat.class, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
+        tryHook("MessagesController.getDialogs", MessagesController.class, "getDialogs", new FilterShadowbannedDialogs(), Integer.TYPE);
+        tryHook("MessagesController.sortDialogs", MessagesController.class, "sortDialogs", new SortDialogsHook(), LongSparseArray.class);
+        tryHook("MessagesController.processLoadedDialogs", MessagesController.class, "processLoadedDialogs", new ProcessLoadedDialogs(), TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
+        tryHook("SecretVoicePlayer.dismiss", SecretVoicePlayer.class, "dismiss", new SecretVoicePlayerDismiss(), new Class[0]);
+        tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
+        tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
+        tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
+        tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
+        if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
+            Settings.setLocalPremium(false);
         }
+        tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
+        try {
+            Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
+            tryHook("WindowManagerImpl.addView", clazz, "addView", new WindowManagerImpl(), View.class, ViewGroup.LayoutParams.class);
+        } catch (ClassNotFoundException e) {
+            Main.log("WindowManagerImpl not found: %s", e.getMessage());
+        }
+        tryHook("Window.setFlags", Window.class, "setFlags", new WindowSetFlags(), Integer.TYPE, Integer.TYPE);
+        tryHook("FlagSecureReason.attach", FlagSecureReason.class, "attach", new FlagSecureReasonAttach(), new Class[0]);
+        tryHook("SendMessagesHelper.sendMessage(params)", SendMessagesHelper.class, "sendMessage", new SendMessage(), SendMessagesHelper.SendMessageParams.class);
+        tryHook("SendMessagesHelper.sendMessage(forwards)", SendMessagesHelper.class, "sendMessage", new SendMessageForwardHook(), ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE, MessageObject.class, Integer.TYPE, Long.TYPE, Long.TYPE, MessageSuggestionParams.class);
+        tryHook("NotificationsController.removeDeletedMessagesFromNotifications", NotificationsController.class, "removeDeletedMessagesFromNotifications", new RemoveDeletedMessagesFromNotification(), LongSparseArray.class, Boolean.TYPE);
+        tryHook("NotificationsController.processNewMessages", NotificationsController.class, "processNewMessages", new FilterShadowbannedNotifications(), ArrayList.class, Boolean.TYPE, Boolean.TYPE, CountDownLatch.class);
+        tryHook("MessageObject.canDeleteMessage", MessageObject.class, "canDeleteMessage", new CanDeleteMessage(), Boolean.TYPE, TLRPC.Chat.class);
+        tryHook("MessageObject.canForwardMessage", MessageObject.class, "canForwardMessage", new CanForwardMessage(), new Class[0]);
+        tryHook("ChatActivity.fillMessageMenu", ChatActivity.class, "fillMessageMenu", new FillMessageMenu(), MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class);
+        tryHook("ChatActivity.processSelectedOption", ChatActivity.class, "processSelectedOption", new ProcessSelectedOption(), Integer.TYPE);
+        tryHook("ChatActivity.createView", ChatActivity.class, "createView", new FragmentCreate(), Context.class);
+        tryHook("ChatActivity.hasSelectedNoforwardsMessage", ChatActivity.class, "hasSelectedNoforwardsMessage", new HasSelectedNoForwardsMessage(), new Class[0]);
+        tryHook("ChatActivity.sendSecretMediaDelete", ChatActivity.class, "sendSecretMediaDelete", new SendSecretMediaDelete(), MessageObject.class);
+        tryHook("ChatActivity.sendSecretMessageRead", ChatActivity.class, "sendSecretMessageRead", new SendSecretMessageRead(), MessageObject.class, Boolean.TYPE);
+        tryHook("ChatActivity.processDeletedMessages", ChatActivity.class, "processDeletedMessages", new ProcessDeletedMessages(), ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE);
+        tryHook("ChatActivity.processNewMessages", ChatActivity.class, "processNewMessages", new ProcessNewMessages(), ArrayList.class, Boolean.TYPE);
+        tryHook("ChatActivity.didReceivedNotification", ChatActivity.class, "didReceivedNotification", new NotificationCenterDidLoad(), Integer.TYPE, Integer.TYPE, Object[].class);
+        tryHook("DialogCell.update", DialogCell.class, "update", new FilterDialogCellPreview(), Integer.TYPE, Boolean.TYPE);
+        tryHook("DialogsActivity.getDialogsArray", DialogsActivity.class, "getDialogsArray", new GetDialogsArray(), Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE);
+        tryHook("DialogsActivity.addMainMenuConfiguredItems", DialogsActivity.class, "addMainMenuConfiguredItems", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class);
+        tryHook("DialogsActivity.addMainMenuConfiguredItem", DialogsActivity.class, "addMainMenuConfiguredItem", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, Integer.TYPE);
+        tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
+        tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
+        tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
+        tryHook("DrawerMenuView.rebuildMenu", DrawerMenuView.class, "rebuildMenu", new DrawerMenuGhostHook(), Integer.TYPE, BaseFragment.class);
+        tryHook("AppNavigationPreferencesActivity.initItemDetails", AppNavigationPreferencesActivity.class, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);
+        tryHook("AppNavigationPreferencesActivity.addMenuSection", AppNavigationPreferencesActivity.class, "addMenuSection", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION), ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE);
+        tryHook("AppNavigationPreferencesActivity.fillItems", AppNavigationPreferencesActivity.class, "fillItems", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.FILL_ITEMS), ArrayList.class, UniversalAdapter.class);
+        tryHook("AppNavigationPreferencesActivity.onClick", AppNavigationPreferencesActivity.class, "onClick", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ON_CLICK), UItem.class, View.class, Integer.TYPE, Float.TYPE, Float.TYPE);
+        tryHook("AppNavigationPreferencesActivity.updateConfigFromReorder", AppNavigationPreferencesActivity.class, "updateConfigFromReorder", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.UPDATE_REORDER), Integer.TYPE, ArrayList.class);
+        tryHook("AppNavigationPreferencesActivity.resetToDefault", AppNavigationPreferencesActivity.class, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
     }
 
     public void onUnload() {
-        this.sendRequestHook.unhook();
+        if (this.sendRequestHook != null) {
+            this.sendRequestHook.unhook();
+        }
         for (XC_MethodHook.Unhook hook : this.hooks) {
             hook.unhook();
         }

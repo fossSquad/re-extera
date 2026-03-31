@@ -18,7 +18,6 @@ public class SortDialogsHook extends XC_MethodHook {
             allDialogsField = MessagesController.class.getDeclaredField("allDialogs");
             allDialogsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            ReflectionUtils.hookError();
             Main.log("SortDialogsHook: allDialogs field not found: %s", e.getMessage());
         }
     }
@@ -39,7 +38,6 @@ public class SortDialogsHook extends XC_MethodHook {
                 });
             }
         } catch (Exception e) {
-            ReflectionUtils.hookError();
             Main.log("SortDialogsHook: %s", e.getMessage());
         }
     }

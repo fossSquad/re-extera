@@ -176,7 +176,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         if (getAdapter() != null) {
             getAdapter().update(true);
         }
-        ShadowbanCache.notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate(getCurrentAccount());
     }
 
     private void showDeleteConfirmation(final ShadowbanEntry entry, final int position) {
@@ -198,7 +198,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         if (getAdapter() != null) {
             getAdapter().update(true);
         }
-        ShadowbanCache.notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate(getCurrentAccount());
     }
 
     private String buildStatusText(ShadowbanEntry entry) {

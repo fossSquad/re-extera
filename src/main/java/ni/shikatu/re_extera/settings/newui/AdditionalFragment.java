@@ -49,8 +49,6 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()).setLinkAlias("reExteraLocalPremium", this));
         items.add(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()).setLinkAlias("reExteraNoForward", this));
         items.add(UItem.asShadow(Localization.NO_FORWARD_ABOUT));
-        items.add(UItem.asCheck(AdditionalIds.ADD_SETTINGS_TO_DRAWER.getId(), Localization.ADD_SETTINGS_TO_DRAWER).setChecked(Settings.getShowSettingsInDrawer()).setLinkAlias("reExteraAddSettingsToDrawer", this));
-        items.add(UItem.asShadow());
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
         items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
         items.add(UItem.asShadow(Localization.SHADOWBAN_ABOUT));

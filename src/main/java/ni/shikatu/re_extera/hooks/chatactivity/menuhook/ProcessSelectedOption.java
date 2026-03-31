@@ -11,7 +11,6 @@ import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.SendMessagesHelper;
-import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ChatActivity;
 
 public class ProcessSelectedOption extends XC_MethodHook {
@@ -24,7 +23,6 @@ public class ProcessSelectedOption extends XC_MethodHook {
             selectedObjectField = ChatActivity.class.getDeclaredField("selectedObject");
             selectedObjectField.setAccessible(true);
         } catch (Exception e) {
-            ReflectionUtils.hookError();
             Main.log("Error on ProcessSelectedOption %s", e.getMessage());
         }
     }
@@ -33,7 +31,7 @@ public class ProcessSelectedOption extends XC_MethodHook {
         int option = ((Integer) param.args[0]).intValue();
         Main.log(String.format("Hooked ProcessSelectedOptionHook with option %s", Integer.valueOf(option)), new Object[0]);
         ChatActivity thisObj = (ChatActivity) param.thisObject;
-        if (thisObj == null) {
+        if (thisObj == null || selectedObjectField == null) {
             return;
         }
         MessageObject messageObject = (MessageObject) ReflectionUtils.get(selectedObjectField, thisObj);
@@ -54,8 +52,8 @@ public class ProcessSelectedOption extends XC_MethodHook {
             InternalUtils.sendReadMessage(messageObject, true);
         }
         if (option == 24 && messageObject != null && ReExteraDb.get().messageIsDeleted(messageObject)) {
-            SendMessagesHelper.getInstance(UserConfig.selectedAccount).cancelSendingMessage(messageObject);
-            InternalUtils.deleteMessages(messageObject.getDialogId(), new ArrayList(Collections.singletonList(Integer.valueOf(messageObject.getId()))), Long.valueOf(messageObject.getChannelId()), true);
+            SendMessagesHelper.getInstance(messageObject.currentAccount).cancelSendingMessage(messageObject);
+            InternalUtils.deleteMessages(messageObject.currentAccount, messageObject.getDialogId(), new ArrayList(Collections.singletonList(Integer.valueOf(messageObject.getId()))), Long.valueOf(messageObject.getChannelId()), true);
         }
     }
 }

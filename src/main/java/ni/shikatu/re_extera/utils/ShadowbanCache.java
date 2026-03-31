@@ -67,16 +67,19 @@ public class ShadowbanCache {
     }
 
     public static void notifyDialogsUpdate() {
+        notifyDialogsUpdate(UserConfig.selectedAccount);
+    }
+
+    public static void notifyDialogsUpdate(final int account) {
         AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.ShadowbanCache$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable
             public final void run() {
-                ShadowbanCache.lambda$notifyDialogsUpdate$0();
+                ShadowbanCache.lambda$notifyDialogsUpdate$0(account);
             }
         });
     }
 
-    static /* synthetic */ void lambda$notifyDialogsUpdate$0() {
-        int account = UserConfig.selectedAccount;
+    static /* synthetic */ void lambda$notifyDialogsUpdate$0(int account) {
         MessagesController controller = MessagesController.getInstance(account);
         NotificationCenter nc = NotificationCenter.getInstance(account);
         controller.sortDialogs((LongSparseArray) null);

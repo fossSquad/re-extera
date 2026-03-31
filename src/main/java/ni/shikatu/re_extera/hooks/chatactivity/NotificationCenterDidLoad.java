@@ -26,7 +26,6 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             forwardEndReachedField = ChatActivity.class.getDeclaredField("forwardEndReached");
             forwardEndReachedField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            ReflectionUtils.hookError();
             Main.log("Failed to get forwardEndReached field", e.getMessage());
         }
     }
@@ -65,28 +64,28 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
                         try {
                             if (args.length > 9) {
                                 int loadtype = ((Integer) args[8]).intValue();
-                                if (loadtype == 1) {
-                                    boolean[] forwardEndReached = (boolean[]) ReflectionUtils.get(forwardEndReachedField, chatActivity);
-                                    if (forwardEndReached != null && ((Boolean) args[9]).booleanValue()) {
-                                        forwardEndReached[0] = true;
-                                    }
-                                    Field loadingField = ChatActivity.class.getDeclaredField("loading");
-                                    loadingField.setAccessible(true);
-                                    ReflectionUtils.set(loadingField, chatActivity, false);
-                                    Field loadingForwardField = ChatActivity.class.getDeclaredField("loadingForward");
-                                    loadingForwardField.setAccessible(true);
-                                    ReflectionUtils.set(loadingForwardField, chatActivity, false);
-                                    Main.log("Set forwardEndReached=true, loading=false, loadingForward=false", new Object[0]);
-                                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad$$ExternalSyntheticLambda0
-                                        @Override // java.lang.Runnable
-                                        public final void run() {
-                                            NotificationCenterDidLoad.lambda$afterHookedMethod$0(chatActivity);
-                                        }
-                                    }, 50L);
+                                if (loadtype != 1 || forwardEndReachedField == null) {
+                                    return;
                                 }
+                                boolean[] forwardEndReached = (boolean[]) ReflectionUtils.get(forwardEndReachedField, chatActivity);
+                                if (forwardEndReached != null && ((Boolean) args[9]).booleanValue()) {
+                                    forwardEndReached[0] = true;
+                                }
+                                Field loadingField = ChatActivity.class.getDeclaredField("loading");
+                                loadingField.setAccessible(true);
+                                ReflectionUtils.set(loadingField, chatActivity, false);
+                                Field loadingForwardField = ChatActivity.class.getDeclaredField("loadingForward");
+                                loadingForwardField.setAccessible(true);
+                                ReflectionUtils.set(loadingForwardField, chatActivity, false);
+                                Main.log("Set forwardEndReached=true, loading=false, loadingForward=false", new Object[0]);
+                                AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad$$ExternalSyntheticLambda0
+                                    @Override // java.lang.Runnable
+                                    public final void run() {
+                                        NotificationCenterDidLoad.lambda$afterHookedMethod$0(chatActivity);
+                                    }
+                                }, 50L);
                             }
                         } catch (Exception e) {
-                            ReflectionUtils.hookError();
                             Main.log("Error in afterHookedMethod", e.getMessage());
                         }
                     }

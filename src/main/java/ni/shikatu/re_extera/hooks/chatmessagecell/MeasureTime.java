@@ -37,7 +37,10 @@ public class MeasureTime extends XC_MethodHook {
             timeWidth = ChatMessageCell.class.getDeclaredField("timeWidth");
             timeWidth.setAccessible(true);
         } catch (Exception e) {
-            ReflectionUtils.hookError();
+            currentMessageObject = null;
+            currentTimeString = null;
+            timeTextWidth = null;
+            timeWidth = null;
         }
     }
 
@@ -50,6 +53,9 @@ public class MeasureTime extends XC_MethodHook {
         CharSequence charSequence;
         TextPaint textPaint;
         SpannableStringBuilder spannableStringBuilder;
+        if (currentTimeString == null || timeTextWidth == null || timeWidth == null) {
+            return;
+        }
         ChatMessageCell chatMessageCell = (ChatMessageCell) methodHookParam.thisObject;
         MessageObject messageObject = (MessageObject) methodHookParam.args[0];
         if (messageObject == null || (message = messageObject.messageOwner) == null) {

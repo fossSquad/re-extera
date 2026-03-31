@@ -24,17 +24,20 @@ public class RestrictedMessageUtils {
         ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable
             public final void run() {
-                RestrictedMessageUtils.lambda$createMenu$0(toForward, fragment);
+                RestrictedMessageUtils.forwardMessages(fragment, new ArrayList(Collections.singletonList(toForward)));
             }
         }).add(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda1
             @Override // java.lang.Runnable
             public final void run() {
-                MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), new ArrayList(Collections.singletonList(toForward)), UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId(), true, 0, null);
+                RestrictedMessageUtils.saveMessagesToSaved(fragment, new ArrayList(Collections.singletonList(toForward)));
             }
         }).setOnTopOfScrim().show();
     }
 
-    static /* synthetic */ void lambda$createMenu$0(final MessageObject toForward, final BaseFragment fragment) {
+    public static void forwardMessages(final BaseFragment fragment, final ArrayList<MessageObject> messages) {
+        if (fragment == null || messages == null || messages.isEmpty()) {
+            return;
+        }
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", 3);
@@ -49,8 +52,6 @@ public class RestrictedMessageUtils {
                 if (dids == null || dids.isEmpty()) {
                     return false;
                 }
-                ArrayList<MessageObject> messages = new ArrayList<>();
-                messages.add(toForward);
                 for (MessagesStorage.TopicKey topicKey : dids) {
                     long dialogId = topicKey.dialogId;
                     long topicId = topicKey.topicId;
@@ -80,5 +81,17 @@ public class RestrictedMessageUtils {
         };
         dialogsActivity.setDelegate(delegate);
         fragment.presentFragment(dialogsActivity);
+    }
+
+    public static void saveMessagesToSaved(BaseFragment fragment, ArrayList<MessageObject> messages) {
+        if (fragment == null || messages == null) {
+            return;
+        }
+        if (messages.isEmpty()) {
+            return;
+        }
+        MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), messages, UserConfig.getInstance(fragment.getCurrentAccount()).getClientUserId(), true, 0, null);
+        long selfId = UserConfig.getInstance(fragment.getCurrentAccount()).getClientUserId();
+        BulletinFactory.of(LaunchActivity.getLastFragment()).showForwardedBulletinWithTag(selfId, messages.size());
     }
 }

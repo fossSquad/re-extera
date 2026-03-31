@@ -24,7 +24,6 @@ public class ProfileMenuShadowban extends XC_MethodHook {
             userIdField = ProfileActivity.class.getDeclaredField("userId");
             userIdField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            ReflectionUtils.hookError();
             Main.log("ProfileMenuShadowban: field not found: %s", e.getMessage());
         }
     }
@@ -56,7 +55,6 @@ public class ProfileMenuShadowban extends XC_MethodHook {
                 }
             }
         } catch (Exception e) {
-            ReflectionUtils.hookError();
             Main.log("ProfileMenuShadowban: %s", e.getMessage());
         }
     }
@@ -64,7 +62,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
     static /* synthetic */ void lambda$afterHookedMethod$0(long userId, ActionBarMenuItem otherItem, ProfileActivity activity, View v) {
         ShadowbanCache.remove(userId);
         otherItem.closeSubMenu();
-        ShadowbanCache.notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate(activity.getCurrentAccount());
         activity.finishFragment();
     }
 
@@ -79,7 +77,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
     }
 
     static /* synthetic */ void lambda$afterHookedMethod$1(ProfileActivity activity) {
-        ShadowbanCache.notifyDialogsUpdate();
+        ShadowbanCache.notifyDialogsUpdate(activity.getCurrentAccount());
         activity.finishFragment();
     }
 }

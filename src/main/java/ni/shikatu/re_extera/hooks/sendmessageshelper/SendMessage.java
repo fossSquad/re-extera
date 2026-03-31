@@ -9,6 +9,7 @@ import java.util.HashSet;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
 import ni.shikatu.re_extera.utils.TextUtils;
@@ -35,7 +36,6 @@ public class SendMessage extends XC_MethodHook {
         try {
             isPremium = UserConfig.class.getDeclaredMethod("isPremium", new Class[0]);
         } catch (NoSuchMethodException e) {
-            ReflectionUtils.hookError();
             Main.log("No such method", e.getMessage());
         }
         returnNullHook = new XC_MethodReplacement() { // from class: ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage.1
@@ -50,34 +50,38 @@ public class SendMessage extends XC_MethodHook {
             openScheduledMessages = ChatActivity.class.getDeclaredMethod("openScheduledMessages", Integer.TYPE, Boolean.TYPE);
             updateBottomOverlay = ChatActivity.class.getDeclaredMethod("updateBottomOverlay", new Class[0]);
         } catch (NoSuchMethodException e) {
-            ReflectionUtils.hookError();
             Main.log("No such method", e.getMessage());
         }
     }
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        SendMessage sendMessage;
         TLRPC.User sender;
+        char c;
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         SendMessagesHelper.SendMessageParams params = (SendMessagesHelper.SendMessageParams) param.args[0];
         MessageObject replyToTopMsg = params.replyToTopMsg;
         MessageObject replyToMsg = params.replyToMsg;
         ChatActivity.ReplyQuote replyQuote = params.replyQuote;
-        if (replyQuote == null && replyToMsg == null) {
-            sendMessage = this;
-        } else {
+        if (replyQuote != null || replyToMsg != null) {
             long did = replyToMsg != null ? replyToMsg.getDialogId() : replyQuote.message.getDialogId();
             int mid = replyToMsg != null ? replyToMsg.getId() : replyQuote.message.getId();
-            sendMessage = this;
-            boolean isDeleted = sendMessage.redb.messageIsDeleted(did, mid);
+            boolean isDeleted = this.redb.messageIsDeleted(did, mid);
             if (replyQuote != null && isDeleted) {
                 long peer = replyQuote.peerId;
-                TLRPC.User sender2 = UserUtils.getUser(peer);
+                TLRPC.User sender2 = UserUtils.getUser(currentAccount, peer);
                 if (sender2 != null) {
                     sender = sender2;
+                    c = 0;
                 } else {
-                    sender = UserUtils.getSelf();
+                    sender = UserUtils.getSelf(currentAccount);
+                    c = 0;
                 }
-                String newText = String.format("%s\n%s", sender.first_name, replyQuote.getText());
+                String str = sender.first_name;
+                String text = replyQuote.getText();
+                Object[] objArr = new Object[2];
+                objArr[c] = str;
+                objArr[1] = text;
+                String newText = String.format("%s\n%s", objArr);
                 params.entities.add(TextUtils.createNewBlockQuote(newText));
                 params.entities.add(TextUtils.createNewMentionQuote(sender, sender.first_name.length()));
                 params.message = newText + params.message;
@@ -85,9 +89,9 @@ public class SendMessage extends XC_MethodHook {
                 params.replyToTopMsg = replyToTopMsg;
                 params.replyQuote = null;
             } else if (replyToMsg != null && isDeleted) {
-                TLRPC.User sender3 = UserUtils.getUser(replyToMsg.getSenderId());
+                TLRPC.User sender3 = UserUtils.getUser(currentAccount, replyToMsg.getSenderId());
                 if (sender3 == null) {
-                    sender3 = UserUtils.getSelf();
+                    sender3 = UserUtils.getSelf(currentAccount);
                 }
                 String newText2 = String.format("%s\n%s", sender3.first_name, replyToMsg.messageText);
                 params.entities.add(TextUtils.createNewBlockQuote(newText2));
@@ -98,17 +102,19 @@ public class SendMessage extends XC_MethodHook {
                 params.replyQuote = null;
             }
         }
-        if (params.scheduleDate == 0 && Settings.getUseSchedule()) {
+        if (params.scheduleDate == 0 && Settings.getUseSchedule() && openScheduledMessages != null) {
             unhook = XposedBridge.hookMethod(openScheduledMessages, returnNullHook);
-            params.scheduleDate = (int) MessageUtils.getScheduleTime(params.photo, params.document);
-            ChatActivity lastFragment = LaunchActivity.getLastFragment();
-            if (lastFragment instanceof ChatActivity) {
-                ChatActivity chatActivity = lastFragment;
-                ReflectionUtils.invoke(updateBottomOverlay, chatActivity, new Object[0]);
+            params.scheduleDate = (int) MessageUtils.getScheduleTime(currentAccount, params.photo, params.document);
+            if (updateBottomOverlay != null) {
+                ChatActivity lastFragment = LaunchActivity.getLastFragment();
+                if (lastFragment instanceof ChatActivity) {
+                    ChatActivity chatActivity = lastFragment;
+                    ReflectionUtils.invoke(updateBottomOverlay, chatActivity, new Object[0]);
+                }
             }
         }
         if (Settings.getLocalPremium()) {
-            sendMessage.replaceCustomEmojisNoCheck(UserConfig.selectedAccount, params.peer, params.entities, false);
+            replaceCustomEmojisNoCheck(currentAccount, params.peer, params.entities, false);
         }
         if (Settings.getSendSilence() == Settings.SendSilence.YES.getType() || (Settings.getSendSilence() == Settings.SendSilence.ONLY_WITH_GHOST.getType() && Settings.getGhostModeEnabledGlobal())) {
             params.notify = false;

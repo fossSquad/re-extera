@@ -22,13 +22,13 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.SendMessagesHelper;
-import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.VideoEditedInfo;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_stories;
 import org.telegram.ui.ActionBar.AlertDialog;
+import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
@@ -44,7 +44,7 @@ public class MessageForwarder {
         for (MessageObject msg : messages) {
             long groupId = msg.getGroupId();
             if (groupId != 0) {
-                grouped.computeIfAbsent(Long.valueOf(groupId), new Function() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda1
+                grouped.computeIfAbsent(Long.valueOf(groupId), new Function() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda0
                     @Override // java.util.function.Function
                     public final Object apply(Object obj) {
                         return MessageForwarder.lambda$sendMessageCopy$0((Long) obj);
@@ -73,7 +73,7 @@ public class MessageForwarder {
             return;
         }
         final ArrayList<MessageObject> batch = batches.get(index);
-        ensureMediaReady(accountInstance, batch, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda2
+        ensureMediaReady(accountInstance, batch, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda1
             @Override // java.lang.Runnable
             public final void run() {
                 MessageForwarder.lambda$sendBatchSequentially$1(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg, batches, index);
@@ -218,7 +218,7 @@ public class MessageForwarder {
         final AtomicInteger remaining = new AtomicInteger(toDownload.size());
         Iterator<MessageObject> it = toDownload.iterator();
         while (it.hasNext()) {
-            downloadMedia(accountInstance, it.next(), new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda3
+            downloadMedia(accountInstance, it.next(), new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda2
                 @Override // java.lang.Runnable
                 public final void run() {
                     MessageForwarder.lambda$ensureMediaReady$2(remaining, onComplete);
@@ -233,7 +233,7 @@ public class MessageForwarder {
         }
     }
 
-    private static void downloadMedia(AccountInstance accountInstance, MessageObject msgObj, final Runnable onComplete) {
+    private static void downloadMedia(final AccountInstance accountInstance, MessageObject msgObj, final Runnable onComplete) {
         final String fileName;
         final TLRPC.Message original = msgObj.messageOwner;
         FileLoader fileLoader = FileLoader.getInstance(accountInstance.getCurrentAccount());
@@ -258,7 +258,7 @@ public class MessageForwarder {
                         Long loaded = (Long) args[1];
                         Long total = (Long) args[2];
                         int progress = (int) ((loaded.longValue() * 100) / total.longValue());
-                        MessageForwarder.updateProgress(original, progress, nc, this);
+                        MessageForwarder.updateProgress(original, progress, nc, this, accountInstance.getCurrentAccount());
                         return;
                     }
                     if (id == NotificationCenter.fileLoaded || id == NotificationCenter.fileLoadFailed) {
@@ -289,34 +289,37 @@ public class MessageForwarder {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public static void updateProgress(final TLRPC.Message original, int progress, final NotificationCenter nc, final NotificationCenter.NotificationCenterDelegate observer) {
+    public static void updateProgress(final TLRPC.Message original, int progress, final NotificationCenter nc, final NotificationCenter.NotificationCenterDelegate observer, final int currentAccount) {
         if (progressDialog != null) {
             progressDialog.setProgress(progress);
             return;
         }
         try {
-            Context context = LaunchActivity.getLastFragment().getContext();
-            progressDialog = new AlertDialog(context, 2);
-            progressDialog.setMessage(Localization.FORWARDED);
-            progressDialog.setProgress(progress);
-            progressDialog.setCanCancel(false);
-            progressDialog.setCancelDialog(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setCancelable(false);
-            progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda0
-                public final void onClick(AlertDialog alertDialog, int i) {
-                    MessageForwarder.lambda$updateProgress$3(original, nc, observer, alertDialog, i);
-                }
-            });
-            progressDialog.show();
+            BaseFragment lastFragment = LaunchActivity.getLastFragment();
+            if (lastFragment != null && lastFragment.getContext() != null) {
+                Context context = lastFragment.getContext();
+                progressDialog = new AlertDialog(context, 2);
+                progressDialog.setMessage(Localization.FORWARDED);
+                progressDialog.setProgress(progress);
+                progressDialog.setCanCancel(false);
+                progressDialog.setCancelDialog(false);
+                progressDialog.setCanceledOnTouchOutside(false);
+                progressDialog.setCancelable(false);
+                progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda3
+                    public final void onClick(AlertDialog alertDialog, int i) {
+                        MessageForwarder.lambda$updateProgress$3(currentAccount, original, nc, observer, alertDialog, i);
+                    }
+                });
+                progressDialog.show();
+            }
         } catch (Exception e) {
         }
     }
 
-    static /* synthetic */ void lambda$updateProgress$3(TLRPC.Message original, NotificationCenter nc, NotificationCenter.NotificationCenterDelegate observer, AlertDialog dialog, int which) {
+    static /* synthetic */ void lambda$updateProgress$3(int currentAccount, TLRPC.Message original, NotificationCenter nc, NotificationCenter.NotificationCenterDelegate observer, AlertDialog dialog, int which) {
         TLRPC.PhotoSize ps;
         dialog.cancel();
-        FileLoader fl = FileLoader.getInstance(UserConfig.selectedAccount);
+        FileLoader fl = FileLoader.getInstance(currentAccount);
         if (original.media instanceof TLRPC.TL_messageMediaDocument) {
             fl.cancelLoadFile(original.media.document, false);
         } else if ((original.media instanceof TLRPC.TL_messageMediaPhoto) && (ps = getPhotoSize(original)) != null) {

@@ -40,9 +40,13 @@ public class MessageUtils {
     }
 
     public static MessageObject getMessage(long did, int mid) {
+        return getMessage(UserConfig.selectedAccount, did, mid);
+    }
+
+    public static MessageObject getMessage(int currentAccount, long did, int mid) {
         TLRPC.Message msg;
         ArrayList<MessageObject> list;
-        MessagesController controller = MessagesController.getInstance(UserConfig.selectedAccount);
+        MessagesController controller = MessagesController.getInstance(currentAccount);
         MessageObject obj = null;
         if (did == 0) {
             obj = (MessageObject) controller.dialogMessagesByIds.get(mid);
@@ -54,20 +58,23 @@ public class MessageUtils {
                 }
             }
         }
-        if (obj == null && (msg = MessagesStorage.getInstance(UserConfig.selectedAccount).getMessage(did, mid)) != null) {
-            obj = new MessageObject(UserConfig.selectedAccount, msg, false, false);
+        if (obj == null && (msg = MessagesStorage.getInstance(currentAccount).getMessage(did, mid)) != null) {
+            obj = new MessageObject(currentAccount, msg, false, false);
         }
         if (obj == null) {
             ChatActivity lastFragment = LaunchActivity.getLastFragment();
-            if (!(lastFragment instanceof ChatActivity)) {
-                return obj;
-            }
-            ChatActivity chatActivity = lastFragment;
-            if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
-                for (MessageObject msg2 : chatActivity.messages) {
-                    if (msg2 != null && msg2.getId() == mid) {
-                        return msg2;
+            if (lastFragment instanceof ChatActivity) {
+                ChatActivity chatActivity = lastFragment;
+                if (chatActivity.getCurrentAccount() != currentAccount) {
+                    return obj;
+                }
+                if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
+                    for (MessageObject msg2 : chatActivity.messages) {
+                        if (msg2 != null && msg2.getId() == mid) {
+                            return msg2;
+                        }
                     }
+                    return obj;
                 }
                 return obj;
             }
@@ -77,8 +84,15 @@ public class MessageUtils {
     }
 
     public static void forceUpdateViews(long did, Collection<Integer> mids) {
+        forceUpdateViews(UserConfig.selectedAccount, did, mids);
+    }
+
+    public static void forceUpdateViews(int currentAccount, long did, Collection<Integer> mids) {
         if (LaunchActivity.getLastFragment() instanceof ChatActivity) {
             ChatActivity activity = LaunchActivity.getLastFragment();
+            if (activity.getCurrentAccount() != currentAccount) {
+                return;
+            }
             final RecyclerListView chatListView = activity.getChatListView();
             final RecyclerView.Adapter adapter = chatListView.getAdapter();
             HashMap<Integer, ChatMessageCell> visibleCells = getVisibleCells(chatListView);
@@ -163,7 +177,11 @@ public class MessageUtils {
     }
 
     public static double getScheduleTime(TLRPC.TL_photo photo, TLRPC.TL_document document) {
-        double time = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime() + 12;
+        return getScheduleTime(UserConfig.selectedAccount, photo, document);
+    }
+
+    public static double getScheduleTime(int currentAccount, TLRPC.TL_photo photo, TLRPC.TL_document document) {
+        double time = ConnectionsManager.getInstance(currentAccount).getCurrentTime() + 12;
         if (document != null && document.access_hash != 0 && (MessageObject.isStickerDocument(document) || MessageObject.isAnimatedStickerDocument(document, true) || MessageObject.isGifDocument(document))) {
             return Math.ceil(time);
         }

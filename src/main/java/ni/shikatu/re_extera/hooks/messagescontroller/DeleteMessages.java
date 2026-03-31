@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ChatActivity;
@@ -14,6 +15,7 @@ public class DeleteMessages extends XC_MethodHook {
     private ReExteraDb redb = ReExteraDb.get();
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         ArrayList<Integer> ids = (ArrayList) param.args[0];
         long did = ((Long) param.args[3]).longValue();
         ArrayList<Integer> toDeleteAnyWay = new ArrayList<>();
@@ -24,10 +26,10 @@ public class DeleteMessages extends XC_MethodHook {
                 toDeleteAnyWay.add(Integer.valueOf(id));
             }
         }
-        InternalUtils.deleteMessages(did, toDeleteAnyWay);
+        InternalUtils.deleteMessages(currentAccount, did, toDeleteAnyWay, null, true);
         ids.removeAll(toDeleteAnyWay);
         if (!Settings.getSaveManuallyDeleted()) {
-            InternalUtils.deleteMessages(did, ids);
+            InternalUtils.deleteMessages(currentAccount, did, ids, null, true);
         }
         ChatActivity lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {

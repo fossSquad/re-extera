@@ -114,9 +114,6 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
             if (!GhostMenuHelper.isGhostMenuVisible()) {
                 return;
             }
-            if (ExteraConfig.hideBottomNavigationBar && item.id == ExteraConfig.MainMenuItem.SETTINGS.id && ExteraConfig.mainMenuLayout.contains(Integer.valueOf(item.id))) {
-                return;
-            }
             List<Integer> displayedIds = GhostMenuHelper.buildMainSectionDisplayedIds(getStableDividerIds(param.thisObject));
             int itemIndex = displayedIds.indexOf(Integer.valueOf(item.id));
             if (itemIndex >= 0 && itemIndex < GhostMenuHelper.getGhostMenuIndex()) {

@@ -8,7 +8,6 @@ import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
-import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
@@ -104,8 +103,6 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE).setChecked(Settings.getUseSchedule()).setLinkAlias("reExteraUseSchedule", this));
         items.add(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()).setLinkAlias("reExteraSendSilence", this));
         items.add(UItem.asShadow());
-        items.add(UItem.asCheck(GhostIds.ADD_GHOST_TO_DRAWER_ID.getId(), Localization.GHOST_IN_DRAWER).setChecked(GhostMenuHelper.isGhostMenuVisible()).setLinkAlias("reExteraAddGhostToDrawer", this));
-        items.add(UItem.asShadow());
         items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
     }
 
@@ -160,7 +157,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setUseSchedule(!Settings.getUseSchedule());
                 refreshCheckBox(item, position, Settings.getUseSchedule());
                 break;
-            case Main.VERSION_CODE /* 10 */:
+            case 10:
                 presentFragment(new ExclusionsFragment());
                 break;
         }

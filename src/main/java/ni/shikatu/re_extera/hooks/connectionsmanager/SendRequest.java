@@ -5,8 +5,8 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
@@ -32,6 +32,7 @@ public class SendRequest extends XC_MethodHook {
     }
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         TL_account.updateStatus updatestatus = (TLObject) param.args[0];
         if (Main.ignoredRequests.remove(updatestatus)) {
             return;
@@ -43,16 +44,16 @@ public class SendRequest extends XC_MethodHook {
             Main.log("Sending onInteract request", new Object[0]);
             if (Settings.getReadOnInteract()) {
                 if (updatestatus instanceof TLRPC.TL_messages_sendReaction) {
-                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendReaction) updatestatus).peer, ((TLRPC.TL_messages_sendReaction) updatestatus).msg_id, false);
+                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendReaction) updatestatus).peer, ((TLRPC.TL_messages_sendReaction) updatestatus).msg_id, false);
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_sendVote) {
-                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendVote) updatestatus).peer, ((TLRPC.TL_messages_sendVote) updatestatus).msg_id, false);
+                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendVote) updatestatus).peer, ((TLRPC.TL_messages_sendVote) updatestatus).msg_id, false);
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_sendMessage) {
-                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_sendMessage) updatestatus).peer, 0, false);
+                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendMessage) updatestatus).peer, 0, false);
                 }
                 if (updatestatus instanceof TLRPC.TL_messages_forwardMessages) {
-                    InternalUtils.sendReadMessage(((TLRPC.TL_messages_forwardMessages) updatestatus).to_peer, 0, false);
+                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_forwardMessages) updatestatus).to_peer, 0, false);
                     return;
                 }
                 return;
@@ -109,7 +110,7 @@ public class SendRequest extends XC_MethodHook {
         if (!Settings.getImmediateOfflineWithGhost() || (param.args[0] instanceof TL_account.updateStatus)) {
             return;
         }
-        ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(offlineStatus, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
+        ConnectionsManager.getInstance(AccountUtils.getCurrentAccount(param.thisObject)).sendRequest(offlineStatus, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
             }

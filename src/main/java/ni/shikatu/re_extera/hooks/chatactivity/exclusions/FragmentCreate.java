@@ -36,15 +36,17 @@ public class FragmentCreate extends XC_MethodHook {
             argumentsField = BaseFragment.class.getDeclaredField("arguments");
             argumentsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            ReflectionUtils.hookError();
             Main.log("No headerItem field found", e.getMessage());
         }
     }
 
     protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        Bundle arguments;
         Main.log("Notifying dialog id change", new Object[0]);
         ChatActivity thisObject = (ChatActivity) param.thisObject;
-        Bundle arguments = (Bundle) ReflectionUtils.get(argumentsField, thisObject);
+        if (argumentsField == null || (arguments = (Bundle) ReflectionUtils.get(argumentsField, thisObject)) == null) {
+            return;
+        }
         long chat_id = arguments.getLong("chat_id", 0L);
         long user_id = arguments.getLong("user_id", 0L);
         int enc_id = arguments.getInt("enc_id", 0);
@@ -61,11 +63,11 @@ public class FragmentCreate extends XC_MethodHook {
     }
 
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+        ActionBarMenuItem headerItem;
         Main.log("Creating menu", new Object[0]);
         ChatActivity thisObject = (ChatActivity) param.thisObject;
         long dialog_id = thisObject.getDialogId();
-        ActionBarMenuItem headerItem = (ActionBarMenuItem) ReflectionUtils.get(headerItemField, thisObject);
-        if (headerItem == null) {
+        if (headerItemField == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(headerItemField, thisObject)) == null) {
             return;
         }
         Context context = thisObject.getContext();

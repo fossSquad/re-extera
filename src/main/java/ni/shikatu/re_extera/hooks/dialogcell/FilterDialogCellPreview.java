@@ -19,7 +19,6 @@ public class FilterDialogCellPreview extends XC_MethodHook {
             messageField = DialogCell.class.getDeclaredField("message");
             messageField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            ReflectionUtils.hookError();
             Main.log("FilterDialogCellPreview: message field not found: %s", e.getMessage());
         }
     }
@@ -53,7 +52,6 @@ public class FilterDialogCellPreview extends XC_MethodHook {
                 }
             }
         } catch (Exception e) {
-            ReflectionUtils.hookError();
             Main.log("FilterDialogCellPreview: %s", e.getMessage());
         }
     }
