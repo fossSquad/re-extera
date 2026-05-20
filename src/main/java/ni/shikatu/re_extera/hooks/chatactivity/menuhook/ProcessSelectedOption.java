@@ -14,46 +14,46 @@ import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.ui.ChatActivity;
 
 public class ProcessSelectedOption extends XC_MethodHook {
+    public static final int OPT_DELETE = 24;
+    public static final int OPT_MESSAGE_HISTORY = 6363;
+    public static final int OPT_READ_MESSAGE = 6565;
+    private static final Field SELECTED_OBJECT_FIELD;
     public static MessageObject selectedObject;
-    private static Field selectedObjectField;
 
     static {
-        selectedObjectField = null;
+        Field f = null;
         try {
-            selectedObjectField = ChatActivity.class.getDeclaredField("selectedObject");
-            selectedObjectField.setAccessible(true);
+            f = ChatActivity.class.getDeclaredField("selectedObject");
+            f.setAccessible(true);
         } catch (Exception e) {
-            Main.log("Error on ProcessSelectedOption %s", e.getMessage());
+            Main.log("ProcessSelectedOption: %s", e.getMessage());
         }
+        SELECTED_OBJECT_FIELD = f;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int option = ((Integer) param.args[0]).intValue();
-        Main.log(String.format("Hooked ProcessSelectedOptionHook with option %s", Integer.valueOf(option)), new Object[0]);
         ChatActivity thisObj = (ChatActivity) param.thisObject;
-        if (thisObj == null || selectedObjectField == null) {
+        if (thisObj == null || SELECTED_OBJECT_FIELD == null) {
             return;
         }
-        MessageObject messageObject = (MessageObject) ReflectionUtils.get(selectedObjectField, thisObj);
+        MessageObject messageObject = (MessageObject) ReflectionUtils.get(SELECTED_OBJECT_FIELD, thisObj);
         if (option == 6363) {
-            Main.log("Hooked 6363 match", new Object[0]);
-            if (messageObject != null) {
-                Main.log("messageObject is not null", new Object[0]);
-                MessageHistoryFragment historyFragment = MessageHistoryFragment.newInstance(messageObject.getDialogId(), messageObject.getId());
-                thisObj.presentFragment(historyFragment);
-            } else if (selectedObject != null) {
-                Main.log("selectedObject is not null", new Object[0]);
-                MessageHistoryFragment historyFragment2 = MessageHistoryFragment.newInstance(selectedObject.getDialogId(), selectedObject.getId());
-                thisObj.presentFragment(historyFragment2);
+            MessageObject target = messageObject != null ? messageObject : selectedObject;
+            if (target != null) {
+                thisObj.presentFragment(MessageHistoryFragment.newInstance(target.getDialogId(), target.getId()));
+                return;
             }
+            return;
         }
         if (option == 6565) {
-            Main.log("Hooked 6565 match, reading", new Object[0]);
             InternalUtils.sendReadMessage(messageObject, true);
+            return;
         }
         if (option == 24 && messageObject != null && ReExteraDb.get().messageIsDeleted(messageObject)) {
-            SendMessagesHelper.getInstance(messageObject.currentAccount).cancelSendingMessage(messageObject);
-            InternalUtils.deleteMessages(messageObject.currentAccount, messageObject.getDialogId(), new ArrayList(Collections.singletonList(Integer.valueOf(messageObject.getId()))), Long.valueOf(messageObject.getChannelId()), true);
+            int currentAccount = messageObject.currentAccount;
+            SendMessagesHelper.getInstance(currentAccount).cancelSendingMessage(messageObject);
+            InternalUtils.deleteMessages(currentAccount, messageObject.getDialogId(), new ArrayList(Collections.singletonList(Integer.valueOf(messageObject.getId()))), Long.valueOf(messageObject.getChannelId()), true);
         }
     }
 }

@@ -12,24 +12,26 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.ui.Cells.DialogCell;
 
 public class FilterDialogCellPreview extends XC_MethodHook {
-    private static Field messageField;
+    private static final Field MESSAGE_FIELD;
 
     static {
+        Field f = null;
         try {
-            messageField = DialogCell.class.getDeclaredField("message");
-            messageField.setAccessible(true);
+            f = DialogCell.class.getDeclaredField("message");
+            f.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            Main.log("FilterDialogCellPreview: message field not found: %s", e.getMessage());
+            Main.log("FilterDialogCellPreview: 'message' field not found: %s", e.getMessage());
         }
+        MESSAGE_FIELD = f;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        if (MESSAGE_FIELD == null) {
+            return;
+        }
         try {
-            if (messageField == null) {
-                return;
-            }
             DialogCell cell = (DialogCell) param.thisObject;
-            MessageObject message = (MessageObject) ReflectionUtils.get(messageField, cell);
+            MessageObject message = (MessageObject) ReflectionUtils.get(MESSAGE_FIELD, cell);
             if (message != null && !message.isOut()) {
                 boolean shouldFilter = false;
                 long fromId = message.getFromChatId();
@@ -40,15 +42,11 @@ public class FilterDialogCellPreview extends XC_MethodHook {
                     shouldFilter = true;
                 }
                 if (shouldFilter) {
-                    String filteredText = Localization.FILTERED_MESSAGE;
-                    if (filteredText == null) {
-                        filteredText = "Filtered";
-                    }
+                    String filteredText = Localization.FILTERED_MESSAGE != null ? Localization.FILTERED_MESSAGE : "Filtered";
                     message.messageText = filteredText;
                     if (message.messageOwner != null) {
                         message.messageOwner.message = filteredText;
                     }
-                    Main.log("FilterDialogCellPreview: filtered preview for dialog", new Object[0]);
                 }
             }
         } catch (Exception e) {

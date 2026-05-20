@@ -41,29 +41,29 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
         this.mode = mode;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        switch (this.mode.ordinal()) {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$hooks$navigation$AppNavigationGhostEditorHook$Mode[this.mode.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
                 onBeforeAddMenuSection(param);
                 break;
-            case 3:
+            case 2:
                 onBeforeClick(param);
                 break;
         }
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        switch (this.mode.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        switch (this.mode) {
+            case INIT_ITEM_DETAILS:
                 onAfterInitItemDetails(param);
                 break;
-            case 2:
+            case FILL_ITEMS:
                 onAfterFillItems(param);
                 break;
-            case 4:
+            case UPDATE_REORDER:
                 onAfterUpdateReorder(param);
                 break;
-            case 5:
+            case RESET_TO_DEFAULT:
                 GhostMenuHelper.clampGhostMenuIndex();
                 break;
         }
@@ -88,7 +88,7 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
     }
 
     private void onAfterFillItems(XC_MethodHook.MethodHookParam param) {
-        if (GhostMenuHelper.isGhostMenuVisible() || !ExteraConfig.mainMenuHiddenItems.isEmpty()) {
+        if (GhostMenuHelper.isGhostMenuVisible() || !ExteraConfig.getMainMenuHiddenItems().isEmpty()) {
             return;
         }
         try {

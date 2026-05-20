@@ -12,33 +12,33 @@ import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
 public class DeleteMessages extends XC_MethodHook {
-    private ReExteraDb redb = ReExteraDb.get();
+    private final ReExteraDb redb = ReExteraDb.get();
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         ArrayList<Integer> ids = (ArrayList) param.args[0];
         long did = ((Long) param.args[3]).longValue();
-        ArrayList<Integer> toDeleteAnyWay = new ArrayList<>();
+        ArrayList<Integer> alreadyLocallyDeleted = new ArrayList<>();
         Iterator<Integer> it = ids.iterator();
         while (it.hasNext()) {
             int id = it.next().intValue();
             if (this.redb.messageIsDeleted(did, id)) {
-                toDeleteAnyWay.add(Integer.valueOf(id));
+                alreadyLocallyDeleted.add(Integer.valueOf(id));
             }
         }
-        InternalUtils.deleteMessages(currentAccount, did, toDeleteAnyWay, null, true);
-        ids.removeAll(toDeleteAnyWay);
+        InternalUtils.deleteMessages(currentAccount, did, alreadyLocallyDeleted, null, true);
+        ids.removeAll(alreadyLocallyDeleted);
         if (!Settings.getSaveManuallyDeleted()) {
             InternalUtils.deleteMessages(currentAccount, did, ids, null, true);
         }
         ChatActivity lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
-            final ChatActivity chatActivity = lastFragment;
-            chatActivity.getClass();
+            final ChatActivity chat = lastFragment;
+            chat.getClass();
             AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.DeleteMessages$$ExternalSyntheticLambda0
                 @Override // java.lang.Runnable
                 public final void run() {
-                    chatActivity.clearSelectionMode();
+                    chat.clearSelectionMode();
                 }
             });
         }

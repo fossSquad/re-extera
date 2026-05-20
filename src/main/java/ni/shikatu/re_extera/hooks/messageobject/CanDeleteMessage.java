@@ -5,7 +5,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import org.telegram.messenger.MessageObject;
 
 public class CanDeleteMessage extends XC_MethodHook {
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         MessageObject thisObject = (MessageObject) param.thisObject;
         if (ReExteraDb.get().messageIsDeleted(thisObject)) {
             param.setResult(true);

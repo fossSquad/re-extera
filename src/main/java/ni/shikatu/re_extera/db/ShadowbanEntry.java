@@ -1,6 +1,6 @@
 package ni.shikatu.re_extera.db;
 
-public class ShadowbanEntry {
+public final class ShadowbanEntry {
     public final long addedTs;
     public final boolean hideDialog;
     public final boolean hideInGroups;

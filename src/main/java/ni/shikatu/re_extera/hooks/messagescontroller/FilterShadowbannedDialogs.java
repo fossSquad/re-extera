@@ -2,28 +2,28 @@ package ni.shikatu.re_extera.hooks.messagescontroller;
 
 import de.robv.android.xposed.XC_MethodHook;
 import java.util.ArrayList;
-import java.util.Iterator;
-import ni.shikatu.re_extera.Main;
+import java.util.function.Predicate;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.tgnet.TLRPC;
 
 public class FilterShadowbannedDialogs extends XC_MethodHook {
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         Object result = param.getResult();
-        if (result == null) {
-            return;
-        }
-        ArrayList<TLRPC.Dialog> dialogs = (ArrayList) result;
-        if (dialogs.isEmpty()) {
-            return;
-        }
-        Iterator<TLRPC.Dialog> iterator = dialogs.iterator();
-        while (iterator.hasNext()) {
-            TLRPC.Dialog dialog = iterator.next();
-            if (dialog.id > 0 && ShadowbanCache.shouldHideDialog(dialog.id)) {
-                Main.log("Filtered dialog (shadowban): id=%s", Long.valueOf(dialog.id));
-                iterator.remove();
+        if (result instanceof ArrayList) {
+            ArrayList<TLRPC.Dialog> dialogs = (ArrayList) result;
+            if (dialogs.isEmpty()) {
+                return;
             }
+            dialogs.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.FilterShadowbannedDialogs$$ExternalSyntheticLambda0
+                @Override // java.util.function.Predicate
+                public final boolean test(Object obj) {
+                    return FilterShadowbannedDialogs.lambda$afterHookedMethod$0((TLRPC.Dialog) obj);
+                }
+            });
         }
+    }
+
+    static /* synthetic */ boolean lambda$afterHookedMethod$0(TLRPC.Dialog dialog) {
+        return dialog != null && dialog.id > 0 && ShadowbanCache.shouldHideDialog(dialog.id);
     }
 }

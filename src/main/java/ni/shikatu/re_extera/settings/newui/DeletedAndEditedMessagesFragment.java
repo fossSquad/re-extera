@@ -79,23 +79,47 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             return;
         }
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
-        switch (clicked.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+        switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
+            case Defaults.ALWAYS /* 1 */:
                 Settings.setSaveDeletedMessages(!Settings.getSaveDeletedMessages());
                 refreshCheckBox(item, position, Settings.getSaveDeletedMessages());
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 2:
                 Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
                 refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
                 break;
-            case 2:
+            case 3:
                 Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
-            case 3:
+            case 4:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;
+        }
+    }
+
+    /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$2, reason: invalid class name */
+    static /* synthetic */ class AnonymousClass2 {
+        static final /* synthetic */ int[] $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds = new int[DeletedAndEditedIds.values().length];
+
+        static {
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.ordinal()] = 1;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.ordinal()] = 2;
+            } catch (NoSuchFieldError e2) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.ordinal()] = 3;
+            } catch (NoSuchFieldError e3) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 4;
+            } catch (NoSuchFieldError e4) {
+            }
         }
     }
 
@@ -104,8 +128,8 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             return false;
         }
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
-        switch (clicked.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+        switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
+            case Defaults.ALWAYS /* 1 */:
                 final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);

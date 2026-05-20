@@ -56,6 +56,7 @@ import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
 import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
@@ -82,11 +83,12 @@ import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SecretVoicePlayer;
 
-public class HookInit {
-    private ArrayList<XC_MethodHook.Unhook> hooks = new ArrayList<>();
+public final class HookInit {
+    private final ArrayList<XC_MethodHook.Unhook> hooks = new ArrayList<>();
     public XC_MethodHook.Unhook sendRequestHook;
 
     /* JADX INFO: Access modifiers changed from: private */
+    @FunctionalInterface
     interface HookRegistrar {
         XC_MethodHook.Unhook register() throws Throwable;
     }
@@ -95,11 +97,11 @@ public class HookInit {
         try {
             startIntercepting();
         } catch (Exception e) {
-            Main.log("Fail on startIntercepting, no such method: %s", e.getMessage());
+            Main.log("Fail on startIntercepting: %s", e.getMessage());
         }
     }
 
-    public void addHook(XC_MethodHook.Unhook hook) {
+    private void addHook(XC_MethodHook.Unhook hook) {
         if (hook != null) {
             this.hooks.add(hook);
         }
@@ -147,7 +149,7 @@ public class HookInit {
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
-        if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium()) {
+        if (anyAccountIsPremium()) {
             Settings.setLocalPremium(false);
         }
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
@@ -181,6 +183,7 @@ public class HookInit {
         tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
+        GhostMenuHelper.registerPluginMenuItem();
         tryHook("DrawerMenuView.rebuildMenu", DrawerMenuView.class, "rebuildMenu", new DrawerMenuGhostHook(), Integer.TYPE, BaseFragment.class);
         tryHook("AppNavigationPreferencesActivity.initItemDetails", AppNavigationPreferencesActivity.class, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);
         tryHook("AppNavigationPreferencesActivity.addMenuSection", AppNavigationPreferencesActivity.class, "addMenuSection", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION), ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE);
@@ -190,12 +193,25 @@ public class HookInit {
         tryHook("AppNavigationPreferencesActivity.resetToDefault", AppNavigationPreferencesActivity.class, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
     }
 
+    private static boolean anyAccountIsPremium() {
+        TLRPC.User user;
+        for (int i = 0; i < 16; i++) {
+            UserConfig cfg = UserConfig.getInstance(i);
+            if (cfg != null && cfg.isClientActivated() && (user = cfg.getCurrentUser()) != null && user.premium) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void onUnload() {
         if (this.sendRequestHook != null) {
             this.sendRequestHook.unhook();
+            this.sendRequestHook = null;
         }
         for (XC_MethodHook.Unhook hook : this.hooks) {
             hook.unhook();
         }
+        this.hooks.clear();
     }
 }

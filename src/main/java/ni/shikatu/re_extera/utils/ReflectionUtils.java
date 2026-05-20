@@ -15,7 +15,6 @@ import java.lang.reflect.Method;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
@@ -24,7 +23,10 @@ import org.telegram.ui.Components.StickerImageView;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
-public class ReflectionUtils {
+public final class ReflectionUtils {
+    private ReflectionUtils() {
+    }
+
     public static <T> T invoke(Method method, Object obj, Object... objArr) {
         if (method == null) {
             hookError();
@@ -36,13 +38,13 @@ public class ReflectionUtils {
         try {
             return (T) method.invoke(obj, objArr);
         } catch (IllegalAccessException e) {
-            Main.log("IllegalAccessException", e.getMessage());
+            Main.log("IllegalAccessException: %s", e.getMessage());
             return null;
         } catch (InvocationTargetException e2) {
-            Main.log("InvocationTargetException", e2.getMessage());
+            Main.log("InvocationTargetException: %s", e2.getMessage());
             return null;
         } catch (Exception e3) {
-            Main.log("Exception", e3.getMessage());
+            Main.log("Reflection invoke error: %s", e3.getMessage());
             return null;
         }
     }
@@ -58,7 +60,7 @@ public class ReflectionUtils {
         try {
             return (T) field.get(obj);
         } catch (IllegalAccessException e) {
-            Main.log("IllegalAccessException", e.getMessage());
+            Main.log("IllegalAccessException: %s", e.getMessage());
             return null;
         }
     }
@@ -74,7 +76,7 @@ public class ReflectionUtils {
         try {
             field.set(object, value);
         } catch (IllegalAccessException e) {
-            Main.log("IllegalAccessException", e.getMessage());
+            Main.log("IllegalAccessException: %s", e.getMessage());
         }
     }
 
@@ -86,15 +88,7 @@ public class ReflectionUtils {
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }
-        try {
-            return (T) XposedBridge.invokeOriginalMethod(method, obj, objArr);
-        } catch (IllegalAccessException e) {
-            Main.log("Exception", e.getMessage());
-            return null;
-        } catch (InvocationTargetException e2) {
-            Main.log("InvocationTargetException", e2.getMessage());
-            return null;
-        }
+        return (T) XposedBridge.invokeOriginalMethod(method, obj, objArr);
     }
 
     public static void hookError() {
@@ -104,18 +98,13 @@ public class ReflectionUtils {
             AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.ReflectionUtils$$ExternalSyntheticLambda0
                 @Override // java.lang.Runnable
                 public final void run() {
-                    ReflectionUtils.lambda$hookError$0(last);
+                    new ReflectionUtils.HooksInitFailedBottomSheet(last).show();
                 }
             });
         }
     }
 
-    static /* synthetic */ void lambda$hookError$0(BaseFragment last) {
-        HooksInitFailedBottomSheet bottomSheet = new HooksInitFailedBottomSheet(last);
-        bottomSheet.show();
-    }
-
-    public static class HooksInitFailedBottomSheet extends BottomSheet {
+    public static final class HooksInitFailedBottomSheet extends BottomSheet {
         public HooksInitFailedBottomSheet(BaseFragment fragment) {
             super(fragment.getParentActivity(), false, fragment.getResourceProvider());
             final Activity activity = fragment.getParentActivity();
@@ -127,7 +116,7 @@ public class ReflectionUtils {
             linearLayout.setClipToPadding(false);
             frameLayout.addView(linearLayout);
             FrameLayout stickerLayout = new FrameLayout(getContext());
-            StickerImageView stickerImageView = new StickerImageView(getContext(), UserConfig.selectedAccount);
+            StickerImageView stickerImageView = new StickerImageView(getContext(), fragment.getCurrentAccount());
             stickerImageView.setStickerPackName("fuki_dum_pjsk_pack");
             stickerImageView.setStickerNum(22);
             stickerImageView.setAspectFit(true);

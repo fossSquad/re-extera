@@ -5,10 +5,12 @@ import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.MessageObject;
 
 public class SendSecretMediaDelete extends XC_MethodHook {
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        MessageObject obj = (MessageObject) param.args[0];
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (Settings.getSaveOneTimeMessages()) {
-            obj.forceExpired = false;
+            MessageObject obj = (MessageObject) param.args[0];
+            if (obj != null) {
+                obj.forceExpired = false;
+            }
             param.setResult(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.secretmedia.SendSecretMediaDelete$$ExternalSyntheticLambda0
                 @Override // java.lang.Runnable
                 public final void run() {

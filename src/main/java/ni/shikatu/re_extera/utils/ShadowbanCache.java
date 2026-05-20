@@ -8,11 +8,13 @@ import ni.shikatu.re_extera.db.ShadowbanEntry;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.UserConfig;
 
-public class ShadowbanCache {
-    private static final ConcurrentHashMap<Long, ShadowbanEntry> cache = new ConcurrentHashMap<>();
+public final class ShadowbanCache {
+    private static final ConcurrentHashMap<Long, ShadowbanEntry> CACHE = new ConcurrentHashMap<>();
     private static volatile boolean initialized = false;
+
+    private ShadowbanCache() {
+    }
 
     public static void init() {
         if (initialized) {
@@ -23,51 +25,50 @@ public class ShadowbanCache {
     }
 
     public static void reload() {
-        cache.clear();
+        CACHE.clear();
         List<ShadowbanEntry> entries = ReExteraDb.get().getAllShadowbanned();
         for (ShadowbanEntry entry : entries) {
-            cache.put(Long.valueOf(entry.userId), entry);
+            CACHE.put(Long.valueOf(entry.userId), entry);
         }
     }
 
     public static boolean isShadowbanned(long userId) {
-        return cache.containsKey(Long.valueOf(userId));
+        return CACHE.containsKey(Long.valueOf(userId));
     }
 
     public static boolean shouldHideDialog(long userId) {
-        ShadowbanEntry entry = cache.get(Long.valueOf(userId));
+        ShadowbanEntry entry = CACHE.get(Long.valueOf(userId));
         return entry != null && entry.hideDialog;
     }
 
     public static boolean shouldHideInGroups(long userId) {
-        ShadowbanEntry entry = cache.get(Long.valueOf(userId));
+        ShadowbanEntry entry = CACHE.get(Long.valueOf(userId));
         return entry != null && entry.hideInGroups;
     }
 
     public static ShadowbanEntry get(long userId) {
-        return cache.get(Long.valueOf(userId));
+        return CACHE.get(Long.valueOf(userId));
     }
 
     public static void add(long userId, boolean hideDialog, boolean hideInGroups) {
         ReExteraDb.get().addShadowbanAsync(userId, hideDialog, hideInGroups);
-        cache.put(Long.valueOf(userId), new ShadowbanEntry(userId, hideDialog, hideInGroups, System.currentTimeMillis()));
+        CACHE.put(Long.valueOf(userId), new ShadowbanEntry(userId, hideDialog, hideInGroups, System.currentTimeMillis()));
     }
 
     public static void remove(long userId) {
         ReExteraDb.get().removeShadowbanAsync(userId);
-        cache.remove(Long.valueOf(userId));
+        CACHE.remove(Long.valueOf(userId));
     }
 
     public static void update(long userId, boolean hideDialog, boolean hideInGroups) {
         ReExteraDb.get().updateShadowbanAsync(userId, hideDialog, hideInGroups);
-        ShadowbanEntry existing = cache.get(Long.valueOf(userId));
-        if (existing != null) {
-            cache.put(Long.valueOf(userId), new ShadowbanEntry(userId, hideDialog, hideInGroups, existing.addedTs));
-        }
+        ShadowbanEntry existing = CACHE.get(Long.valueOf(userId));
+        long addedTs = existing != null ? existing.addedTs : System.currentTimeMillis();
+        CACHE.put(Long.valueOf(userId), new ShadowbanEntry(userId, hideDialog, hideInGroups, addedTs));
     }
 
-    public static void notifyDialogsUpdate() {
-        notifyDialogsUpdate(UserConfig.selectedAccount);
+    public static List<ShadowbanEntry> snapshot() {
+        return ReExteraDb.get().getAllShadowbanned();
     }
 
     public static void notifyDialogsUpdate(final int account) {

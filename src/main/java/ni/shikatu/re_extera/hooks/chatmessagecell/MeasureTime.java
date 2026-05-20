@@ -18,29 +18,20 @@ import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.ColoredImageSpan;
 
 public class MeasureTime extends XC_MethodHook {
-    public static Field currentMessageObject;
-    public static Field currentTimeString;
     public static Drawable deletedIcon;
+    private final ReExteraDb redb = ReExteraDb.get();
+    private static final Field CURRENT_TIME_STRING = field("currentTimeString");
+    private static final Field TIME_TEXT_WIDTH = field("timeTextWidth");
+    private static final Field TIME_WIDTH = field("timeWidth");
     public static String mark = Settings.getCustomPrefix();
-    public static Field timeTextWidth;
-    public static Field timeWidth;
-    public ReExteraDb redb = ReExteraDb.get();
 
-    static {
+    private static Field field(String name) {
         try {
-            currentMessageObject = ChatMessageCell.class.getDeclaredField("currentMessageObject");
-            currentMessageObject.setAccessible(true);
-            currentTimeString = ChatMessageCell.class.getDeclaredField("currentTimeString");
-            currentTimeString.setAccessible(true);
-            timeTextWidth = ChatMessageCell.class.getDeclaredField("timeTextWidth");
-            timeTextWidth.setAccessible(true);
-            timeWidth = ChatMessageCell.class.getDeclaredField("timeWidth");
-            timeWidth.setAccessible(true);
+            Field f = ChatMessageCell.class.getDeclaredField(name);
+            f.setAccessible(true);
+            return f;
         } catch (Exception e) {
-            currentMessageObject = null;
-            currentTimeString = null;
-            timeTextWidth = null;
-            timeWidth = null;
+            return null;
         }
     }
 
@@ -48,47 +39,67 @@ public class MeasureTime extends XC_MethodHook {
         mark = to;
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam methodHookParam) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         TLRPC.Message message;
-        CharSequence charSequence;
-        TextPaint textPaint;
-        SpannableStringBuilder spannableStringBuilder;
-        if (currentTimeString == null || timeTextWidth == null || timeWidth == null) {
+        SpannableStringBuilder prefix;
+        if (CURRENT_TIME_STRING == null || TIME_TEXT_WIDTH == null) {
             return;
         }
-        ChatMessageCell chatMessageCell = (ChatMessageCell) methodHookParam.thisObject;
-        MessageObject messageObject = (MessageObject) methodHookParam.args[0];
-        if (messageObject == null || (message = messageObject.messageOwner) == null) {
+        if (TIME_WIDTH == null) {
             return;
         }
-        if (this.redb.messageIsDeleted(MessageUtils.getDialogIdFromMessage(message), message.id) && (charSequence = (CharSequence) ReflectionUtils.get(currentTimeString, chatMessageCell)) != null && (textPaint = Theme.chat_timePaint) != null) {
-            if (mark != null && !mark.isEmpty()) {
-                SpannableStringBuilder spannableStringBuilder2 = new SpannableStringBuilder(LocaleUtils.fullyFormatText(mark));
-                spannableStringBuilder2.setSpan(spannableStringBuilder2, 0, spannableStringBuilder2.length(), 33);
-                spannableStringBuilder = spannableStringBuilder2;
-            } else {
-                SpannableStringBuilder spannableStringBuilder3 = new SpannableStringBuilder("....");
-                ColoredImageSpan coloredImageSpan = new ColoredImageSpan(deletedIcon);
-                if (Settings.getRedMark()) {
-                    coloredImageSpan.setOverrideColor(chatMessageCell.getThemedColor(Theme.key_color_red));
-                }
-                coloredImageSpan.setRelativeSize(textPaint.getFontMetricsInt());
-                spannableStringBuilder3.setSpan(coloredImageSpan, 0, spannableStringBuilder3.length(), 0);
-                spannableStringBuilder = spannableStringBuilder3;
+        ChatMessageCell cell = (ChatMessageCell) param.thisObject;
+        MessageObject obj = (MessageObject) param.args[0];
+        if (obj == null || (message = obj.messageOwner) == null) {
+            return;
+        }
+        long did = MessageUtils.getDialogIdFromMessage(message);
+        int mid = message.id;
+        if (this.redb.messageIsDeleted(did, mid)) {
+            CharSequence currentTimeString = (CharSequence) ReflectionUtils.get(CURRENT_TIME_STRING, cell);
+            if (!(currentTimeString instanceof SpannableStringBuilder)) {
+                return;
             }
+            SpannableStringBuilder builderTime = (SpannableStringBuilder) currentTimeString;
+            TextPaint paint = Theme.chat_timePaint;
+            if (paint == null || (prefix = buildPrefix(cell, paint)) == null) {
+                return;
+            }
+            prefix.append((CharSequence) " ");
+            builderTime.insert(0, (CharSequence) prefix);
+            ReflectionUtils.set(CURRENT_TIME_STRING, cell, builderTime);
+            int extraWidth = (int) Math.ceil(paint.measureText(prefix, 0, prefix.length()));
+            Integer timeTextWidthGot = (Integer) ReflectionUtils.get(TIME_TEXT_WIDTH, cell);
+            Integer timeWidthGot = (Integer) ReflectionUtils.get(TIME_WIDTH, cell);
+            if (timeTextWidthGot != null) {
+                ReflectionUtils.set(TIME_TEXT_WIDTH, cell, Integer.valueOf(timeTextWidthGot.intValue() + extraWidth));
+            }
+            if (timeWidthGot != null) {
+                ReflectionUtils.set(TIME_WIDTH, cell, Integer.valueOf(timeWidthGot.intValue() + extraWidth));
+            }
+            cell.requestLayout();
+            cell.invalidate();
+        }
+    }
+
+    private static SpannableStringBuilder buildPrefix(ChatMessageCell cell, TextPaint paint) {
+        SpannableStringBuilder builder;
+        if (mark != null && !mark.isEmpty()) {
+            builder = new SpannableStringBuilder(LocaleUtils.fullyFormatText(mark));
+        } else if (deletedIcon != null) {
+            builder = new SpannableStringBuilder("....");
+            ColoredImageSpan span = new ColoredImageSpan(deletedIcon);
             if (Settings.getRedMark()) {
-                spannableStringBuilder.setSpan(new ForegroundColorSpan(chatMessageCell.getThemedColor(Theme.key_color_red)), 0, spannableStringBuilder.length(), 33);
+                span.setOverrideColor(cell.getThemedColor(Theme.key_color_red));
             }
-            spannableStringBuilder.append(" ");
-            ((SpannableStringBuilder) charSequence).insert(0, (CharSequence) spannableStringBuilder);
-            ReflectionUtils.set(currentTimeString, chatMessageCell, charSequence);
-            int iCeil = (int) Math.ceil(textPaint.measureText(spannableStringBuilder, 0, spannableStringBuilder.length()));
-            int iIntValue = ((Integer) ReflectionUtils.get(timeTextWidth, chatMessageCell)).intValue();
-            int iIntValue2 = ((Integer) ReflectionUtils.get(timeWidth, chatMessageCell)).intValue();
-            ReflectionUtils.set(timeTextWidth, chatMessageCell, Integer.valueOf(iCeil + iIntValue));
-            ReflectionUtils.set(timeWidth, chatMessageCell, Integer.valueOf(iCeil + iIntValue2));
-            chatMessageCell.requestLayout();
-            chatMessageCell.invalidate();
+            span.setRelativeSize(paint.getFontMetricsInt());
+            builder.setSpan(span, 0, builder.length(), 0);
+        } else {
+            return null;
         }
+        if (Settings.getRedMark()) {
+            builder.setSpan(new ForegroundColorSpan(cell.getThemedColor(Theme.key_color_red)), 0, builder.length(), 33);
+        }
+        return builder;
     }
 }

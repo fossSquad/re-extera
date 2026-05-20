@@ -19,7 +19,10 @@ import org.telegram.ui.DialogsActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.TopicsFragment;
 
-public class RestrictedMessageUtils {
+public final class RestrictedMessageUtils {
+    private RestrictedMessageUtils() {
+    }
+
     public static void createMenu(final BaseFragment fragment, View view, final MessageObject toForward) {
         ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable
@@ -34,10 +37,11 @@ public class RestrictedMessageUtils {
         }).setOnTopOfScrim().show();
     }
 
-    public static void forwardMessages(final BaseFragment fragment, final ArrayList<MessageObject> messages) {
+    public static void forwardMessages(BaseFragment fragment, final ArrayList<MessageObject> messages) {
         if (fragment == null || messages == null || messages.isEmpty()) {
             return;
         }
+        final int currentAccount = fragment.getCurrentAccount();
         Bundle args = new Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", 3);
@@ -46,7 +50,7 @@ public class RestrictedMessageUtils {
         args.putBoolean("allowChannels", true);
         args.putBoolean("allowBots", true);
         DialogsActivity dialogsActivity = new DialogsActivity(args);
-        DialogsActivity.DialogsActivityDelegate delegate = new DialogsActivity.DialogsActivityDelegate() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils.1
+        dialogsActivity.setDelegate(new DialogsActivity.DialogsActivityDelegate() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils.1
             public boolean didSelectDialogs(DialogsActivity fragment1, ArrayList<MessagesStorage.TopicKey> dids, CharSequence message, boolean param, boolean notify, int scheduleDate, int scheduleRepeatPeriod, TopicsFragment topicsFragment) {
                 TLRPC.TL_forumTopic topic;
                 if (dids == null || dids.isEmpty()) {
@@ -56,10 +60,10 @@ public class RestrictedMessageUtils {
                     long dialogId = topicKey.dialogId;
                     long topicId = topicKey.topicId;
                     MessageObject replyToTopMsg = null;
-                    if (topicId != 0 && (topic = MessagesController.getInstance(fragment.getCurrentAccount()).getTopicsController().findTopic(-dialogId, (int) topicId)) != null && topic.top_message != 0) {
-                        replyToTopMsg = new MessageObject(fragment.getCurrentAccount(), topic.topMessage, false, false);
+                    if (topicId != 0 && (topic = MessagesController.getInstance(currentAccount).getTopicsController().findTopic(-dialogId, (int) topicId)) != null && topic.top_message != 0) {
+                        replyToTopMsg = new MessageObject(currentAccount, topic.topMessage, false, false);
                     }
-                    MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), messages, dialogId, true, 0, replyToTopMsg);
+                    MessageForwarder.sendMessageCopy(AccountInstance.getInstance(currentAccount), messages, dialogId, true, 0, replyToTopMsg);
                 }
                 fragment1.finishFragment();
                 BulletinFactory bulletin = BulletinFactory.of(LaunchActivity.getLastFragment());
@@ -78,8 +82,7 @@ public class RestrictedMessageUtils {
             public boolean didSelectStories(DialogsActivity fragment2) {
                 return false;
             }
-        };
-        dialogsActivity.setDelegate(delegate);
+        });
         fragment.presentFragment(dialogsActivity);
     }
 
@@ -90,8 +93,9 @@ public class RestrictedMessageUtils {
         if (messages.isEmpty()) {
             return;
         }
-        MessageForwarder.sendMessageCopy(AccountInstance.getInstance(fragment.getCurrentAccount()), messages, UserConfig.getInstance(fragment.getCurrentAccount()).getClientUserId(), true, 0, null);
-        long selfId = UserConfig.getInstance(fragment.getCurrentAccount()).getClientUserId();
+        int currentAccount = fragment.getCurrentAccount();
+        long selfId = UserConfig.getInstance(currentAccount).getClientUserId();
+        MessageForwarder.sendMessageCopy(AccountInstance.getInstance(currentAccount), messages, selfId, true, 0, null);
         BulletinFactory.of(LaunchActivity.getLastFragment()).showForwardedBulletinWithTag(selfId, messages.size());
     }
 }

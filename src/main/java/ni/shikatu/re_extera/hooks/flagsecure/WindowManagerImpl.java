@@ -5,7 +5,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import ni.shikatu.re_extera.settings.Settings;
 
 public class WindowManagerImpl extends XC_MethodHook {
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (Settings.getRemoveFlagSecure()) {
             WindowManager.LayoutParams params = (WindowManager.LayoutParams) param.args[1];
             if ((params.flags & 8192) != 0) {

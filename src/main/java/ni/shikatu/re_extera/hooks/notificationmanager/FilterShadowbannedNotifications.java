@@ -8,7 +8,7 @@ import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.MessageObject;
 
 public class FilterShadowbannedNotifications extends XC_MethodHook {
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         ArrayList<MessageObject> messages = (ArrayList) param.args[0];
         if (messages == null || messages.isEmpty()) {
             return;
@@ -21,7 +21,7 @@ public class FilterShadowbannedNotifications extends XC_MethodHook {
                 if (fromId > 0) {
                     boolean isDm = message.getDialogId() > 0;
                     if (ShadowbanCache.shouldHideInGroups(fromId) || (isDm && ShadowbanCache.shouldHideDialog(fromId))) {
-                        Main.log("FilterShadowbannedNotifications: filtered notification from %d (dm=%b)", Long.valueOf(fromId), Boolean.valueOf(isDm));
+                        Main.log("FilterShadowbannedNotifications: filtered from %d (dm=%b)", Long.valueOf(fromId), Boolean.valueOf(isDm));
                         iterator.remove();
                     }
                 }

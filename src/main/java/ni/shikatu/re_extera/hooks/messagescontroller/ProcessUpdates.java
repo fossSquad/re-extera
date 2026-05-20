@@ -16,16 +16,17 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.tgnet.TLRPC;
 
 public class ProcessUpdates extends XC_MethodHook {
-    private ReExteraDb redb = ReExteraDb.get();
+    private final ReExteraDb redb = ReExteraDb.get();
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         TLRPC.Updates updates = (TLRPC.Updates) param.args[0];
         ArrayList<TLRPC.Update> filtered = new ArrayList<>();
         LongSparseArray<ArrayList<Integer>> channelDeleted = new LongSparseArray<>();
         if (updates.update != null) {
-            if (processSingleUpdate(updates.update, channelDeleted, currentAccount)) {
-                filtered.add(updates.update);
+            if (!processSingleUpdate(updates.update, channelDeleted, currentAccount)) {
+                param.setResult((Object) null);
+                return;
             }
         } else {
             for (TLRPC.Update update : updates.updates) {
@@ -33,88 +34,89 @@ public class ProcessUpdates extends XC_MethodHook {
                     filtered.add(update);
                 }
             }
-            if (!channelDeleted.isEmpty()) {
-                for (int i = 0; i < channelDeleted.size(); i++) {
-                    long did = channelDeleted.keyAt(i);
-                    ArrayList<Integer> ids = (ArrayList) channelDeleted.get(did);
-                    if (ids != null && !ids.isEmpty()) {
-                        this.redb.batchPutDeletedMessagesAsync(did, ids);
-                        MessageUtils.forceUpdateViews(currentAccount, did, ids);
-                    }
-                }
+            updates.updates = filtered;
+        }
+        flushChannelDeleted(channelDeleted, currentAccount);
+        param.args[0] = updates;
+    }
+
+    private void flushChannelDeleted(LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
+        for (int i = 0; i < channelDeleted.size(); i++) {
+            long did = channelDeleted.keyAt(i);
+            ArrayList<Integer> ids = (ArrayList) channelDeleted.valueAt(i);
+            if (ids != null && !ids.isEmpty()) {
+                this.redb.batchPutDeletedMessagesAsync(did, ids);
+                MessageUtils.forceUpdateViews(currentAccount, did, ids);
             }
         }
-        updates.updates = filtered;
-        param.args[0] = updates;
     }
 
     private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
         if (update instanceof TLRPC.TL_updateEditMessage) {
-            processTL_updateEditMessage((TLRPC.TL_updateEditMessage) update, currentAccount);
+            TLRPC.TL_updateEditMessage edit = (TLRPC.TL_updateEditMessage) update;
+            processEditedMessage(edit.message, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateEditChannelMessage) {
-            processTL_updateEditChannelMessage((TLRPC.TL_updateEditChannelMessage) update, currentAccount);
+            TLRPC.TL_updateEditChannelMessage edit2 = (TLRPC.TL_updateEditChannelMessage) update;
+            processEditedMessage(edit2.message, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteMessages) {
-            processTL_updateDeleteMessages((TLRPC.TL_updateDeleteMessages) update, currentAccount);
+            TLRPC.TL_updateDeleteMessages del = (TLRPC.TL_updateDeleteMessages) update;
+            processDeleteMessages(del, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteChannelMessages) {
-            processTL_updateDeleteChannelMessages((TLRPC.TL_updateDeleteChannelMessages) update, channelDeleted);
+            TLRPC.TL_updateDeleteChannelMessages del2 = (TLRPC.TL_updateDeleteChannelMessages) update;
+            processDeleteChannelMessages(del2, channelDeleted);
             return true;
         }
         if (update instanceof TLRPC.TL_updateDeleteScheduledMessages) {
-            processTL_updateDeleteScheduledMessages((TLRPC.TL_updateDeleteScheduledMessages) update, currentAccount);
+            TLRPC.TL_updateDeleteScheduledMessages del3 = (TLRPC.TL_updateDeleteScheduledMessages) update;
+            processDeleteScheduledMessages(del3, currentAccount);
             return true;
         }
         if (update instanceof TLRPC.TL_updateNewMessage) {
-            return processTL_updateNewMessage((TLRPC.TL_updateNewMessage) update);
+            TLRPC.TL_updateNewMessage newMsg = (TLRPC.TL_updateNewMessage) update;
+            return true ^ shadowbanFilterHideDialog(newMsg.message);
         }
-        if (update instanceof TLRPC.TL_updateNewChannelMessage) {
-            return processTL_updateNewChannelMessage((TLRPC.TL_updateNewChannelMessage) update);
+        if (!(update instanceof TLRPC.TL_updateNewChannelMessage)) {
+            return true;
         }
+        TLRPC.TL_updateNewChannelMessage newMsg2 = (TLRPC.TL_updateNewChannelMessage) update;
+        return true ^ shadowbanFilterHideInGroups(newMsg2.message);
+    }
+
+    private boolean shadowbanFilterHideDialog(TLRPC.Message message) {
+        if (message == null) {
+            return false;
+        }
+        long fromId = getFromId(message);
+        if (fromId <= 0 || !ShadowbanCache.shouldHideDialog(fromId)) {
+            return false;
+        }
+        Main.log("ProcessUpdates: filtered new message from shadowbanned user %d", Long.valueOf(fromId));
         return true;
     }
 
-    private boolean processTL_updateNewMessage(TLRPC.TL_updateNewMessage update) {
-        if (update.message == null) {
-            return true;
+    private boolean shadowbanFilterHideInGroups(TLRPC.Message message) {
+        if (message == null) {
+            return false;
         }
-        long fromId = getFromId(update.message);
-        if (fromId <= 0 || !ShadowbanCache.shouldHideDialog(fromId)) {
-            return true;
-        }
-        Main.log("ProcessUpdates: Filtered new message from shadowbanned user %d", Long.valueOf(fromId));
-        return false;
-    }
-
-    private boolean processTL_updateNewChannelMessage(TLRPC.TL_updateNewChannelMessage update) {
-        if (update.message == null) {
-            return true;
-        }
-        long fromId = getFromId(update.message);
+        long fromId = getFromId(message);
         if (fromId <= 0 || !ShadowbanCache.shouldHideInGroups(fromId)) {
-            return true;
+            return false;
         }
-        Main.log("ProcessUpdates: Filtered channel message from shadowbanned user %d", Long.valueOf(fromId));
-        return false;
+        Main.log("ProcessUpdates: filtered channel message from shadowbanned user %d", Long.valueOf(fromId));
+        return true;
     }
 
-    private long getFromId(TLRPC.Message message) {
-        if (message.from_id != null && (message.from_id instanceof TLRPC.TL_peerUser)) {
+    private static long getFromId(TLRPC.Message message) {
+        if (message.from_id instanceof TLRPC.TL_peerUser) {
             return message.from_id.user_id;
         }
         return 0L;
-    }
-
-    private void processTL_updateEditMessage(TLRPC.TL_updateEditMessage update, int currentAccount) {
-        processEditedMessage(update.message, currentAccount);
-    }
-
-    private void processTL_updateEditChannelMessage(TLRPC.TL_updateEditChannelMessage update, int currentAccount) {
-        processEditedMessage(update.message, currentAccount);
     }
 
     private void processEditedMessage(TLRPC.Message message, int currentAccount) {
@@ -128,46 +130,54 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processTL_updateDeleteMessages(TLRPC.TL_updateDeleteMessages update, int currentAccount) {
+    private void processDeleteMessages(TLRPC.TL_updateDeleteMessages update, int currentAccount) {
+        if (update.messages == null) {
+            return;
+        }
         MessagesController controller = MessagesController.getInstance(currentAccount);
         LongSparseArray<ArrayList<Integer>> toUpdateGrouped = new LongSparseArray<>();
         synchronized (controller) {
-            if (update.messages != null) {
-                Iterator it = update.messages.iterator();
-                while (it.hasNext()) {
-                    int id = ((Integer) it.next()).intValue();
-                    MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
-                    if (obj != null) {
-                        long did = obj.getDialogId();
-                        ArrayList<Integer> listx = (ArrayList) toUpdateGrouped.get(did);
-                        if (listx == null) {
-                            listx = new ArrayList<>();
-                            toUpdateGrouped.put(did, listx);
-                        }
-                        listx.add(Integer.valueOf(obj.getId()));
+            Iterator it = update.messages.iterator();
+            while (it.hasNext()) {
+                int id = ((Integer) it.next()).intValue();
+                MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
+                if (obj != null) {
+                    long did = obj.getDialogId();
+                    ArrayList<Integer> list = (ArrayList) toUpdateGrouped.get(did);
+                    if (list == null) {
+                        list = new ArrayList<>();
+                        toUpdateGrouped.put(did, list);
                     }
+                    list.add(Integer.valueOf(obj.getId()));
                 }
-                for (int i = 0; i < toUpdateGrouped.size(); i++) {
-                    long did2 = toUpdateGrouped.keyAt(i);
-                    ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
-                    if (ids != null && !ids.isEmpty()) {
-                        this.redb.batchPutDeletedMessagesAsync(did2, ids);
-                        MessageUtils.forceUpdateViews(currentAccount, did2, ids);
-                    }
+            }
+            for (int i = 0; i < toUpdateGrouped.size(); i++) {
+                long did2 = toUpdateGrouped.keyAt(i);
+                ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
+                if (ids != null && !ids.isEmpty()) {
+                    this.redb.batchPutDeletedMessagesAsync(did2, ids);
+                    MessageUtils.forceUpdateViews(currentAccount, did2, ids);
                 }
             }
         }
     }
 
-    private void processTL_updateDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update, int currentAccount) {
+    private void processDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update, int currentAccount) {
         long dialogId = DialogObject.getPeerDialogId(update.peer);
-        ArrayList<Integer> allMessages = new ArrayList<>();
-        allMessages.addAll(update.sent_messages);
-        allMessages.addAll(update.messages);
-        InternalUtils.deleteMessages(currentAccount, dialogId, allMessages, null, true);
+        ArrayList<Integer> all = new ArrayList<>();
+        if (update.sent_messages != null) {
+            all.addAll(update.sent_messages);
+        }
+        if (update.messages != null) {
+            all.addAll(update.messages);
+        }
+        if (all.isEmpty()) {
+            return;
+        }
+        InternalUtils.deleteMessages(currentAccount, dialogId, all, true);
     }
 
-    private void processTL_updateDeleteChannelMessages(TLRPC.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
+    private void processDeleteChannelMessages(TLRPC.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
         if (update.messages == null || update.messages.isEmpty()) {
             return;
         }

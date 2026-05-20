@@ -4,7 +4,9 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -15,7 +17,6 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.Cells.ChatMessageCell;
@@ -23,8 +24,11 @@ import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.LaunchActivity;
 
-public class MessageUtils {
-    private static List<Pattern> compiledPatterns = null;
+public final class MessageUtils {
+    private static volatile List<Pattern> compiledPatterns = Collections.emptyList();
+
+    private MessageUtils() {
+    }
 
     public static long getDialogIdFromMessage(TLRPC.Message msg) {
         if (msg.peer_id instanceof TLRPC.TL_peerUser) {
@@ -39,76 +43,67 @@ public class MessageUtils {
         return 0L;
     }
 
-    public static MessageObject getMessage(long did, int mid) {
-        return getMessage(UserConfig.selectedAccount, did, mid);
-    }
-
     public static MessageObject getMessage(int currentAccount, long did, int mid) {
-        TLRPC.Message msg;
-        ArrayList<MessageObject> list;
+        MessageObject obj;
         MessagesController controller = MessagesController.getInstance(currentAccount);
-        MessageObject obj = null;
-        if (did == 0) {
-            obj = (MessageObject) controller.dialogMessagesByIds.get(mid);
-        }
-        if (obj == null && (list = (ArrayList) controller.dialogMessage.get(did)) != null && !list.isEmpty()) {
-            for (MessageObject obj1 : list) {
-                if (obj1.getId() == mid) {
-                    obj = obj1;
-                }
-            }
-        }
-        if (obj == null && (msg = MessagesStorage.getInstance(currentAccount).getMessage(did, mid)) != null) {
-            obj = new MessageObject(currentAccount, msg, false, false);
-        }
-        if (obj == null) {
-            ChatActivity lastFragment = LaunchActivity.getLastFragment();
-            if (lastFragment instanceof ChatActivity) {
-                ChatActivity chatActivity = lastFragment;
-                if (chatActivity.getCurrentAccount() != currentAccount) {
-                    return obj;
-                }
-                if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
-                    for (MessageObject msg2 : chatActivity.messages) {
-                        if (msg2 != null && msg2.getId() == mid) {
-                            return msg2;
-                        }
-                    }
-                    return obj;
-                }
-                return obj;
-            }
+        if (did == 0 && (obj = (MessageObject) controller.dialogMessagesByIds.get(mid)) != null) {
             return obj;
         }
-        return obj;
-    }
-
-    public static void forceUpdateViews(long did, Collection<Integer> mids) {
-        forceUpdateViews(UserConfig.selectedAccount, did, mids);
+        ArrayList<MessageObject> list = (ArrayList) controller.dialogMessage.get(did);
+        if (list != null) {
+            for (MessageObject obj2 : list) {
+                if (obj2 != null && obj2.getId() == mid) {
+                    return obj2;
+                }
+            }
+        }
+        TLRPC.Message stored = MessagesStorage.getInstance(currentAccount).getMessage(did, mid);
+        if (stored != null) {
+            return new MessageObject(currentAccount, stored, false, false);
+        }
+        ChatActivity lastFragment = LaunchActivity.getLastFragment();
+        if (lastFragment instanceof ChatActivity) {
+            ChatActivity chatActivity = lastFragment;
+            if (chatActivity.getCurrentAccount() != currentAccount) {
+                return null;
+            }
+            if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
+                for (MessageObject msg : chatActivity.messages) {
+                    if (msg != null && msg.getId() == mid) {
+                        return msg;
+                    }
+                }
+                return null;
+            }
+            return null;
+        }
+        return null;
     }
 
     public static void forceUpdateViews(int currentAccount, long did, Collection<Integer> mids) {
-        if (LaunchActivity.getLastFragment() instanceof ChatActivity) {
-            ChatActivity activity = LaunchActivity.getLastFragment();
-            if (activity.getCurrentAccount() != currentAccount) {
-                return;
-            }
-            final RecyclerListView chatListView = activity.getChatListView();
-            final RecyclerView.Adapter adapter = chatListView.getAdapter();
+        final RecyclerListView chatListView;
+        final RecyclerView.Adapter<?> adapter;
+        if (mids.isEmpty()) {
+            return;
+        }
+        ChatActivity lastFragment = LaunchActivity.getLastFragment();
+        if (!(lastFragment instanceof ChatActivity)) {
+            return;
+        }
+        ChatActivity activity = lastFragment;
+        if (activity.getCurrentAccount() == currentAccount && activity.getDialogId() == did && (adapter = (chatListView = activity.getChatListView()).getAdapter()) != null) {
             HashMap<Integer, ChatMessageCell> visibleCells = getVisibleCells(chatListView);
-            for (Integer id : mids) {
-                Main.log("Deleting message", new Object[0]);
-                final ChatMessageCell cell = visibleCells.get(id);
-                if (cell != null) {
-                    MessageObject cellObject = cell.getMessageObject();
-                    if (cellObject != null && adapter != null) {
-                        AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageUtils$$ExternalSyntheticLambda0
-                            @Override // java.lang.Runnable
-                            public final void run() {
-                                MessageUtils.lambda$forceUpdateViews$0(cell, adapter, chatListView);
-                            }
-                        });
-                    }
+            Iterator<Integer> it = mids.iterator();
+            while (it.hasNext()) {
+                int id = it.next().intValue();
+                final ChatMessageCell cell = visibleCells.get(Integer.valueOf(id));
+                if (cell != null && cell.getMessageObject() != null) {
+                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageUtils$$ExternalSyntheticLambda0
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            MessageUtils.lambda$forceUpdateViews$0(cell, adapter, chatListView);
+                        }
+                    });
                 }
             }
         }
@@ -125,44 +120,51 @@ public class MessageUtils {
     public static HashMap<Integer, ChatMessageCell> getVisibleCells(RecyclerListView chatListView) {
         ChatMessageCell cell;
         MessageObject messageObject;
-        HashMap<Integer, ChatMessageCell> visibleCells = new HashMap<>();
+        HashMap<Integer, ChatMessageCell> visible = new HashMap<>();
         int count = chatListView.getChildCount();
-        for (int a = 0; a < count; a++) {
-            View view = chatListView.getChildAt(a);
+        for (int i = 0; i < count; i++) {
+            View view = chatListView.getChildAt(i);
             if ((view instanceof ChatMessageCell) && (messageObject = (cell = (ChatMessageCell) view).getMessageObject()) != null) {
-                visibleCells.put(Integer.valueOf(messageObject.getId()), cell);
+                visible.put(Integer.valueOf(messageObject.getId()), cell);
             }
         }
-        return visibleCells;
+        return visible;
     }
 
     public static void updatePatterns() {
         List<String> regexFilters = ReExteraDb.get().getAllRegexFilters();
-        compiledPatterns = new ArrayList();
+        ArrayList<Pattern> compiled = new ArrayList<>(regexFilters.size());
         for (String regex : regexFilters) {
             try {
-                Pattern pattern = Pattern.compile(regex, 40);
-                compiledPatterns.add(pattern);
+                compiled.add(Pattern.compile(regex, 40));
             } catch (PatternSyntaxException e) {
                 Main.log("Invalid regex pattern: %s - %s", regex, e.getMessage());
             }
         }
+        compiledPatterns = Collections.unmodifiableList(compiled);
     }
 
     public static boolean shouldFilterMessage(MessageObject message) {
-        if (message == null || compiledPatterns == null || compiledPatterns.isEmpty()) {
+        if (message == null) {
             return false;
         }
-        String text = "";
+        List<Pattern> patterns = compiledPatterns;
+        if (patterns.isEmpty()) {
+            return false;
+        }
+        String text = null;
         if (message.messageOwner != null && message.messageOwner.message != null && !message.messageOwner.message.isEmpty()) {
             text = message.messageOwner.message;
-        } else if (message.messageText != null && !message.messageText.toString().isEmpty()) {
-            text = message.messageText.toString();
+        } else if (message.messageText != null) {
+            String asString = message.messageText.toString();
+            if (!asString.isEmpty()) {
+                text = asString;
+            }
         }
-        if (text.isEmpty()) {
+        if (text == null || text.isEmpty()) {
             return false;
         }
-        for (Pattern pattern : compiledPatterns) {
+        for (Pattern pattern : patterns) {
             try {
                 if (pattern.matcher(text).find()) {
                     Main.log("Message filtered by regex", new Object[0]);
@@ -176,8 +178,18 @@ public class MessageUtils {
         return false;
     }
 
-    public static double getScheduleTime(TLRPC.TL_photo photo, TLRPC.TL_document document) {
-        return getScheduleTime(UserConfig.selectedAccount, photo, document);
+    public static int getRealPosition(ArrayList<MessageObject> messages, int visiblePosition) {
+        int currentVisible = 0;
+        for (int i = 0; i < messages.size(); i++) {
+            if (!shouldFilterMessage(messages.get(i))) {
+                if (currentVisible == visiblePosition) {
+                    return i;
+                }
+                currentVisible++;
+            }
+        }
+        int i2 = messages.size();
+        return i2 - 1;
     }
 
     public static double getScheduleTime(int currentAccount, TLRPC.TL_photo photo, TLRPC.TL_document document) {
@@ -188,7 +200,8 @@ public class MessageUtils {
         int photoFileSize = 0;
         long documentFileSize = 0;
         if (photo != null) {
-            photoFileSize = FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize()).size;
+            TLRPC.PhotoSize photoSize = FileLoader.getClosestPhotoSizeWithSize(photo.sizes, AndroidUtilities.getPhotoSize());
+            photoFileSize = photoSize != null ? photoSize.size : 0;
         }
         if (document != null) {
             documentFileSize = document.size;
@@ -196,20 +209,5 @@ public class MessageUtils {
         double dMax = documentFileSize != 0 ? Math.max(6, (int) Math.ceil(((documentFileSize / 1024.0f) / 1024.0f) * 4.5f)) : 0.0d;
         Double.isNaN(time);
         return time + dMax + (photoFileSize != 0 ? Math.max(6, (int) Math.ceil(((photoFileSize / 1024.0f) / 1024.0f) * 4.5f)) : 0.0d);
-    }
-
-    public static int getRealPosition(ArrayList<MessageObject> messages, int visiblePosition) {
-        int currentVisible = 0;
-        for (int i = 0; i < messages.size(); i++) {
-            MessageObject msg = messages.get(i);
-            if (!shouldFilterMessage(msg)) {
-                if (currentVisible == visiblePosition) {
-                    return i;
-                }
-                currentVisible++;
-            }
-        }
-        int i2 = messages.size();
-        return i2 - 1;
     }
 }

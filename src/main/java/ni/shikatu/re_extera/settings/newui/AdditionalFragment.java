@@ -7,11 +7,11 @@ import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
-import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
 import ni.shikatu.re_extera.ui.ShadowbanFragment;
+import ni.shikatu.re_extera.utils.InternalUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -29,7 +29,6 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         IGNORE_FLAG_SECURE_ID,
         NO_FORWARD_ID,
         LOCAL_PREMIUM_ID,
-        ADD_SETTINGS_TO_DRAWER,
         FILTERS_ID,
         SHADOWBAN_ID,
         CLEAR_DB_ID,
@@ -56,39 +55,69 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
     }
 
+    /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.AdditionalFragment$1, reason: invalid class name */
+    static /* synthetic */ class AnonymousClass1 {
+        static final /* synthetic */ int[] $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds = new int[AdditionalIds.values().length];
+
+        static {
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.IGNORE_FLAG_SECURE_ID.ordinal()] = 1;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.NO_FORWARD_ID.ordinal()] = 2;
+            } catch (NoSuchFieldError e2) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.FILTERS_ID.ordinal()] = 3;
+            } catch (NoSuchFieldError e3) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.SHADOWBAN_ID.ordinal()] = 4;
+            } catch (NoSuchFieldError e4) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.LOCAL_PREMIUM_ID.ordinal()] = 5;
+            } catch (NoSuchFieldError e5) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.CLEAR_DB_ID.ordinal()] = 6;
+            } catch (NoSuchFieldError e6) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.UNLOAD_HOOKS.ordinal()] = 7;
+            } catch (NoSuchFieldError e7) {
+            }
+        }
+    }
+
     protected void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > AdditionalIds.values().length) {
             return;
         }
-        AdditionalIds clicked = AdditionalIds.values()[item.id - 1];
-        switch (clicked.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+        switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.values()[item.id - 1].ordinal()]) {
+            case Defaults.ALWAYS /* 1 */:
                 Settings.setRemoveFlagSecure(!Settings.getRemoveFlagSecure());
                 refreshCheckBox(item, position, Settings.getRemoveFlagSecure());
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 2:
                 Settings.setNoForward(!Settings.noForward());
                 refreshCheckBox(item, position, Settings.noForward());
                 break;
-            case 2:
-                if (UserConfig.getInstance(UserConfig.selectedAccount).isPremium() && !Settings.getLocalPremium()) {
+            case 3:
+                presentFragment(new RegexFiltersFragment());
+                break;
+            case 4:
+                presentFragment(new ShadowbanFragment());
+                break;
+            case 5:
+                if (UserConfig.getInstance(getCurrentAccount()).isPremium() && !Settings.getLocalPremium()) {
                     BulletinFactory.of(this).createEmojiBulletin("❌", Localization.CANT_USE_WITH_PREMIUM).show();
                 } else {
                     Settings.setLocalPremium(!Settings.getLocalPremium());
                     refreshCheckBox(item, position, Settings.getLocalPremium());
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 }
-                break;
-            case 3:
-                Settings.setShowSettingsInDrawer(!Settings.getShowSettingsInDrawer());
-                refreshCheckBox(item, position, Settings.getShowSettingsInDrawer());
-                getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
-                break;
-            case 4:
-                presentFragment(new RegexFiltersFragment());
-                break;
-            case 5:
-                presentFragment(new ShadowbanFragment());
                 break;
             case 6:
                 showClearDbDialog();
@@ -138,16 +167,17 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         progressDialog.setNegativeButton("", (AlertDialog.OnButtonClickListener) null);
         progressDialog.setCancelable(false);
         progressDialog.show();
+        final int currentAccount = getCurrentAccount();
         new Thread(new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda3
             @Override // java.lang.Runnable
             public final void run() {
-                AdditionalFragment.lambda$showClearDbDialog$1(progressDialog);
+                AdditionalFragment.lambda$showClearDbDialog$1(currentAccount, progressDialog);
             }
         }).start();
     }
 
-    static /* synthetic */ void lambda$showClearDbDialog$1(final AlertDialog progressDialog) {
-        ReExteraDb.get().clearDatabaseWithInternal();
+    static /* synthetic */ void lambda$showClearDbDialog$1(int currentAccount, final AlertDialog progressDialog) {
+        InternalUtils.clearSavedMessages(currentAccount);
         progressDialog.getClass();
         AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda0
             @Override // java.lang.Runnable

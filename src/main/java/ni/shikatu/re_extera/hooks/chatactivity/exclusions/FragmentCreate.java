@@ -24,33 +24,34 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
 
 public class FragmentCreate extends XC_MethodHook {
-    private static Field argumentsField;
-    private static Field headerItemField;
-    private ActionBarMenuSubItem exceptionsItem;
-    private ExceptionsPopupWrapper exceptionsPopupWrapper;
+    private static final Field ARGUMENTS_FIELD;
+    private static final Field HEADER_ITEM_FIELD;
 
     static {
+        Field headerField = null;
+        Field argsField = null;
         try {
-            headerItemField = ChatActivity.class.getDeclaredField("headerItem");
-            headerItemField.setAccessible(true);
-            argumentsField = BaseFragment.class.getDeclaredField("arguments");
-            argumentsField.setAccessible(true);
+            headerField = ChatActivity.class.getDeclaredField("headerItem");
+            headerField.setAccessible(true);
+            argsField = BaseFragment.class.getDeclaredField("arguments");
+            argsField.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            Main.log("No headerItem field found", e.getMessage());
+            Main.log("FragmentCreate: field not found: %s", e.getMessage());
         }
+        HEADER_ITEM_FIELD = headerField;
+        ARGUMENTS_FIELD = argsField;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         Bundle arguments;
-        Main.log("Notifying dialog id change", new Object[0]);
         ChatActivity thisObject = (ChatActivity) param.thisObject;
-        if (argumentsField == null || (arguments = (Bundle) ReflectionUtils.get(argumentsField, thisObject)) == null) {
+        if (ARGUMENTS_FIELD == null || (arguments = (Bundle) ReflectionUtils.get(ARGUMENTS_FIELD, thisObject)) == null) {
             return;
         }
+        long dialog_id = 0;
         long chat_id = arguments.getLong("chat_id", 0L);
         long user_id = arguments.getLong("user_id", 0L);
         int enc_id = arguments.getInt("enc_id", 0);
-        long dialog_id = 0;
         if (chat_id != 0) {
             dialog_id = -chat_id;
         } else if (user_id != 0) {
@@ -62,21 +63,21 @@ public class FragmentCreate extends XC_MethodHook {
         SendRequest.notifyDialogIdChanged(dialog_id);
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         ActionBarMenuItem headerItem;
-        Main.log("Creating menu", new Object[0]);
         ChatActivity thisObject = (ChatActivity) param.thisObject;
         long dialog_id = thisObject.getDialogId();
-        if (headerItemField == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(headerItemField, thisObject)) == null) {
+        int currentAccount = thisObject.getCurrentAccount();
+        if (HEADER_ITEM_FIELD == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(HEADER_ITEM_FIELD, thisObject)) == null) {
             return;
         }
         Context context = thisObject.getContext();
-        this.exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, dialog_id, thisObject), thisObject.getResourceProvider());
-        this.exceptionsItem = headerItem.addSwipeBackItem(R.drawable.filled_giveaway_premium, (Drawable) null, "re:extera", this.exceptionsPopupWrapper.windowLayout);
-        this.exceptionsItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$$ExternalSyntheticLambda0
+        ExceptionsPopupWrapper exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, currentAccount, dialog_id, thisObject), thisObject.getResourceProvider());
+        final ActionBarMenuSubItem exceptionsItem = headerItem.addSwipeBackItem(R.drawable.filled_giveaway_premium, (Drawable) null, "re:extera", exceptionsPopupWrapper.windowLayout);
+        exceptionsItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$$ExternalSyntheticLambda0
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                this.f$0.lambda$afterHookedMethod$0(view);
+                exceptionsItem.openSwipeBack();
             }
         });
     }
@@ -84,13 +85,15 @@ public class FragmentCreate extends XC_MethodHook {
     /* JADX INFO: renamed from: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1, reason: invalid class name */
     class AnonymousClass1 implements ExceptionsPopupWrapper.Callback {
         final /* synthetic */ Context val$context;
+        final /* synthetic */ int val$currentAccount;
         final /* synthetic */ long val$dialog_id;
         final /* synthetic */ ActionBarMenuItem val$headerItem;
         final /* synthetic */ ChatActivity val$thisObject;
 
-        AnonymousClass1(ActionBarMenuItem actionBarMenuItem, Context context, long j, ChatActivity chatActivity) {
+        AnonymousClass1(ActionBarMenuItem actionBarMenuItem, Context context, int i, long j, ChatActivity chatActivity) {
             this.val$headerItem = actionBarMenuItem;
             this.val$context = context;
+            this.val$currentAccount = i;
             this.val$dialog_id = j;
             this.val$thisObject = chatActivity;
         }
@@ -106,29 +109,29 @@ public class FragmentCreate extends XC_MethodHook {
             builder.setTitle(Localization.DELETE);
             builder.setSubtitle(Localization.FINALLY_REMOVE_ALL_DELETED_MESSAGES);
             String str = Localization.YES;
+            final int i = this.val$currentAccount;
             final long j = this.val$dialog_id;
             builder.setPositiveButton(str, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda0
-                public final void onClick(AlertDialog alertDialog, int i) {
-                    FragmentCreate.AnonymousClass1.lambda$finallyRemoveAllDeletedMessages$0(j, alertDialog, i);
+                public final void onClick(AlertDialog alertDialog, int i2) {
+                    FragmentCreate.AnonymousClass1.lambda$finallyRemoveAllDeletedMessages$0(i, j, alertDialog, i2);
                 }
             });
             builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda1
-                public final void onClick(AlertDialog alertDialog, int i) {
+                public final void onClick(AlertDialog alertDialog, int i2) {
                     alertDialog.dismiss();
                 }
             });
             builder.show();
         }
 
-        static /* synthetic */ void lambda$finallyRemoveAllDeletedMessages$0(long dialog_id, AlertDialog dialog, int which) {
-            InternalUtils.deleteAllMessages(dialog_id);
+        static /* synthetic */ void lambda$finallyRemoveAllDeletedMessages$0(int currentAccount, long dialog_id, AlertDialog dialog, int which) {
+            InternalUtils.deleteAllMessages(currentAccount, dialog_id);
             dialog.dismiss();
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
         public void showDeletedMessages() {
-            DeletedMessagesInChatFragment fragment = DeletedMessagesInChatFragment.newInstance(this.val$dialog_id);
-            this.val$thisObject.presentFragment(fragment);
+            this.val$thisObject.presentFragment(DeletedMessagesInChatFragment.newInstance(this.val$dialog_id));
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
@@ -156,10 +159,5 @@ public class FragmentCreate extends XC_MethodHook {
                 }
             }).show();
         }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$afterHookedMethod$0(View v) {
-        this.exceptionsItem.openSwipeBack();
     }
 }

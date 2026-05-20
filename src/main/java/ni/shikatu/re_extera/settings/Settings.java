@@ -1,222 +1,141 @@
 package ni.shikatu.re_extera.settings;
 
-import ni.shikatu.re_extera.Defaults;
+import android.content.SharedPreferences;
 import ni.shikatu.re_extera.Main;
 
-public class Settings {
+public final class Settings {
+    public static final String PREFS_NAME = "re_extera";
+    private static volatile SharedPreferences cachedPrefs;
+
+    private Settings() {
+    }
 
     public enum SendSilence {
-        YES,
-        NO,
-        ONLY_WITH_GHOST;
+        NO(0),
+        YES(1),
+        ONLY_WITH_GHOST(2);
+
+        private final int type;
+
+        SendSilence(int type) {
+            this.type = type;
+        }
 
         public int getType() {
-            switch (ordinal()) {
-                case Defaults.GLOBAL_VALUE /* 0 */:
-                    return 1;
-                case Defaults.ALWAYS /* 1 */:
-                    return 0;
-                case 2:
-                    return 2;
-                default:
-                    return 0;
-            }
+            return this.type;
         }
 
         public static SendSilence getValue(int value) {
-            switch (value) {
-                case Defaults.ALWAYS /* 1 */:
-                    return YES;
-                case 2:
-                    return ONLY_WITH_GHOST;
-                default:
-                    return NO;
+            for (SendSilence s : values()) {
+                if (s.type == value) {
+                    return s;
+                }
             }
+            return NO;
         }
     }
 
-    private static int get(String settingName, int defaultValue) {
-        return Main.getApplicationContext().getSharedPreferences("re_extera", 0).getInt(settingName, defaultValue);
+    private static SharedPreferences prefs() {
+        SharedPreferences sharedPreferences;
+        SharedPreferences local = cachedPrefs;
+        if (local != null) {
+            return local;
+        }
+        synchronized (Settings.class) {
+            if (cachedPrefs == null) {
+                cachedPrefs = Main.getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
+            }
+            sharedPreferences = cachedPrefs;
+        }
+        return sharedPreferences;
     }
 
-    private static String get(String settingName, String defaultValue) {
-        return Main.getApplicationContext().getSharedPreferences("re_extera", 0).getString(settingName, defaultValue);
+    private static int getInt(String key, int def) {
+        return prefs().getInt(key, def);
     }
 
-    private static boolean get(String settingName, boolean defaultValue) {
-        return Main.getApplicationContext().getSharedPreferences("re_extera", 0).getBoolean(settingName, defaultValue);
+    private static String getString(String key, String def) {
+        return prefs().getString(key, def);
     }
 
-    private static void set(String settingName, int value) {
-        Main.getApplicationContext().getSharedPreferences("re_extera", 0).edit().putInt(settingName, value).apply();
+    private static boolean getBool(String key, boolean def) {
+        return prefs().getBoolean(key, def);
     }
 
-    private static void set(String settingName, String value) {
-        Main.getApplicationContext().getSharedPreferences("re_extera", 0).edit().putString(settingName, value).apply();
+    private static void putInt(String key, int value) {
+        prefs().edit().putInt(key, value).apply();
     }
 
-    private static void set(String settingName, boolean value) {
-        Main.getApplicationContext().getSharedPreferences("re_extera", 0).edit().putBoolean(settingName, value).apply();
+    private static void putString(String key, String value) {
+        prefs().edit().putString(key, value).apply();
     }
 
-    public static boolean getImmediateOffline() {
-        return get("immediate_offline", false);
-    }
-
-    public static void setImmediateOffline(boolean value) {
-        set("immediate_offline", value);
-    }
-
-    public static void setSaveManuallyDeleted(boolean value) {
-        set("save_manually_deleted", value);
-    }
-
-    public static boolean getSaveManuallyDeleted() {
-        return get("save_manually_deleted", false);
-    }
-
-    public static boolean getSaveOneTimeMessages() {
-        return get("save_one_time_messages", false);
-    }
-
-    public static void setSaveOneTimeMessages(boolean value) {
-        set("save_one_time_messages", value);
-    }
-
-    public static String getCustomPrefix() {
-        return get("custom_prefix", "");
-    }
-
-    public static void setCustomPrefix(String value) {
-        set("custom_prefix", value);
-    }
-
-    public static boolean noForward() {
-        return get("no_forward", false);
-    }
-
-    public static void setNoForward(boolean value) {
-        set("no_forward", value);
-    }
-
-    public static boolean getRedMark() {
-        return get("red_mark", false);
-    }
-
-    public static void setRedMark(boolean value) {
-        set("red_mark", value);
-    }
-
-    public static boolean getHideOnline() {
-        return get("hide_online", false);
-    }
-
-    public static boolean getHideTyping() {
-        return get("hide_typing", false);
-    }
-
-    public static boolean getHideReading() {
-        return get("hide_reading", false);
-    }
-
-    public static boolean getNoReadStories() {
-        return get("no_read_stories", false);
-    }
-
-    public static boolean getRemoveFlagSecure() {
-        return get("remove_flag_secure", false);
-    }
-
-    public static boolean getSaveEditedMessages() {
-        return get("save_edited_messages", false);
-    }
-
-    public static boolean getSaveDeletedMessages() {
-        return get("save_deleted_messages", false);
-    }
-
-    public static void setSaveDeletedMessages(boolean value) {
-        set("save_deleted_messages", value);
-    }
-
-    public static void setSaveEditedMessages(boolean value) {
-        set("save_edited_messages", value);
+    private static void putBool(String key, boolean value) {
+        prefs().edit().putBoolean(key, value).apply();
     }
 
     public static boolean getGhostModeEnabledGlobal() {
-        return get("ghost_mode_enabled", true);
+        return getBool("ghost_mode_enabled", true);
     }
 
-    public static void setGhostModeEnabledGlobal(boolean value) {
-        set("ghost_mode_enabled", value);
+    public static void setGhostModeEnabledGlobal(boolean v) {
+        putBool("ghost_mode_enabled", v);
     }
 
-    public static void setRemoveFlagSecure(boolean value) {
-        set("remove_flag_secure", value);
+    public static boolean getHideOnline() {
+        return getBool("hide_online", false);
     }
 
-    public static boolean getUseSchedule() {
-        return get("use_schedule", false);
+    public static void setHideOnline(boolean v) {
+        putBool("hide_online", v);
     }
 
-    public static void setUseSchedule(boolean value) {
-        set("use_schedule", value);
+    public static boolean getHideTyping() {
+        return getBool("hide_typing", false);
     }
 
-    public static void setHideOnline(boolean value) {
-        set("hide_online", value);
+    public static void setHideTyping(boolean v) {
+        putBool("hide_typing", v);
     }
 
-    public static void setHideTyping(boolean value) {
-        set("hide_typing", value);
+    public static boolean getHideReading() {
+        return getBool("hide_reading", false);
     }
 
-    public static void setHideReading(boolean value) {
-        set("hide_reading", value);
+    public static void setHideReading(boolean v) {
+        putBool("hide_reading", v);
     }
 
-    public static void setNoReadStories(boolean value) {
-        set("no_read_stories", value);
+    public static boolean getNoReadStories() {
+        return getBool("no_read_stories", false);
     }
 
-    public static boolean getFiltersEnabled() {
-        return get("filters_enabled", false);
+    public static void setNoReadStories(boolean v) {
+        putBool("no_read_stories", v);
     }
 
-    public static void setFiltersEnabled(boolean value) {
-        set("filters_enabled", value);
+    public static boolean getImmediateOffline() {
+        return getBool("immediate_offline", false);
     }
 
-    public static boolean getUseExpandableBlockQuote() {
-        return get("use_expandable_blockquote", false);
+    public static void setImmediateOffline(boolean v) {
+        putBool("immediate_offline", v);
     }
 
-    public static void setUseExpandableBlockQuote(boolean value) {
-        set("use_expandable_blockquote", value);
+    public static boolean getReadOnInteract() {
+        return getBool("read_on_interact", false);
     }
 
-    public static boolean getAddGhostToDrawer() {
-        return get("add_ghost_to_drawer", true);
+    public static void setReadOnInteract(boolean v) {
+        putBool("read_on_interact", v);
     }
 
-    public static void setAddGhostToDrawer(boolean value) {
-        set("add_ghost_to_drawer", value);
+    public static int getSendSilence() {
+        return getInt("send_silence", SendSilence.NO.getType());
     }
 
-    public static void setShowSettingsInDrawer(boolean value) {
-        set("show_settings_in_drawer", value);
-    }
-
-    public static boolean getShowSettingsInDrawer() {
-        return get("show_settings_in_drawer", true);
-    }
-
-    public static void setLocalPremium(boolean value) {
-        set("local_premium", value);
-    }
-
-    public static boolean getLocalPremium() {
-        return get("local_premium", false);
+    public static void setSendSilence(SendSilence value) {
+        putInt("send_silence", value.getType());
     }
 
     public static boolean getHideOnlineWithGhost() {
@@ -239,14 +158,6 @@ public class Settings {
         return getImmediateOffline() && getGhostModeEnabledGlobal();
     }
 
-    public static boolean getReadOnInteract() {
-        return get("read_on_interact", false);
-    }
-
-    public static void setReadOnInteract(boolean value) {
-        set("read_on_interact", value);
-    }
-
     public static int countOfGhost() {
         int c = getHideOnline() ? 0 + 1 : 0;
         if (getHideTyping()) {
@@ -261,35 +172,139 @@ public class Settings {
         return getImmediateOffline() ? c + 1 : c;
     }
 
-    public static int getSendSilence() {
-        return get("send_silence", SendSilence.NO.getType());
+    public static boolean getSaveDeletedMessages() {
+        return getBool("save_deleted_messages", false);
     }
 
-    public static void setSendSilence(SendSilence value) {
-        set("send_silence", value.getType());
+    public static void setSaveDeletedMessages(boolean v) {
+        putBool("save_deleted_messages", v);
+    }
+
+    public static boolean getSaveEditedMessages() {
+        return getBool("save_edited_messages", false);
+    }
+
+    public static void setSaveEditedMessages(boolean v) {
+        putBool("save_edited_messages", v);
+    }
+
+    public static boolean getSaveManuallyDeleted() {
+        return getBool("save_manually_deleted", false);
+    }
+
+    public static void setSaveManuallyDeleted(boolean v) {
+        putBool("save_manually_deleted", v);
+    }
+
+    public static boolean getSaveOneTimeMessages() {
+        return getBool("save_one_time_messages", false);
+    }
+
+    public static void setSaveOneTimeMessages(boolean v) {
+        putBool("save_one_time_messages", v);
+    }
+
+    public static String getCustomPrefix() {
+        return getString("custom_prefix", "");
+    }
+
+    public static void setCustomPrefix(String v) {
+        putString("custom_prefix", v);
+    }
+
+    public static boolean getRedMark() {
+        return getBool("red_mark", false);
+    }
+
+    public static void setRedMark(boolean v) {
+        putBool("red_mark", v);
+    }
+
+    public static boolean getUseExpandableBlockQuote() {
+        return getBool("use_expandable_blockquote", false);
+    }
+
+    public static void setUseExpandableBlockQuote(boolean v) {
+        putBool("use_expandable_blockquote", v);
+    }
+
+    public static boolean noForward() {
+        return getBool("no_forward", false);
+    }
+
+    public static void setNoForward(boolean v) {
+        putBool("no_forward", v);
+    }
+
+    public static boolean getRemoveFlagSecure() {
+        return getBool("remove_flag_secure", false);
+    }
+
+    public static void setRemoveFlagSecure(boolean v) {
+        putBool("remove_flag_secure", v);
+    }
+
+    public static boolean getUseSchedule() {
+        return getBool("use_schedule", false);
+    }
+
+    public static void setUseSchedule(boolean v) {
+        putBool("use_schedule", v);
+    }
+
+    public static boolean getFiltersEnabled() {
+        return getBool("filters_enabled", false);
+    }
+
+    public static void setFiltersEnabled(boolean v) {
+        putBool("filters_enabled", v);
+    }
+
+    public static boolean getAddGhostToDrawer() {
+        return getBool("add_ghost_to_drawer", true);
+    }
+
+    public static void setAddGhostToDrawer(boolean v) {
+        putBool("add_ghost_to_drawer", v);
+    }
+
+    public static boolean getShowSettingsInDrawer() {
+        return getBool("show_settings_in_drawer", true);
+    }
+
+    public static void setShowSettingsInDrawer(boolean v) {
+        putBool("show_settings_in_drawer", v);
+    }
+
+    public static boolean getLocalPremium() {
+        return getBool("local_premium", false);
+    }
+
+    public static void setLocalPremium(boolean v) {
+        putBool("local_premium", v);
     }
 
     public static boolean getGhostInMainMenu() {
-        return get("ghost_in_main_menu", false);
+        return getBool("ghost_in_main_menu", false);
     }
 
-    public static void setGhostInMainMenu(boolean value) {
-        set("ghost_in_main_menu", value);
+    public static void setGhostInMainMenu(boolean v) {
+        putBool("ghost_in_main_menu", v);
     }
 
     public static int getGhostMenuIndex() {
-        return get("ghost_menu_index", 0);
+        return getInt("ghost_menu_index", 0);
     }
 
-    public static void setGhostMenuIndex(int value) {
-        set("ghost_menu_index", value);
+    public static void setGhostMenuIndex(int v) {
+        putInt("ghost_menu_index", v);
     }
 
     public static boolean isGhostPositionInitialized() {
-        return get("ghost_position_initialized", false);
+        return getBool("ghost_position_initialized", false);
     }
 
-    public static void setGhostPositionInitialized(boolean value) {
-        set("ghost_position_initialized", value);
+    public static void setGhostPositionInitialized(boolean v) {
+        putBool("ghost_position_initialized", v);
     }
 }

@@ -1,6 +1,6 @@
 package ni.shikatu.re_extera.db;
 
-public class DialogExclusion {
+public final class DialogExclusion {
     public final long dialogId;
     public final int readExclusion;
     public final int typeExclusion;
@@ -12,6 +12,6 @@ public class DialogExclusion {
     }
 
     public String toString() {
-        return "DialogException{dialogId=" + this.dialogId + ", readExclusion=" + this.readExclusion + ", typeExclusion=" + this.typeExclusion + '}';
+        return "DialogExclusion{dialogId=" + this.dialogId + ", readExclusion=" + this.readExclusion + ", typeExclusion=" + this.typeExclusion + '}';
     }
 }

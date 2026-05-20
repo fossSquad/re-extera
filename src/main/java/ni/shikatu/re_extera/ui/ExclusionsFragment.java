@@ -77,8 +77,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
         for (int i = 0; i < this.exceptions.size(); i++) {
             DialogExclusion exception = this.exceptions.get(i);
-            View cell = createExclusionCell(getContext(), exception, i);
-            items.add(UItem.asCustom(i, cell));
+            items.add(UItem.asCustom(i, createExclusionCell(getContext(), exception, i)));
         }
         items.add(UItem.asShadow((CharSequence) null));
     }

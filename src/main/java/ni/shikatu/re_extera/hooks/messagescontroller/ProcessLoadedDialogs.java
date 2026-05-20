@@ -8,20 +8,18 @@ import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.tgnet.TLRPC;
 
 public class ProcessLoadedDialogs extends XC_MethodHook {
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         Object dialogsRes = param.args[0];
-        if (dialogsRes == null) {
+        if (!(dialogsRes instanceof TLRPC.messages_Dialogs)) {
             return;
         }
-        ArrayList<TLRPC.Dialog> dialogs = null;
-        if (dialogsRes instanceof TLRPC.messages_Dialogs) {
-            dialogs = ((TLRPC.messages_Dialogs) dialogsRes).dialogs;
-        }
+        TLRPC.messages_Dialogs messagesDialogs = (TLRPC.messages_Dialogs) dialogsRes;
+        ArrayList<TLRPC.Dialog> dialogs = messagesDialogs.dialogs;
         if (dialogs == null || dialogs.isEmpty()) {
             return;
         }
-        Iterator<TLRPC.Dialog> iterator = dialogs.iterator();
         int removed = 0;
+        Iterator<TLRPC.Dialog> iterator = dialogs.iterator();
         while (iterator.hasNext()) {
             TLRPC.Dialog dialog = iterator.next();
             if (dialog.id > 0 && ShadowbanCache.shouldHideDialog(dialog.id)) {
@@ -30,7 +28,7 @@ public class ProcessLoadedDialogs extends XC_MethodHook {
             }
         }
         if (removed > 0) {
-            Main.log("ProcessLoadedDialogs: Filtered %d shadowbanned dialogs", Integer.valueOf(removed));
+            Main.log("ProcessLoadedDialogs: filtered %d shadowbanned dialogs", Integer.valueOf(removed));
         }
     }
 }

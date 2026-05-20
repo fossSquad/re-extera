@@ -6,7 +6,7 @@ import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 public class DrawerMenuGhostHook extends XC_MethodHook {
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         Object obj = param.thisObject;
         if (!(obj instanceof DrawerMenuView)) {
             return;

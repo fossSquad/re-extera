@@ -111,36 +111,39 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             return;
         }
         GhostIds clicked = GhostIds.values()[item.id - 1];
-        switch (clicked.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+        switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[clicked.ordinal()]) {
+            case Defaults.ALWAYS /* 1 */:
                 this.isGhostExpanded = !this.isGhostExpanded;
                 this.listView.adapter.update(true);
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 2:
                 Settings.setHideOnline(!Settings.getHideOnline());
                 refreshCheckBox(item, position, Settings.getHideOnline(), true);
                 break;
-            case 2:
+            case 3:
                 Settings.setImmediateOffline(!Settings.getImmediateOffline());
                 refreshCheckBox(item, position, Settings.getImmediateOffline(), true);
                 break;
-            case 3:
+            case 4:
                 Settings.setHideTyping(!Settings.getHideTyping());
                 refreshCheckBox(item, position, Settings.getHideTyping(), true);
                 break;
-            case 4:
+            case 5:
                 Settings.setHideReading(!Settings.getHideReading());
                 refreshCheckBox(item, position, Settings.getHideReading(), true);
                 break;
-            case 5:
+            case 6:
                 Settings.setNoReadStories(!Settings.getNoReadStories());
                 refreshCheckBox(item, position, Settings.getNoReadStories(), true);
                 break;
-            case 6:
-                Settings.setReadOnInteract(!Settings.getReadOnInteract());
-                refreshCheckBox(item, position, Settings.getReadOnInteract());
-                break;
             case 7:
+                Settings.setUseSchedule(!Settings.getUseSchedule());
+                refreshCheckBox(item, position, Settings.getUseSchedule());
+                break;
+            case 8:
+                presentFragment(new ExclusionsFragment());
+                break;
+            case ReExteraDb.DB_VERSION /* 9 */:
                 new SendSilenceDialog(getParentActivity(), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda1
                     @Override // java.lang.Runnable
                     public final void run() {
@@ -148,18 +151,67 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
-            case ReExteraDb.DB_VERSION /* 8 */:
+            case 10:
                 GhostMenuHelper.setGhostMenuVisible(!GhostMenuHelper.isGhostMenuVisible());
                 refreshCheckBox(item, position, GhostMenuHelper.isGhostMenuVisible());
                 getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 break;
-            case 9:
-                Settings.setUseSchedule(!Settings.getUseSchedule());
-                refreshCheckBox(item, position, Settings.getUseSchedule());
+            case 11:
+                Settings.setReadOnInteract(!Settings.getReadOnInteract());
+                refreshCheckBox(item, position, Settings.getReadOnInteract());
                 break;
-            case 10:
-                presentFragment(new ExclusionsFragment());
-                break;
+        }
+    }
+
+    /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.GhostFragment$1, reason: invalid class name */
+    static /* synthetic */ class AnonymousClass1 {
+        static final /* synthetic */ int[] $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds = new int[GhostIds.values().length];
+
+        static {
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_ID.ordinal()] = 1;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_HIDE_ONLINE_ID.ordinal()] = 2;
+            } catch (NoSuchFieldError e2) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_IMMEDIATE_OFFLINE_ID.ordinal()] = 3;
+            } catch (NoSuchFieldError e3) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_HIDE_TYPING_ID.ordinal()] = 4;
+            } catch (NoSuchFieldError e4) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_HIDE_READING_ID.ordinal()] = 5;
+            } catch (NoSuchFieldError e5) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.GHOST_NO_READ_STORIES_ID.ordinal()] = 6;
+            } catch (NoSuchFieldError e6) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.USE_SCHEDULE_ID.ordinal()] = 7;
+            } catch (NoSuchFieldError e7) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.EXCLUSIONS_BUTTON_ID.ordinal()] = 8;
+            } catch (NoSuchFieldError e8) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SEND_SILENCE_ID.ordinal()] = 9;
+            } catch (NoSuchFieldError e9) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.ADD_GHOST_TO_DRAWER_ID.ordinal()] = 10;
+            } catch (NoSuchFieldError e10) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.READ_ON_INTERACT_ID.ordinal()] = 11;
+            } catch (NoSuchFieldError e11) {
+            }
         }
     }
 

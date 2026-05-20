@@ -7,15 +7,14 @@ import ni.shikatu.re_extera.utils.MessageUtils;
 import org.telegram.ui.ChatActivity;
 
 public class ProcessDeletedMessages extends XC_MethodHook {
-    public static ArrayList<Integer> onRequestToDelete = new ArrayList<>();
+    public static final ArrayList<Integer> onRequestToDelete = new ArrayList<>();
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (Settings.getSaveDeletedMessages()) {
             ChatActivity thisObject = (ChatActivity) param.thisObject;
-            ArrayList<Integer> deleted = new ArrayList<>();
-            long dialogid = thisObject.getDialogId();
-            MessageUtils.forceUpdateViews(dialogid, deleted);
-            param.args[0] = onRequestToDelete;
+            long dialogId = thisObject.getDialogId();
+            MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, new ArrayList());
+            param.args[0] = new ArrayList(onRequestToDelete);
             onRequestToDelete.clear();
         }
     }

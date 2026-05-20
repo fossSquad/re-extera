@@ -17,7 +17,6 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationCenter;
-import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
@@ -25,113 +24,124 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
-public class InternalUtils {
-    public static Method markMessagesAsDeleted;
-    public static Method sendSecretMessageRead;
-    public static Method updateDialogs;
+public final class InternalUtils {
+    private static final Method markMessagesAsDeleted;
+    public static final Method sendSecretMessageRead;
+    private static final Method updateDialogs;
+
+    private InternalUtils() {
+    }
 
     static {
-        markMessagesAsDeleted = null;
-        updateDialogs = null;
-        sendSecretMessageRead = null;
+        Method mark = null;
+        Method update = null;
+        Method secret = null;
         try {
-            markMessagesAsDeleted = MessagesStorage.class.getDeclaredMethod("markMessagesAsDeletedInternal", Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-            updateDialogs = MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
-            sendSecretMessageRead = ChatActivity.class.getDeclaredMethod("sendSecretMessageRead", MessageObject.class, Boolean.TYPE);
+            mark = MessagesStorage.class.getDeclaredMethod("markMessagesAsDeletedInternal", Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+            update = MessagesStorage.class.getDeclaredMethod("updateDialogsWithDeletedMessagesInternal", Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
+            secret = ChatActivity.class.getDeclaredMethod("sendSecretMessageRead", MessageObject.class, Boolean.TYPE);
         } catch (NoSuchMethodException e) {
-            Main.log("No such method", e.getMessage());
+            Main.log("InternalUtils: method not found: %s", e.getMessage());
         }
+        markMessagesAsDeleted = mark;
+        updateDialogs = update;
+        sendSecretMessageRead = secret;
     }
 
-    public static void deleteMessages(long did, List<Integer> messagesIds, boolean shouldNotify) {
-        deleteMessages(UserConfig.selectedAccount, did, messagesIds, null, shouldNotify);
-    }
-
-    public static void deleteMessages(long did, List<Integer> messagesIds) {
-        deleteMessages(UserConfig.selectedAccount, did, messagesIds, null, true);
-    }
-
-    public static void deleteMessages(long did, List<Integer> messagesIds, Long channelId, boolean shouldNotify) {
-        deleteMessages(UserConfig.selectedAccount, did, messagesIds, channelId, shouldNotify);
+    public static void deleteMessages(int currentAccount, long did, List<Integer> messagesIds, boolean shouldNotify) {
+        deleteMessages(currentAccount, did, messagesIds, null, shouldNotify);
     }
 
     public static void deleteMessages(final int currentAccount, final long did, final List<Integer> messagesIds, Long channelId, boolean shouldNotify) {
-        Main.log("Deletings messages in %s, as %s", Long.valueOf(did), messagesIds.toString());
-        final long rChannelId = channelId != null ? channelId.longValue() : 0L;
-        if (markMessagesAsDeleted != null) {
+        if (!messagesIds.isEmpty() && markMessagesAsDeleted != null) {
+            Main.log("Deleting messages in %d: %s", Long.valueOf(did), messagesIds);
+            final long rChannelId = channelId != null ? channelId.longValue() : 0L;
             final MessagesStorage storage = MessagesStorage.getInstance(currentAccount);
-            final ArrayList<Integer> messagesIdsParsed = new ArrayList<>(messagesIds);
-            Object[] args = {Long.valueOf(did), messagesIdsParsed, false, 0, 0};
-            ReflectionUtils.invokeOriginalMethod(markMessagesAsDeleted, storage, args);
+            final ArrayList<Integer> copy = new ArrayList<>(messagesIds);
+            ReflectionUtils.invokeOriginalMethod(markMessagesAsDeleted, storage, new Object[]{Long.valueOf(did), copy, false, 0, 0});
             if (shouldNotify) {
-                ProcessDeletedMessages.onRequestToDelete.addAll(messagesIdsParsed);
+                ProcessDeletedMessages.onRequestToDelete.addAll(copy);
                 AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda3
                     @Override // java.lang.Runnable
                     public final void run() {
-                        InternalUtils.lambda$deleteMessages$1(currentAccount, did, messagesIdsParsed, storage, rChannelId, messagesIds);
+                        InternalUtils.lambda$deleteMessages$1(currentAccount, did, copy, storage, rChannelId, messagesIds);
                     }
                 });
-                ReExteraDb.get().clearMessages(did, messagesIdsParsed);
-                return;
             }
-            Main.log("do not notifying", new Object[0]);
+            ReExteraDb.get().clearMessages(did, copy);
         }
     }
 
-    static /* synthetic */ void lambda$deleteMessages$1(int currentAccount, long did, ArrayList messagesIdsParsed, MessagesStorage storage, long rChannelId, List messagesIds) {
+    static /* synthetic */ void lambda$deleteMessages$1(int currentAccount, long did, ArrayList copy, MessagesStorage storage, long rChannelId, List messagesIds) {
         ChatActivity lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
-            final ChatActivity chatActivity = lastFragment;
-            if (chatActivity.getCurrentAccount() == currentAccount && chatActivity.getDialogId() == did) {
-                Iterator it = messagesIdsParsed.iterator();
+            final ChatActivity chat = lastFragment;
+            if (chat.getCurrentAccount() == currentAccount && chat.getDialogId() == did) {
+                Iterator it = copy.iterator();
                 while (it.hasNext()) {
                     final int mid = ((Integer) it.next()).intValue();
-                    Main.log("Deleting in %s mid: %s", Long.valueOf(did), Integer.valueOf(mid));
-                    Optional optionalFindFirst = chatActivity.messages.stream().filter(new Predicate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda1
+                    Main.log("Removing in %d mid: %d", Long.valueOf(did), Integer.valueOf(mid));
+                    Optional optionalFindFirst = chat.messages.stream().filter(new Predicate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda1
                         @Override // java.util.function.Predicate
                         public final boolean test(Object obj) {
                             return InternalUtils.lambda$deleteMessages$0(mid, (MessageObject) obj);
                         }
                     }).findFirst();
-                    chatActivity.getClass();
+                    chat.getClass();
                     optionalFindFirst.ifPresent(new Consumer() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda2
                         @Override // java.util.function.Consumer
                         public final void accept(Object obj) {
-                            chatActivity.removeMessageWithThanos((MessageObject) obj);
+                            chat.removeMessageWithThanos((MessageObject) obj);
                         }
                     });
                 }
             }
         }
-        ReflectionUtils.invokeOriginalMethod(updateDialogs, storage, new Object[]{Long.valueOf(did), Long.valueOf(rChannelId), messagesIdsParsed, null});
+        ReflectionUtils.invokeOriginalMethod(updateDialogs, storage, new Object[]{Long.valueOf(did), Long.valueOf(rChannelId), copy, null});
         NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.messagesDeleted, new Object[]{messagesIds, Long.valueOf(rChannelId), false, false, false, 0});
     }
 
-    static /* synthetic */ boolean lambda$deleteMessages$0(int mid, MessageObject objn) {
-        return objn.getId() == mid;
+    static /* synthetic */ boolean lambda$deleteMessages$0(int mid, MessageObject m) {
+        return m.getId() == mid;
     }
 
-    public static void deleteAllMessages(long did) {
-        deleteMessages(did, ReExteraDb.get().allMessageIdsByDid(did), true);
+    public static void deleteAllMessages(int currentAccount, long did) {
+        deleteMessages(currentAccount, did, ReExteraDb.get().allMessageIdsByDid(did), true);
+    }
+
+    public static void clearSavedMessages(int currentAccount) {
+        ReExteraDb db = ReExteraDb.get();
+        List<Long> dids = db.getDialogIdWithSavedMessages();
+        ArrayList<ArrayList<Integer>> allToDelete = new ArrayList<>(dids.size());
+        Iterator<Long> it = dids.iterator();
+        while (it.hasNext()) {
+            long did = it.next().longValue();
+            allToDelete.add(db.allMessageIdsByDid(did));
+        }
+        for (int i = 0; i < dids.size(); i++) {
+            ArrayList<Integer> toDelete = allToDelete.get(i);
+            if (!toDelete.isEmpty()) {
+                deleteMessages(currentAccount, dids.get(i).longValue(), toDelete, true);
+            }
+        }
+        db.clearDatabaseOnly();
     }
 
     public static void sendSecretMessageRead(MessageObject mo) {
-        if (mo == null) {
+        if (mo == null || mo.getDialogId() == 0) {
             return;
         }
         int currentAccount = mo.currentAccount;
-        boolean isEncrypted = DialogObject.isEncryptedDialog(mo.getDialogId());
-        if (isEncrypted || !mo.isSecretMedia()) {
-            return;
-        }
-        TLRPC.TL_messages_readMessageContents req = new TLRPC.TL_messages_readMessageContents();
-        req.id.add(Integer.valueOf(mo.getId()));
-        Main.addIgnoredRequest(req);
-        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (RequestDelegate) null);
-        mo.setContentIsRead();
-        if (mo.messageOwner.ttl > 0 && mo.messageOwner.ttl != Integer.MAX_VALUE) {
-            mo.messageOwner.destroyTime = mo.messageOwner.ttl + ConnectionsManager.getInstance(currentAccount).getCurrentTime();
-            NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateMessageMedia, new Object[]{mo.messageOwner});
+        if (!DialogObject.isEncryptedDialog(mo.getDialogId()) && mo.isSecretMedia()) {
+            TLRPC.TL_messages_readMessageContents req = new TLRPC.TL_messages_readMessageContents();
+            req.id.add(Integer.valueOf(mo.getId()));
+            Main.addIgnoredRequest(req);
+            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (RequestDelegate) null);
+            mo.setContentIsRead();
+            if (mo.messageOwner.ttl > 0 && mo.messageOwner.ttl != Integer.MAX_VALUE) {
+                mo.messageOwner.destroyTime = mo.messageOwner.ttl + ConnectionsManager.getInstance(currentAccount).getCurrentTime();
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateMessageMedia, new Object[]{mo.messageOwner});
+            }
         }
     }
 
@@ -145,23 +155,19 @@ public class InternalUtils {
         }
     }
 
-    public static void sendReadMessage(TLRPC.InputPeer peer, int max_id, boolean vibrate) {
-        sendReadMessage(UserConfig.selectedAccount, peer, max_id, vibrate);
-    }
-
-    public static void sendReadMessage(int currentAccount, TLRPC.InputPeer peer, int max_id, final boolean vibrate) {
-        TLRPC.TL_channels_readHistory tL_messages_readHistory;
+    public static void sendReadMessage(int currentAccount, TLRPC.InputPeer peer, int maxId, final boolean vibrate) {
+        TLRPC.TL_channels_readHistory r;
         if (peer.channel_id != 0) {
-            tL_messages_readHistory = new TLRPC.TL_channels_readHistory();
-            tL_messages_readHistory.channel = MessagesController.getInputChannel(peer);
-            tL_messages_readHistory.max_id = max_id;
+            r = new TLRPC.TL_channels_readHistory();
+            r.channel = MessagesController.getInputChannel(peer);
+            r.max_id = maxId;
         } else {
-            tL_messages_readHistory = new TLRPC.TL_messages_readHistory();
-            ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).peer = peer;
-            ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).max_id = max_id;
+            r = new TLRPC.TL_messages_readHistory();
+            ((TLRPC.TL_messages_readHistory) r).peer = peer;
+            ((TLRPC.TL_messages_readHistory) r).max_id = maxId;
         }
-        Main.addIgnoredRequest(tL_messages_readHistory);
-        ConnectionsManager.getInstance(currentAccount).sendRequest(tL_messages_readHistory, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda0
+        Main.addIgnoredRequest(r);
+        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda0
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 InternalUtils.lambda$sendReadMessage$2(vibrate, tLObject, tL_error);
             }
@@ -175,32 +181,33 @@ public class InternalUtils {
     }
 
     public static void sendReadMessage(MessageObject messageObject, final boolean vibrate) {
-        TLRPC.TL_channels_readHistory tL_messages_readHistory;
-        if (messageObject != null) {
-            int currentAccount = messageObject.currentAccount;
-            MessagesController controller = MessagesController.getInstance(currentAccount);
-            messageObject.setIsRead();
-            messageObject.setContentIsRead();
-            if (messageObject.isFromChannel()) {
-                tL_messages_readHistory = new TLRPC.TL_channels_readHistory();
-                tL_messages_readHistory.channel = MessagesController.getInputChannel(controller.getInputPeer(messageObject.getDialogId()));
-                tL_messages_readHistory.max_id = messageObject.getId();
-            } else {
-                tL_messages_readHistory = new TLRPC.TL_messages_readHistory();
-                ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).peer = controller.getInputPeer(messageObject.getDialogId());
-                ((TLRPC.TL_messages_readHistory) tL_messages_readHistory).max_id = messageObject.getId();
+        TLRPC.TL_channels_readHistory r;
+        if (messageObject == null) {
+            return;
+        }
+        int currentAccount = messageObject.currentAccount;
+        MessagesController controller = MessagesController.getInstance(currentAccount);
+        messageObject.setIsRead();
+        messageObject.setContentIsRead();
+        if (messageObject.isFromChannel()) {
+            r = new TLRPC.TL_channels_readHistory();
+            r.channel = MessagesController.getInputChannel(controller.getInputPeer(messageObject.getDialogId()));
+            r.max_id = messageObject.getId();
+        } else {
+            r = new TLRPC.TL_messages_readHistory();
+            ((TLRPC.TL_messages_readHistory) r).peer = controller.getInputPeer(messageObject.getDialogId());
+            ((TLRPC.TL_messages_readHistory) r).max_id = messageObject.getId();
+        }
+        Main.addIgnoredRequest(r);
+        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda4
+            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                InternalUtils.lambda$sendReadMessage$3(vibrate, tLObject, tL_error);
             }
-            Main.addIgnoredRequest(tL_messages_readHistory);
-            ConnectionsManager.getInstance(currentAccount).sendRequest(tL_messages_readHistory, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda4
-                public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                    InternalUtils.lambda$sendReadMessage$3(vibrate, tLObject, tL_error);
-                }
-            });
-            if (messageObject.isSecret() || messageObject.isSecretMedia() || messageObject.isRoundOnce() || messageObject.isVoiceOnce()) {
-                sendSecretMessageRead(messageObject);
-                if (vibrate) {
-                    createShortVibration();
-                }
+        });
+        if (messageObject.isSecret() || messageObject.isSecretMedia() || messageObject.isRoundOnce() || messageObject.isVoiceOnce()) {
+            sendSecretMessageRead(messageObject);
+            if (vibrate) {
+                createShortVibration();
             }
         }
     }

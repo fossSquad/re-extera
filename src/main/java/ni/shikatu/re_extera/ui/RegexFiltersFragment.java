@@ -82,12 +82,10 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()).setLinkAlias("reExteraFiltersEnable", this));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
-        if (!this.filters.isEmpty()) {
-            for (int i = 0; i < this.filters.size(); i++) {
-                String filter = this.filters.get(i);
-                UItem item = UItem.asButton(i + 100, filter);
-                items.add(item);
-            }
+        for (int i = 0; i < this.filters.size(); i++) {
+            String filter = this.filters.get(i);
+            UItem item = UItem.asButton(i + 100, filter);
+            items.add(item);
         }
         items.add(UItem.asShadow((CharSequence) null));
     }

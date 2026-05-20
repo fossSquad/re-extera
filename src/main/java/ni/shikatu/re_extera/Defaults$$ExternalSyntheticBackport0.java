@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 /* JADX INFO: compiled from: D8$$SyntheticClass */
-public final /* synthetic */ class Main$$ExternalSyntheticBackport1 {
+public final /* synthetic */ class Defaults$$ExternalSyntheticBackport0 {
     public static /* synthetic */ List m(Object[] objArr) {
         ArrayList arrayList = new ArrayList(objArr.length);
         for (Object obj : objArr) {

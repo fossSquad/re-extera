@@ -11,24 +11,25 @@ import org.telegram.messenger.MessagesController;
 import org.telegram.tgnet.TLRPC;
 
 public class SortDialogsHook extends XC_MethodHook {
-    private static Field allDialogsField;
+    private static final Field ALL_DIALOGS_FIELD;
 
     static {
+        Field f = null;
         try {
-            allDialogsField = MessagesController.class.getDeclaredField("allDialogs");
-            allDialogsField.setAccessible(true);
+            f = MessagesController.class.getDeclaredField("allDialogs");
+            f.setAccessible(true);
         } catch (NoSuchFieldException e) {
             Main.log("SortDialogsHook: allDialogs field not found: %s", e.getMessage());
         }
+        ALL_DIALOGS_FIELD = f;
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        if (ALL_DIALOGS_FIELD == null) {
+            return;
+        }
         try {
-            if (allDialogsField == null) {
-                return;
-            }
-            MessagesController controller = (MessagesController) param.thisObject;
-            ArrayList<TLRPC.Dialog> allDialogs = (ArrayList) ReflectionUtils.get(allDialogsField, controller);
+            ArrayList<TLRPC.Dialog> allDialogs = (ArrayList) ReflectionUtils.get(ALL_DIALOGS_FIELD, param.thisObject);
             if (allDialogs != null && !allDialogs.isEmpty()) {
                 allDialogs.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.SortDialogsHook$$ExternalSyntheticLambda0
                     @Override // java.util.function.Predicate

@@ -26,17 +26,17 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ProfileActivity;
 
 public class UpdateProfileData extends XC_MethodHook {
-    private static final long REQUEST_COOLDOWN = 5000;
-    private static Method needLayout;
-    private static Field onlineTextView;
-    private static Field userId;
-    private static final Set<SimpleTextView> trackedViews = Collections.newSetFromMap(new WeakHashMap());
+    private static final long REQUEST_COOLDOWN_MS = 5000;
+    private static final Field USER_ID = field("userId");
+    private static final Field ONLINE_TEXT_VIEW = field("onlineTextView");
+    private static final Method NEED_LAYOUT = method("needLayout", Boolean.TYPE);
+    private static final Set<SimpleTextView> TRACKED_VIEWS = Collections.newSetFromMap(new WeakHashMap());
     private static volatile boolean blockUpdates = false;
     private static final SparseArray<String> cachedTextByAccount = new SparseArray<>();
     private static final SparseLongArray lastRequestTimeByAccount = new SparseLongArray();
-    private static final XC_MethodHook blockHook = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1
-        protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
-            if (UpdateProfileData.blockUpdates && UpdateProfileData.trackedViews.contains(param.thisObject)) {
+    private static final XC_MethodHook BLOCK_HOOK = new XC_MethodHook() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.1
+        public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+            if (UpdateProfileData.blockUpdates && UpdateProfileData.TRACKED_VIEWS.contains(param.thisObject)) {
                 param.setResult(false);
             }
         }
@@ -47,48 +47,60 @@ public class UpdateProfileData extends XC_MethodHook {
     }
 
     static {
+        hookSetText();
+    }
+
+    private static Field field(String name) {
         try {
-            userId = ProfileActivity.class.getDeclaredField("userId");
-            onlineTextView = ProfileActivity.class.getDeclaredField("onlineTextView");
-            needLayout = ProfileActivity.class.getDeclaredMethod("needLayout", Boolean.TYPE);
-            needLayout.setAccessible(true);
-            userId.setAccessible(true);
-            onlineTextView.setAccessible(true);
-            hookSetText();
+            Field f = ProfileActivity.class.getDeclaredField(name);
+            f.setAccessible(true);
+            return f;
         } catch (NoSuchFieldException e) {
-            Main.log("Not found field: %s", e.getMessage());
-        } catch (NoSuchMethodException e2) {
-            Main.log("Not found method: %s", e2.getMessage());
+            Main.log("UpdateProfileData: field '%s' not found: %s", name, e.getMessage());
+            return null;
+        }
+    }
+
+    private static Method method(String name, Class<?>... params) {
+        try {
+            Method m = ProfileActivity.class.getDeclaredMethod(name, params);
+            m.setAccessible(true);
+            return m;
+        } catch (NoSuchMethodException e) {
+            Main.log("UpdateProfileData: method '%s' not found: %s", name, e.getMessage());
+            return null;
         }
     }
 
     private static void hookSetText() {
         try {
-            Method setTextMethod = SimpleTextView.class.getDeclaredMethod("setText", CharSequence.class);
-            XposedBridge.hookMethod(setTextMethod, blockHook);
-            Method setTextWithBoolean = SimpleTextView.class.getDeclaredMethod("setText", CharSequence.class, Boolean.TYPE);
-            XposedBridge.hookMethod(setTextWithBoolean, blockHook);
+            XposedBridge.hookMethod(SimpleTextView.class.getDeclaredMethod("setText", CharSequence.class), BLOCK_HOOK);
+            XposedBridge.hookMethod(SimpleTextView.class.getDeclaredMethod("setText", CharSequence.class, Boolean.TYPE), BLOCK_HOOK);
         } catch (Exception e) {
-            Main.log("Failed to hook setText: %s", e.getMessage());
+            Main.log("UpdateProfileData: failed to hook setText: %s", e.getMessage());
         }
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        if (userId == null || onlineTextView == null) {
-            return;
-        }
-        final ProfileActivity activity = (ProfileActivity) param.thisObject;
-        final int currentAccount = activity.getCurrentAccount();
-        long user = ((Long) ReflectionUtils.get(userId, param.thisObject)).longValue();
-        final SimpleTextView[] onlineView = (SimpleTextView[]) ReflectionUtils.get(onlineTextView, param.thisObject);
-        if (onlineView == null || onlineView.length == 0 || user != UserConfig.getInstance(currentAccount).clientUserId) {
-            return;
-        }
-        if (Settings.getHideOnlineWithGhost()) {
-            trackedViews.clear();
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        if (USER_ID != null && ONLINE_TEXT_VIEW != null) {
+            final ProfileActivity activity = (ProfileActivity) param.thisObject;
+            final int currentAccount = activity.getCurrentAccount();
+            long user = ((Long) ReflectionUtils.get(USER_ID, activity)).longValue();
+            final SimpleTextView[] onlineView = (SimpleTextView[]) ReflectionUtils.get(ONLINE_TEXT_VIEW, activity);
+            if (onlineView == null || onlineView.length == 0 || user != UserConfig.getInstance(currentAccount).clientUserId) {
+                return;
+            }
+            if (!Settings.getHideOnlineWithGhost()) {
+                blockUpdates = false;
+                TRACKED_VIEWS.clear();
+                cachedTextByAccount.remove(currentAccount);
+                lastRequestTimeByAccount.delete(currentAccount);
+                return;
+            }
+            TRACKED_VIEWS.clear();
             for (SimpleTextView view : onlineView) {
                 if (view != null) {
-                    trackedViews.add(view);
+                    TRACKED_VIEWS.add(view);
                 }
             }
             blockUpdates = true;
@@ -96,41 +108,35 @@ public class UpdateProfileData extends XC_MethodHook {
             if (cachedText != null) {
                 lambda$afterHookedMethod$0(onlineView, cachedText, activity);
             }
-            long currentTime = System.currentTimeMillis();
-            long lastRequestTime = lastRequestTimeByAccount.get(currentAccount, 0L);
-            if (currentTime - lastRequestTime > REQUEST_COOLDOWN) {
-                lastRequestTimeByAccount.put(currentAccount, currentTime);
+            long now = System.currentTimeMillis();
+            long last = lastRequestTimeByAccount.get(currentAccount, 0L);
+            if (now - last > REQUEST_COOLDOWN_MS) {
+                lastRequestTimeByAccount.put(currentAccount, now);
                 getRealLastSeenTime(currentAccount, user, new TimeCallback() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData$$ExternalSyntheticLambda1
                     @Override // ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.TimeCallback
                     public final void onTime(int i) {
                         this.f$0.lambda$afterHookedMethod$1(currentAccount, onlineView, activity, i);
                     }
                 });
-                return;
             }
-            return;
         }
-        blockUpdates = false;
-        trackedViews.clear();
-        cachedTextByAccount.remove(currentAccount);
-        lastRequestTimeByAccount.delete(currentAccount);
     }
 
     /* JADX INFO: Access modifiers changed from: private */
     public /* synthetic */ void lambda$afterHookedMethod$1(int currentAccount, final SimpleTextView[] onlineView, final ProfileActivity activity, int timestamp) {
-        final String formattedTime = formatLastSeen(timestamp);
-        cachedTextByAccount.put(currentAccount, formattedTime);
+        final String formatted = formatLastSeen(timestamp);
+        cachedTextByAccount.put(currentAccount, formatted);
         AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData$$ExternalSyntheticLambda2
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$afterHookedMethod$0(onlineView, formattedTime, activity);
+                this.f$0.lambda$afterHookedMethod$0(onlineView, formatted, activity);
             }
         });
     }
 
     /* JADX INFO: Access modifiers changed from: private */
     /* JADX INFO: renamed from: setTextSafely, reason: merged with bridge method [inline-methods] */
-    public void lambda$afterHookedMethod$0(SimpleTextView[] views, String text, Object profileActivity) {
+    public void lambda$afterHookedMethod$0(SimpleTextView[] views, String text, ProfileActivity profileActivity) {
         blockUpdates = false;
         for (SimpleTextView view : views) {
             if (view != null) {
@@ -138,13 +144,13 @@ public class UpdateProfileData extends XC_MethodHook {
             }
         }
         blockUpdates = true;
-        ReflectionUtils.invoke(needLayout, profileActivity, true);
+        ReflectionUtils.invoke(NEED_LAYOUT, profileActivity, true);
     }
 
-    private void getRealLastSeenTime(int currentAccount, long userId2, final TimeCallback callback) {
+    private void getRealLastSeenTime(int currentAccount, long userId, final TimeCallback callback) {
         try {
             TLRPC.TL_users_getUsers request = new TLRPC.TL_users_getUsers();
-            TLRPC.InputUser inputUser = MessagesController.getInstance(currentAccount).getInputUser(userId2);
+            TLRPC.InputUser inputUser = MessagesController.getInstance(currentAccount).getInputUser(userId);
             if (inputUser == null) {
                 callback.onTime(0);
             } else {
@@ -156,7 +162,7 @@ public class UpdateProfileData extends XC_MethodHook {
                 });
             }
         } catch (Exception e) {
-            Main.log("Error getting real last seen: %s", e.getMessage());
+            Main.log("UpdateProfileData: error getting last seen: %s", e.getMessage());
             callback.onTime(0);
         }
     }
@@ -166,12 +172,11 @@ public class UpdateProfileData extends XC_MethodHook {
         if (response instanceof Vector) {
             Vector<?> vector = (Vector) response;
             if (!vector.objects.isEmpty()) {
-                Object patt0$temp = vector.objects.get(0);
-                if (patt0$temp instanceof TLRPC.User) {
-                    TLRPC.User user = (TLRPC.User) patt0$temp;
+                Object patt5524$temp = vector.objects.get(0);
+                if (patt5524$temp instanceof TLRPC.User) {
+                    TLRPC.User user = (TLRPC.User) patt5524$temp;
                     if (user.status != null) {
-                        int time = getTimeFromStatus(user.status);
-                        callback.onTime(time);
+                        callback.onTime(getTimeFromStatus(user.status));
                         return;
                     }
                 }

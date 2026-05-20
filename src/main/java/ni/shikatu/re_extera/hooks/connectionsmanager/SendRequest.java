@@ -14,109 +14,116 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_account;
 
 public class SendRequest extends XC_MethodHook {
-    private static int current_reading_status;
-    private static int current_typing_status;
-    private static final TL_account.updateStatus offlineStatus = new TL_account.updateStatus();
+    private static final TL_account.updateStatus OFFLINE_STATUS = new TL_account.updateStatus();
+    private static volatile int currentReadingStatus;
+    private static volatile int currentTypingStatus;
 
-    public SendRequest() {
-        offlineStatus.offline = true;
+    static {
+        OFFLINE_STATUS.offline = true;
     }
 
     public static void notifyDialogIdChanged(long dialogId) {
-        current_reading_status = ReExteraDb.get().getDialogReading(dialogId);
-        current_typing_status = ReExteraDb.get().getDialogTyping(dialogId);
+        currentReadingStatus = ReExteraDb.get().getDialogReading(dialogId);
+        currentTypingStatus = ReExteraDb.get().getDialogTyping(dialogId);
     }
 
     public static int getCurrentReadingStatus() {
-        return current_reading_status;
+        return currentReadingStatus;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         TL_account.updateStatus updatestatus = (TLObject) param.args[0];
         if (Main.ignoredRequests.remove(updatestatus)) {
             return;
         }
-        if ((updatestatus instanceof TL_account.updateStatus) && Settings.getHideOnlineWithGhost()) {
-            updatestatus.offline = true;
-        }
-        if ((updatestatus instanceof TLRPC.TL_messages_sendReaction) || (updatestatus instanceof TLRPC.TL_messages_sendVote) || (updatestatus instanceof TLRPC.TL_messages_readMentions) || (updatestatus instanceof TLRPC.TL_messages_readReactions) || (updatestatus instanceof TLRPC.TL_messages_sendMessage) || (updatestatus instanceof TLRPC.TL_messages_forwardMessages)) {
-            Main.log("Sending onInteract request", new Object[0]);
-            if (Settings.getReadOnInteract()) {
-                if (updatestatus instanceof TLRPC.TL_messages_sendReaction) {
-                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendReaction) updatestatus).peer, ((TLRPC.TL_messages_sendReaction) updatestatus).msg_id, false);
-                }
-                if (updatestatus instanceof TLRPC.TL_messages_sendVote) {
-                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendVote) updatestatus).peer, ((TLRPC.TL_messages_sendVote) updatestatus).msg_id, false);
-                }
-                if (updatestatus instanceof TLRPC.TL_messages_sendMessage) {
-                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_sendMessage) updatestatus).peer, 0, false);
-                }
-                if (updatestatus instanceof TLRPC.TL_messages_forwardMessages) {
-                    InternalUtils.sendReadMessage(currentAccount, ((TLRPC.TL_messages_forwardMessages) updatestatus).to_peer, 0, false);
-                    return;
-                }
-                return;
+        if (updatestatus instanceof TL_account.updateStatus) {
+            TL_account.updateStatus statusUpdate = updatestatus;
+            if (Settings.getHideOnlineWithGhost()) {
+                statusUpdate.offline = true;
             }
+        }
+        if (Settings.getReadOnInteract() && isInteractionRequest(updatestatus)) {
+            dispatchReadOnInteract(currentAccount, updatestatus);
+            return;
         }
         if (Defaults.readingRequests.contains(updatestatus.getClass())) {
-            switch (current_reading_status) {
-                case Defaults.NEVER /* -1 */:
-                    Main.log("Selected NEVER, reading", new Object[0]);
-                    param.setResult((Object) null);
-                    break;
-                case Defaults.GLOBAL_VALUE /* 0 */:
-                default:
-                    if (Settings.getHideReadingWithGhost()) {
-                        Main.log("Selected DEFAULT, not reading", new Object[0]);
-                        param.setResult((Object) null);
-                    } else {
-                        Main.log("Selected DEFAULT, not reading", new Object[0]);
-                    }
-                    break;
-                case Defaults.ALWAYS /* 1 */:
-                    Main.log("Selected ALWAYS, reading", new Object[0]);
-                    break;
-            }
+            applyReadingPolicy(param);
             return;
         }
         if (Defaults.typingRequests.contains(updatestatus.getClass())) {
-            switch (current_typing_status) {
-                case Defaults.NEVER /* -1 */:
-                    Main.log("Selected NEVER, not typing", new Object[0]);
-                    param.setResult((Object) null);
-                    break;
-                case Defaults.GLOBAL_VALUE /* 0 */:
-                default:
-                    if (Settings.getHideTypingWithGhost()) {
-                        Main.log("Selected DEFAULT, not typing", new Object[0]);
-                        param.setResult((Object) null);
-                    } else {
-                        Main.log("Selected DEFAULT, typing", new Object[0]);
-                    }
-                    break;
-                case Defaults.ALWAYS /* 1 */:
-                    Main.log("Selected ALWAYS, typing", new Object[0]);
-                    break;
-            }
-            return;
-        }
-        if (Defaults.storiesRequests.contains(updatestatus.getClass()) && Settings.getNoReadStoriesWithGhost()) {
+            applyTypingPolicy(param);
+        } else if (Defaults.storiesRequests.contains(updatestatus.getClass()) && Settings.getNoReadStoriesWithGhost()) {
             param.setResult((Object) null);
         }
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
-        if (!Settings.getImmediateOfflineWithGhost() || (param.args[0] instanceof TL_account.updateStatus)) {
-            return;
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        if (Settings.getImmediateOfflineWithGhost() && !(param.args[0] instanceof TL_account.updateStatus)) {
+            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+            ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
+                public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                    SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
+                }
+            });
         }
-        ConnectionsManager.getInstance(AccountUtils.getCurrentAccount(param.thisObject)).sendRequest(offlineStatus, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
-            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
-            }
-        });
     }
 
     static /* synthetic */ void lambda$afterHookedMethod$0(TLObject __, TLRPC.TL_error ___) {
+    }
+
+    private static boolean isInteractionRequest(TLObject update) {
+        return (update instanceof TLRPC.TL_messages_sendReaction) || (update instanceof TLRPC.TL_messages_sendVote) || (update instanceof TLRPC.TL_messages_readMentions) || (update instanceof TLRPC.TL_messages_readReactions) || (update instanceof TLRPC.TL_messages_sendMessage) || (update instanceof TLRPC.TL_messages_forwardMessages);
+    }
+
+    private static void dispatchReadOnInteract(int currentAccount, TLObject update) {
+        Main.log("SendRequest: read-on-interact dispatched for %s", update.getClass().getSimpleName());
+        if (update instanceof TLRPC.TL_messages_sendReaction) {
+            TLRPC.TL_messages_sendReaction r = (TLRPC.TL_messages_sendReaction) update;
+            InternalUtils.sendReadMessage(currentAccount, r.peer, r.msg_id, false);
+            return;
+        }
+        if (update instanceof TLRPC.TL_messages_sendVote) {
+            TLRPC.TL_messages_sendVote v = (TLRPC.TL_messages_sendVote) update;
+            InternalUtils.sendReadMessage(currentAccount, v.peer, v.msg_id, false);
+        } else if (update instanceof TLRPC.TL_messages_sendMessage) {
+            TLRPC.TL_messages_sendMessage m = (TLRPC.TL_messages_sendMessage) update;
+            InternalUtils.sendReadMessage(currentAccount, m.peer, 0, false);
+        } else if (update instanceof TLRPC.TL_messages_forwardMessages) {
+            TLRPC.TL_messages_forwardMessages f = (TLRPC.TL_messages_forwardMessages) update;
+            InternalUtils.sendReadMessage(currentAccount, f.to_peer, 0, false);
+        }
+    }
+
+    private void applyReadingPolicy(XC_MethodHook.MethodHookParam param) {
+        switch (currentReadingStatus) {
+            case Defaults.NEVER /* -1 */:
+                param.setResult((Object) null);
+                break;
+            case Defaults.GLOBAL_VALUE /* 0 */:
+            default:
+                if (Settings.getHideReadingWithGhost()) {
+                    param.setResult((Object) null);
+                }
+                break;
+            case Defaults.ALWAYS /* 1 */:
+                break;
+        }
+    }
+
+    private void applyTypingPolicy(XC_MethodHook.MethodHookParam param) {
+        switch (currentTypingStatus) {
+            case Defaults.NEVER /* -1 */:
+                param.setResult((Object) null);
+                break;
+            case Defaults.GLOBAL_VALUE /* 0 */:
+            default:
+                if (Settings.getHideTypingWithGhost()) {
+                    param.setResult((Object) null);
+                }
+                break;
+            case Defaults.ALWAYS /* 1 */:
+                break;
+        }
     }
 }

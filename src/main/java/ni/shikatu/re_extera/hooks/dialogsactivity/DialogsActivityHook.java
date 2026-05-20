@@ -24,32 +24,48 @@ public class DialogsActivityHook extends XC_MethodHook {
         this.mode = mode;
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-        switch (this.mode.ordinal()) {
-            case Defaults.GLOBAL_VALUE /* 0 */:
+    /* JADX INFO: renamed from: ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook$1, reason: invalid class name */
+    static /* synthetic */ class AnonymousClass1 {
+        static final /* synthetic */ int[] $SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode = new int[Mode.values().length];
+
+        static {
+            try {
+                $SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode[Mode.ADD_ITEMS.ordinal()] = 1;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode[Mode.ADD_ITEM.ordinal()] = 2;
+            } catch (NoSuchFieldError e2) {
+            }
+        }
+    }
+
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$hooks$dialogsactivity$DialogsActivityHook$Mode[this.mode.ordinal()]) {
+            case Defaults.ALWAYS /* 1 */:
                 onBeforeAddItems();
                 break;
-            case Defaults.ALWAYS /* 1 */:
+            case 2:
                 onBeforeAddItem(param);
                 break;
         }
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (this.mode == Mode.ADD_ITEMS) {
             GhostMenuHelper.scrubGhostFromConfig();
         }
     }
 
     private void onBeforeAddItems() {
-        if (ExteraConfig.navigationDrawer || !GhostMenuHelper.isGhostMenuVisible()) {
+        if (ExteraConfig.getNavigationDrawer() || !GhostMenuHelper.isGhostMenuVisible()) {
             GhostMenuHelper.scrubGhostFromConfig();
             return;
         }
-        ArrayList<Integer> layoutWithGhost = GhostMenuHelper.withGhostMenuItem(ExteraConfig.mainMenuLayout, true);
-        ExteraConfig.mainMenuLayout.clear();
-        ExteraConfig.mainMenuLayout.addAll(layoutWithGhost);
-        ExteraConfig.mainMenuHiddenItems.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook$$ExternalSyntheticLambda0
+        ArrayList<Integer> layoutWithGhost = GhostMenuHelper.withGhostMenuItem(ExteraConfig.getMainMenuLayout(), true);
+        ExteraConfig.getMainMenuLayout().clear();
+        ExteraConfig.getMainMenuLayout().addAll(layoutWithGhost);
+        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook$$ExternalSyntheticLambda0
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return DialogsActivityHook.lambda$onBeforeAddItems$0((Integer) obj);
@@ -62,7 +78,7 @@ public class DialogsActivityHook extends XC_MethodHook {
     }
 
     private void onBeforeAddItem(final XC_MethodHook.MethodHookParam param) {
-        if (ExteraConfig.navigationDrawer) {
+        if (ExteraConfig.getNavigationDrawer()) {
             return;
         }
         int id = ((Integer) param.args[1]).intValue();

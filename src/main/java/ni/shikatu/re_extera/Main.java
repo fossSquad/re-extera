@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.HookInit;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
@@ -28,22 +27,35 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.LaunchActivity;
 
-public class Main {
-    public static final String VERSION = "1.6";
-    public static final int VERSION_CODE = 11;
+public final class Main {
+    private static final String LOG_TAG = "re:extera";
+    public static final String VERSION = "1.7";
+    public static final int VERSION_CODE = 12;
     public static HookInit hooks;
-    private static Method initiateFragment;
-    public static Main instance = null;
-    public static List<Class<? extends BaseFragment>> fragments = Main$$ExternalSyntheticBackport1.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
+    private static final Method initiateFragmentMethod;
+    private static volatile Main instance;
+    public static final List<Class<? extends BaseFragment>> fragments = Defaults$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
     public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
 
     static {
+        Method m = null;
         try {
-            initiateFragment = SettingsRegistry.class.getDeclaredMethod("initiateFragment", Class.class);
+            m = SettingsRegistry.class.getDeclaredMethod("initiateFragment", Class.class);
         } catch (NoSuchMethodException e) {
             ReflectionUtils.hookError();
             log("initiateFragment method not found.", new Object[0]);
         }
+        initiateFragmentMethod = m;
+    }
+
+    private Main() {
+    }
+
+    public static synchronized Main getInstance() {
+        if (instance == null) {
+            instance = new Main();
+        }
+        return instance;
     }
 
     public static Context getApplicationContext() {
@@ -62,17 +74,14 @@ public class Main {
         initFragments();
     }
 
-    private static void initFragments() {
-        if (initiateFragment == null) {
-            return;
+    public void onUnload() {
+        if (hooks != null) {
+            hooks.onUnload();
         }
-        final SettingsRegistry instance2 = SettingsRegistry.getInstance();
-        fragments.forEach(new Consumer() { // from class: ni.shikatu.re_extera.Main$$ExternalSyntheticLambda2
-            @Override // java.util.function.Consumer
-            public final void accept(Object obj) {
-                ReflectionUtils.invoke(Main.initiateFragment, instance2, (Class) obj);
-            }
-        });
+    }
+
+    public void showSettings() {
+        LaunchActivity.instance.presentFragment(new SettingsFragmentNew());
     }
 
     public static void addIgnoredRequest(TLObject request) {
@@ -81,29 +90,19 @@ public class Main {
         }
     }
 
-    private Main() {
+    public static void log(String message, Object... args) {
+        String formatted = args.length == 0 ? message : String.format(message, args);
+        Log.d(LOG_TAG, formatted);
+        FileLog.d("[re:extera] " + formatted);
     }
 
-    public static synchronized Main getInstance() {
-        if (instance == null) {
-            instance = new Main();
+    private static void initFragments() {
+        if (initiateFragmentMethod == null) {
+            return;
         }
-        return instance;
-    }
-
-    public static void log(String log, Object... args) {
-        Log.d("re:extera", String.format(log, args));
-        FileLog.d(String.format("[re:extera] %s", String.format(log, args)));
-    }
-
-    public void showSettings() {
-        SettingsFragmentNew settingsFragment = new SettingsFragmentNew();
-        LaunchActivity.instance.presentFragment(settingsFragment);
-    }
-
-    public void onUnload() {
-        if (hooks != null) {
-            hooks.onUnload();
+        SettingsRegistry registry = SettingsRegistry.getInstance();
+        for (Class<? extends BaseFragment> fragment : fragments) {
+            ReflectionUtils.invoke(initiateFragmentMethod, registry, fragment);
         }
     }
 }

@@ -8,16 +8,18 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.BaseFragment;
 
-public class AccountUtils {
-    private static Field currentAccountField;
+public final class AccountUtils {
+    private static final Field CURRENT_ACCOUNT_FIELD;
 
     static {
+        Field f = null;
         try {
-            currentAccountField = BaseController.class.getDeclaredField("currentAccount");
-            currentAccountField.setAccessible(true);
+            f = BaseController.class.getDeclaredField("currentAccount");
+            f.setAccessible(true);
         } catch (NoSuchFieldException e) {
             Main.log("AccountUtils: currentAccount field not found: %s", e.getMessage());
         }
+        CURRENT_ACCOUNT_FIELD = f;
     }
 
     private AccountUtils() {
@@ -40,7 +42,7 @@ public class AccountUtils {
             AccountInstance accountInstance = (AccountInstance) source;
             return accountInstance.getCurrentAccount();
         }
-        if (currentAccountField != null && (source instanceof BaseController) && (account = (Integer) ReflectionUtils.get(currentAccountField, source)) != null) {
+        if (CURRENT_ACCOUNT_FIELD != null && (source instanceof BaseController) && (account = (Integer) ReflectionUtils.get(CURRENT_ACCOUNT_FIELD, source)) != null) {
             return account.intValue();
         }
         return UserConfig.selectedAccount;

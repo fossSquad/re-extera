@@ -19,92 +19,83 @@ import org.telegram.ui.ChatActivity;
 import org.telegram.ui.LaunchActivity;
 
 public class NotificationCenterDidLoad extends XC_MethodHook {
-    private static Field forwardEndReachedField;
+    private static final Field FORWARD_END_REACHED_FIELD = field("forwardEndReached");
+    private static final Field LOADING_FIELD = field("loading");
+    private static final Field LOADING_FORWARD_FIELD = field("loadingForward");
+    private static final Field PROGRESS_VIEW_FIELD = field("progressView");
 
-    static {
+    private static Field field(String name) {
         try {
-            forwardEndReachedField = ChatActivity.class.getDeclaredField("forwardEndReached");
-            forwardEndReachedField.setAccessible(true);
+            Field f = ChatActivity.class.getDeclaredField(name);
+            f.setAccessible(true);
+            return f;
         } catch (NoSuchFieldException e) {
-            Main.log("Failed to get forwardEndReached field", e.getMessage());
+            Main.log("NotificationCenterDidLoad: field '%s' not found: %s", name, e.getMessage());
+            return null;
         }
     }
 
-    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int id = ((Integer) param.args[0]).intValue();
         Object[] args = (Object[]) param.args[2];
-        if (id == NotificationCenter.messagesDidLoad) {
-            if (args != null && args.length > 2) {
-                ArrayList<MessageObject> messArr = (ArrayList) args[2];
-                int originalSize = messArr.size();
-                int originalCount = ((Integer) args[1]).intValue();
-                boolean isCache = ((Boolean) args[3]).booleanValue();
-                long dialogId = ((Long) args[0]).longValue();
-                boolean isGroup = dialogId < 0;
-                Main.log("BEFORE: count=%d, messArr.size=%d, isCache=%b", Integer.valueOf(originalCount), Integer.valueOf(originalSize), Boolean.valueOf(isCache));
-                filterMessagesList(messArr, isGroup);
-                int filteredSize = messArr.size();
-                if (filteredSize != originalSize) {
-                    args[1] = Integer.valueOf(filteredSize);
-                    Main.log("AFTER: count=%d, messArr.size=%d (removed %d)", Integer.valueOf(filteredSize), Integer.valueOf(filteredSize), Integer.valueOf(originalSize - filteredSize));
-                }
+        if (id == NotificationCenter.messagesDidLoad && args != null && args.length > 3) {
+            ArrayList<MessageObject> messArr = (ArrayList) args[2];
+            int originalSize = messArr.size();
+            long dialogId = ((Long) args[0]).longValue();
+            boolean isGroup = dialogId < 0;
+            filterMessagesList(messArr, isGroup);
+            int filteredSize = messArr.size();
+            if (filteredSize != originalSize) {
+                args[1] = Integer.valueOf(filteredSize);
+                Main.log("messagesDidLoad: filtered %d->%d (%d removed)", Integer.valueOf(originalSize), Integer.valueOf(filteredSize), Integer.valueOf(originalSize - filteredSize));
             }
         }
     }
 
-    protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+    public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        boolean[] forwardEndReached;
         if (Settings.getFiltersEnabled()) {
             int id = ((Integer) param.args[0]).intValue();
             Object[] args = (Object[]) param.args[2];
-            if (id == NotificationCenter.messagesDidLoad || id == NotificationCenter.messagesDidLoadWithoutProcess) {
-                ChatActivity lastFragment = LaunchActivity.getLastFragment();
-                if (lastFragment instanceof ChatActivity) {
-                    final ChatActivity chatActivity = lastFragment;
-                    if (args != null) {
-                        try {
-                            if (args.length > 9) {
-                                int loadtype = ((Integer) args[8]).intValue();
-                                if (loadtype != 1 || forwardEndReachedField == null) {
-                                    return;
-                                }
-                                boolean[] forwardEndReached = (boolean[]) ReflectionUtils.get(forwardEndReachedField, chatActivity);
-                                if (forwardEndReached != null && ((Boolean) args[9]).booleanValue()) {
-                                    forwardEndReached[0] = true;
-                                }
-                                Field loadingField = ChatActivity.class.getDeclaredField("loading");
-                                loadingField.setAccessible(true);
-                                ReflectionUtils.set(loadingField, chatActivity, false);
-                                Field loadingForwardField = ChatActivity.class.getDeclaredField("loadingForward");
-                                loadingForwardField.setAccessible(true);
-                                ReflectionUtils.set(loadingForwardField, chatActivity, false);
-                                Main.log("Set forwardEndReached=true, loading=false, loadingForward=false", new Object[0]);
-                                AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad$$ExternalSyntheticLambda0
-                                    @Override // java.lang.Runnable
-                                    public final void run() {
-                                        NotificationCenterDidLoad.lambda$afterHookedMethod$0(chatActivity);
-                                    }
-                                }, 50L);
-                            }
-                        } catch (Exception e) {
-                            Main.log("Error in afterHookedMethod", e.getMessage());
-                        }
-                    }
+            if (id != NotificationCenter.messagesDidLoad && id != NotificationCenter.messagesDidLoadWithoutProcess) {
+                return;
+            }
+            ChatActivity lastFragment = LaunchActivity.getLastFragment();
+            if (!(lastFragment instanceof ChatActivity)) {
+                return;
+            }
+            final ChatActivity chatActivity = lastFragment;
+            if (args == null || args.length <= 9 || ((Integer) args[8]).intValue() != 1) {
+                return;
+            }
+            try {
+                if (FORWARD_END_REACHED_FIELD != null && (forwardEndReached = (boolean[]) ReflectionUtils.get(FORWARD_END_REACHED_FIELD, chatActivity)) != null && ((Boolean) args[9]).booleanValue()) {
+                    forwardEndReached[0] = true;
                 }
+                if (LOADING_FIELD != null) {
+                    ReflectionUtils.set(LOADING_FIELD, chatActivity, false);
+                }
+                if (LOADING_FORWARD_FIELD != null) {
+                    ReflectionUtils.set(LOADING_FORWARD_FIELD, chatActivity, false);
+                }
+                if (PROGRESS_VIEW_FIELD != null) {
+                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad$$ExternalSyntheticLambda0
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            NotificationCenterDidLoad.lambda$afterHookedMethod$0(chatActivity);
+                        }
+                    }, 50L);
+                }
+            } catch (Exception e) {
+                Main.log("NotificationCenterDidLoad.after: %s", e.getMessage());
             }
         }
     }
 
     static /* synthetic */ void lambda$afterHookedMethod$0(ChatActivity chatActivity) {
-        try {
-            Field progressViewField = ChatActivity.class.getDeclaredField("progressView");
-            progressViewField.setAccessible(true);
-            View progressView = (View) ReflectionUtils.get(progressViewField, chatActivity);
-            if (progressView != null && progressView.getVisibility() == 0) {
-                progressView.setVisibility(4);
-                Main.log("Hidden progressView", new Object[0]);
-            }
-        } catch (Exception e) {
-            Main.log("Failed to hide progressView", e.getMessage());
+        View progressView = (View) ReflectionUtils.get(PROGRESS_VIEW_FIELD, chatActivity);
+        if (progressView != null && progressView.getVisibility() == 0) {
+            progressView.setVisibility(4);
         }
     }
 
@@ -115,9 +106,9 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
         boolean filtersEnabled = Settings.getFiltersEnabled();
         Set<Long> bannedGroupIds = new HashSet<>();
         if (filtersEnabled) {
-            for (MessageObject messageObject : messagesList) {
-                if (!messageObject.isOut() && MessageUtils.shouldFilterMessage(messageObject)) {
-                    long groupId = messageObject.getGroupId();
+            for (MessageObject message : messagesList) {
+                if (!message.isOut() && MessageUtils.shouldFilterMessage(message)) {
+                    long groupId = message.getGroupId();
                     if (groupId != 0) {
                         bannedGroupIds.add(Long.valueOf(groupId));
                     }
@@ -126,22 +117,19 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
         }
         Iterator<MessageObject> iterator = messagesList.iterator();
         while (iterator.hasNext()) {
-            MessageObject messageObject2 = iterator.next();
+            MessageObject message2 = iterator.next();
             try {
-                if (!messageObject2.isOut()) {
+                if (!message2.isOut()) {
                     if (isGroup) {
-                        long fromId = messageObject2.getFromChatId();
+                        long fromId = message2.getFromChatId();
                         if (fromId > 0 && ShadowbanCache.shouldHideInGroups(fromId)) {
-                            Main.log("Filtered message (load/shadowban): id=%s, fromId=%s", Integer.valueOf(messageObject2.getId()), Long.valueOf(fromId));
                             iterator.remove();
                         }
                     }
                     if (filtersEnabled) {
-                        boolean byRegex = MessageUtils.shouldFilterMessage(messageObject2);
-                        long groupId2 = messageObject2.getGroupId();
+                        long groupId2 = message2.getGroupId();
                         boolean byGroup = groupId2 != 0 && bannedGroupIds.contains(Long.valueOf(groupId2));
-                        if (byRegex || byGroup) {
-                            Main.log("Filtered message (load/regex): id=%s, groupId=%s", Integer.valueOf(messageObject2.getId()), Long.valueOf(groupId2));
+                        if (byGroup || MessageUtils.shouldFilterMessage(message2)) {
                             iterator.remove();
                         }
                     }
