@@ -1,0 +1,617 @@
+__id__ = "re_extera_dex"
+
+__name__ = "re:extera v2"
+
+__description__ = "Enable ghost mode, save deleted messages and more!"
+
+__author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins"
+
+__version__ = "2.5.0"
+
+__icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
+
+__min_version__ = "12.2.3"
+
+from typing import Any
+from base_plugin import BasePlugin, MethodHook
+from client_utils import get_last_fragment
+import requests
+import json
+import io
+import zipfile
+import shutil
+import os
+from android.app import Activity
+from android.text.style import CharacterStyle
+from hook_utils import find_class
+from ui.bulletin import BulletinHelper
+from ui.settings import EditText, Text, Switch
+from org.telegram.ui import LaunchActivity, ChatActivity
+from org.telegram.messenger import LocaleController, BuildVars, ApplicationLoader, FileLoader, NotificationCenter, MessageObject
+from org.telegram.ui.Cells import ChatMessageCell
+from java.nio import ByteBuffer
+from dalvik.system import InMemoryDexClassLoader
+from java import dynamic_proxy
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Constants
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CLASS_NAME = "ni.shikatu.re_extera.Main"
+METHOD_NAME = "start"
+
+# Dev channel — CI artifact via nightly.link
+DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/main/re-extera-dev.zip"
+DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=main&per_page=1&status=success"
+
+# Release channel — GitHub Releases
+RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases/latest"
+
+# Local DEX path for sideloading (unstable loader feature)
+LOCAL_DEX_PATH = "/storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Helpers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _localize(key):
+    """Simple localization helper."""
+    ru = LocaleController.getInstance().getCurrentLocale().getLanguage() == "ru"
+    strings = {
+        "settings": ("Настройки re:extera", "re:extera Settings"),
+        "channel_dev": ("Dev-сборки", "Dev builds"),
+        "channel_release": ("Релизные сборки", "Release builds"),
+        "check_updates": ("Проверить обновления", "Check for updates"),
+        "install_file": ("Установить из файла", "Install from file"),
+        "update_avail": ("Доступна новая версия re:extera! Перезапустите приложение для применения обновления.",
+                         "New re:extera version available! Restart the app to apply the update."),
+        "downloading": ("Загрузка...", "Downloading..."),
+        "updated_cache": ("Обновлено из кеша", "Updated from cache"),
+        "installed": ("Установка завершена", "Install completed"),
+        "channel_switch": ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
+    }
+    return strings[key][1 if not ru else 0]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DownloadListener — handles file download events (from unstable)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class DownloadListener(dynamic_proxy(NotificationCenter.NotificationCenterDelegate)):
+    def __init__(self, plugin, account, file_name, download_path, target_path):
+        super().__init__()
+        self.plugin = plugin
+        self.account = account
+        self.file_name = file_name
+        self.download_path = download_path
+        self.target_path = target_path
+        self.nc = NotificationCenter.getInstance(account)
+
+    def didReceivedNotification(self, id, account, args):
+        try:
+            loaded_file_name = str(args[0])
+            if loaded_file_name == self.file_name:
+                if id == NotificationCenter.fileLoaded:
+                    self.plugin.log(f"File {self.file_name} downloaded success")
+                    if os.path.exists(self.download_path):
+                        shutil.copy2(self.download_path, self.target_path)
+                        self.plugin.log(f"Copied to {self.target_path}")
+                        BulletinHelper.show_info(_localize("installed"))
+                    self.cleanup()
+                elif id == NotificationCenter.fileLoadFailed:
+                    self.plugin.log(f"File {self.file_name} download failed")
+                    self.cleanup()
+        except Exception as e:
+            self.plugin.log(f"Listener error: {e}")
+
+    def cleanup(self):
+        self.nc.removeObserver(self, NotificationCenter.fileLoaded)
+        self.nc.removeObserver(self, NotificationCenter.fileLoadFailed)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# InstallHook — intercepts tg://re/install links (from unstable)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class InstallHook(MethodHook):
+    def __init__(self, plugin):
+        self.plugin = plugin
+
+    def before_hooked_method(self, param):
+        try:
+            span = param.args[0]
+            message_obj = param.args[2]
+            if span is None or message_obj is None:
+                return
+
+            url = span.getURL()
+            if not url or not url.startswith("tg://re/install"):
+                return
+
+            self.plugin.log(f"Installing from: {url}")
+            document = message_obj.getDocument()
+            if document is None:
+                return
+
+            current_account = message_obj.currentAccount
+            loader = FileLoader.getInstance(current_account)
+            file_name = FileLoader.getAttachFileName(document)
+            download_path = loader.getPathToAttach(document, True).getAbsolutePath()
+
+            target_dir = "/storage/emulated/0/Android/media/com.exteragram.messenger/"
+            if not os.path.exists(target_dir):
+                os.makedirs(target_dir)
+            target_path = os.path.join(target_dir, "classes.dex")
+
+            if os.path.exists(download_path):
+                shutil.copy2(download_path, target_path)
+                self.plugin.log("Installed from cache")
+                BulletinHelper.show_info(_localize("updated_cache"))
+                return
+
+            self.plugin.log(f"File not found, registering listener for {file_name}...")
+            listener = DownloadListener(self.plugin, current_account, file_name,
+                                        download_path, target_path)
+            nc = NotificationCenter.getInstance(current_account)
+            nc.addObserver(listener, NotificationCenter.fileLoaded)
+            nc.addObserver(listener, NotificationCenter.fileLoadFailed)
+            loader.loadFile(document, message_obj, 1, 1)
+            BulletinHelper.show_info(_localize("downloading"))
+
+        except Exception as e:
+            self.plugin.log(f"InstallHook: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Config — persists channel preference
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class Config:
+    def __init__(self, cache_dir):
+        self.path = os.path.join(cache_dir, "config.json")
+        self.data = self._load()
+
+    def _load(self):
+        try:
+            if os.path.exists(self.path):
+                with open(self.path, "r") as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return {"channel": "release", "versions": {}}
+
+    def _save(self):
+        try:
+            d = os.path.dirname(self.path)
+            if not os.path.exists(d):
+                os.makedirs(d)
+            with open(self.path, "w") as f:
+                json.dump(self.data, f)
+        except Exception as e:
+            pass
+
+    @property
+    def channel(self):
+        return self.data.get("channel", "release")
+
+    @channel.setter
+    def channel(self, value):
+        self.data["channel"] = value
+        self._save()
+
+    def get_version(self, channel):
+        return self.data.get("versions", {}).get(channel, 0)
+
+    def set_version(self, channel, version):
+        self.data.setdefault("versions", {})[channel] = version
+        self._save()
+
+    def clear_cache_for(self, channel):
+        self.data.setdefault("versions", {})[channel] = 0
+        self._save()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Loader — loads DEX from dev or release channel
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class Loader:
+    def __init__(self, plugin: BasePlugin, activity: Activity):
+        self.plugin = plugin
+        self.activity = activity
+        self.instance = None
+        self.dex_loader = None
+
+        base_cache = os.path.join(
+            ApplicationLoader.applicationContext.getFilesDir().getAbsolutePath(),
+            "re_extera_cache"
+        )
+        self.config = Config(base_cache)
+        self.channel = self.config.channel
+        self.cache_dir = os.path.join(base_cache, self.channel)
+        self.cache_file = os.path.join(self.cache_dir, "cached.dat")
+
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+
+    def _switch_cache(self, channel):
+        """Point cache to a different channel directory."""
+        self.channel = channel
+        base_cache = os.path.join(
+            ApplicationLoader.applicationContext.getFilesDir().getAbsolutePath(),
+            "re_extera_cache"
+        )
+        self.cache_dir = os.path.join(base_cache, channel)
+        self.cache_file = os.path.join(self.cache_dir, "cached.dat")
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+
+    # ── Instance / DEX management ──────────────────────────────────────────
+
+    def getInstance(self):
+        if self.instance is None:
+            try:
+                method = find_class(CLASS_NAME).getClass().getMethod("getInstance")
+                self.instance = method.invoke(None)
+            except Exception as e:
+                self.plugin.log(f"Error getting instance: {e}")
+        return self.instance
+
+    def start_from_bytes(self, bytesdex):
+        try:
+            buffer = ByteBuffer.wrap(bytesdex)
+            self.dex_loader = InMemoryDexClassLoader(
+                buffer, ApplicationLoader.applicationContext.getClassLoader()
+            )
+            clazz = self.dex_loader.loadClass(CLASS_NAME)
+            start_method = clazz.getMethod(METHOD_NAME)
+            instance_method = clazz.getMethod("getInstance")
+            instance = instance_method.invoke(None)
+            self.instance = instance
+            start_method.invoke(instance)
+            self.plugin.log(f"Loaded {CLASS_NAME}")
+        except Exception as e:
+            self.plugin.log(f"Error invoking start method: {e}")
+            raise
+
+    def open_settings(self):
+        try:
+            inst = self.getInstance()
+            if inst:
+                method = inst.getClass().getMethod("showSettings")
+                method.invoke(inst)
+        except Exception as e:
+            self.plugin.log(f"Error opening settings: {e}")
+
+    def unload(self):
+        try:
+            inst = self.getInstance()
+            if inst:
+                method = inst.getClass().getMethod("onUnload")
+                method.invoke(inst)
+                self.plugin.log("Unloaded successfully")
+        except Exception as e:
+            self.plugin.log(f"Error unloading: {e}")
+
+    # ── Version checking ───────────────────────────────────────────────────
+
+    def _get_cached_version(self):
+        try:
+            inst = self.getInstance()
+            if inst is None:
+                return 0
+            version_field = inst.getClass().getDeclaredField("VERSION_CODE")
+            version_field.setAccessible(True)
+            return int(version_field.get(None))
+        except Exception as e:
+            self.plugin.log(f"Error reading cached version: {e}")
+            return 0
+
+    def _check_dev_version(self):
+        """Return (remote_version_id, download_url) or (None, None)."""
+        try:
+            r = requests.get(DEV_API_URL, timeout=5)
+            r.raise_for_status()
+            data = r.json()
+            runs = data.get("workflow_runs", [])
+            if not runs:
+                self.plugin.log("No successful dev runs found")
+                return None, None
+
+            run = runs[0]
+            run_id = run.get("id", 0)
+            self.plugin.log(f"Latest dev run: #{run_id}")
+            return str(run_id), DEV_ARTIFACT_URL
+        except Exception as e:
+            self.plugin.log(f"Error checking dev version: {e}")
+            return None, None
+
+    def _check_release_version(self):
+        """Return (remote_version_id, download_url) or (None, None)."""
+        try:
+            r = requests.get(RELEASE_API_URL, timeout=5)
+            r.raise_for_status()
+            data = r.json()
+            tag = data.get("tag_name", "")
+            assets = data.get("assets", [])
+            if not tag or not assets:
+                self.plugin.log("No release assets found")
+                return None, None
+
+            download_url = assets[0].get("browser_download_url", "")
+            self.plugin.log(f"Latest release: {tag}")
+            return tag, download_url
+        except Exception as e:
+            self.plugin.log(f"Error checking release version: {e}")
+            return None, None
+
+    def _needs_update(self, remote_version):
+        """Compare remote version with cached local version."""
+        cached = self.config.get_version(self.channel)
+        self.plugin.log(f"Remote: {remote_version}, Cached: {cached}")
+        return str(remote_version) != str(cached)
+
+    # ── Downloading ────────────────────────────────────────────────────────
+
+    def _download_dev_dex(self):
+        """Download dev DEX from nightly.link (zip → extract classes.dex)."""
+        self.plugin.log(f"Downloading dev DEX from {DEV_ARTIFACT_URL}")
+        r = requests.get(DEV_ARTIFACT_URL, timeout=60)
+        r.raise_for_status()
+        with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+            dex_bytes = zf.read("classes.dex")
+        self.plugin.log(f"Downloaded {len(dex_bytes)} bytes from nightly.link")
+        return dex_bytes
+
+    def _download_release_dex(self, url):
+        """Download release DEX from GitHub Releases."""
+        self.plugin.log(f"Downloading release DEX from {url}")
+        r = requests.get(url, timeout=60)
+        r.raise_for_status()
+        self.plugin.log(f"Downloaded {len(r.content)} bytes from releases")
+        return r.content
+
+    def download_and_cache(self, remote_version, download_url):
+        """Download DEX based on current channel, cache it."""
+        if self.channel == "dev":
+            dex_bytes = self._download_dev_dex()
+        else:
+            dex_bytes = self._download_release_dex(download_url)
+
+        with open(self.cache_file, 'wb') as f:
+            f.write(dex_bytes)
+
+        self.config.set_version(self.channel, remote_version)
+        return dex_bytes
+
+    # ── Loading ────────────────────────────────────────────────────────────
+
+    def _load_from_local_path(self):
+        """Try to load DEX from LOCAL_DEX_PATH (sideload)."""
+        if os.path.exists(LOCAL_DEX_PATH):
+            self.plugin.log(f"Local DEX found at {LOCAL_DEX_PATH}")
+            with open(LOCAL_DEX_PATH, 'rb') as f:
+                return f.read()
+        return None
+
+    def _load_from_cache(self):
+        if os.path.exists(self.cache_file):
+            with open(self.cache_file, 'rb') as f:
+                return f.read()
+        return None
+
+    def load_and_start(self):
+        self.plugin.log(f"Loading (channel: {self.channel})")
+
+        try:
+            # 1. Try local sideload first (unstable feature)
+            local_bytes = self._load_from_local_path()
+            if local_bytes is not None:
+                self.start_from_bytes(local_bytes)
+                self.plugin.log("Loaded from local storage")
+                return
+
+            # 2. Try cache
+            cached_bytes = self._load_from_cache()
+            if cached_bytes is not None:
+                self.start_from_bytes(cached_bytes)
+                self.plugin.log("Loaded from cache")
+
+                # 3. Async update check
+                try:
+                    self._check_async_update()
+                except Exception as e:
+                    self.plugin.log(f"Update check failed: {e}")
+            else:
+                # 4. No cache — download fresh
+                self.plugin.log("No cache, downloading...")
+                remote_version, download_url = self._check_version()
+
+                if remote_version is None:
+                    BulletinHelper.show_info("Failed to fetch version info", get_last_fragment())
+                    return
+
+                dex_bytes = self.download_and_cache(remote_version, download_url)
+                self.start_from_bytes(dex_bytes)
+                self.plugin.log("Loaded from fresh download")
+
+        except Exception as e:
+            err = str(e)
+            if "proxy" in err:
+                return
+            self.plugin.log(f"Fatal error: {e}")
+            BulletinHelper.show_info(f"Error loading re:extera: {e}", get_last_fragment())
+
+    def _check_version(self):
+        if self.channel == "dev":
+            return self._check_dev_version()
+        return self._check_release_version()
+
+    def _check_async_update(self):
+        """Check for updates in background and notify if available."""
+        remote_version, download_url = self._check_version()
+        if remote_version is None:
+            return
+
+        if self._needs_update(remote_version):
+            self.plugin.log("Update available, downloading...")
+            self.download_and_cache(remote_version, download_url)
+            BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
+
+    def check_updates_now(self):
+        """Manual update check — called from settings button."""
+        try:
+            BulletinHelper.show_info(_localize("downloading"), get_last_fragment())
+            remote_version, download_url = self._check_version()
+            if remote_version is None:
+                BulletinHelper.show_info("Failed to check updates", get_last_fragment())
+                return
+
+            if self._needs_update(remote_version):
+                self.download_and_cache(remote_version, download_url)
+                BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
+            else:
+                msg = "Уже последняя версия" if _localize("settings") != "re:extera Settings" else "Already up to date"
+                BulletinHelper.show_info(msg, get_last_fragment())
+
+        except Exception as e:
+            self.plugin.log(f"Manual update check failed: {e}")
+            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+
+    def get_version_display(self):
+        """Human-readable version string for the menu."""
+        try:
+            inst = self.getInstance()
+            if inst is None:
+                return "not loaded"
+            v = inst.getClass().getDeclaredField("VERSION_CODE")
+            v.setAccessible(True)
+            return f"v{int(v.get(None))}"
+        except Exception:
+            cached = self.config.get_version(self.channel)
+            return f"cached:{cached}" if cached else "?"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Plugin
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class Plugin(BasePlugin):
+    def __init__(self):
+        self.loader = None
+
+    # ── Settings / Menu ────────────────────────────────────────────────────
+
+    def create_settings(self) -> list[Any]:
+        items = []
+
+        # Status section
+        channel = self.loader.config.channel if self.loader else "release"
+        version = self.loader.get_version_display() if self.loader else "?"
+
+        items.append(Text(
+            text=f"Channel: {channel.upper()}",
+            on_click=lambda v: None
+        ))
+        items.append(Text(
+            text=f"DEX: {version}",
+            on_click=lambda v: None
+        ))
+        items.append(Text(text="───", on_click=lambda v: None))
+
+        # Channel switch
+        items.append(Switch(
+            text=_localize("channel_dev"),
+            is_checked=channel == "dev",
+            on_switch=lambda v: self._on_channel_switch(v)
+        ))
+
+        items.append(Text(text="───", on_click=lambda v: None))
+
+        # Action buttons
+        items.append(Text(
+            text=_localize("check_updates"),
+            on_click=lambda v: self._on_check_updates()
+        ))
+        items.append(Text(
+            text=_localize("install_file"),
+            on_click=lambda v: self._on_install_file()
+        ))
+        items.append(Text(
+            text=_localize("settings"),
+            on_click=lambda v: self._open_re_extera_settings()
+        ))
+
+        return items
+
+    def _on_channel_switch(self, is_dev):
+        if self.loader is None:
+            return
+        new_channel = "dev" if is_dev else "release"
+        old_channel = self.loader.config.channel
+        if new_channel == old_channel:
+            return
+
+        self.loader.config.channel = new_channel
+        self.loader._switch_cache(new_channel)
+        self.log(f"Switched to {new_channel} channel")
+        BulletinHelper.show_info(_localize("channel_switch"), get_last_fragment())
+
+    def _on_check_updates(self):
+        if self.loader is None:
+            return
+        self.loader.check_updates_now()
+
+    def _on_install_file(self):
+        """Check LOCAL_DEX_PATH and reload."""
+        if self.loader is None:
+            return
+        if os.path.exists(LOCAL_DEX_PATH):
+            try:
+                with open(LOCAL_DEX_PATH, 'rb') as f:
+                    dex_bytes = f.read()
+                self.loader.start_from_bytes(dex_bytes)
+                BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
+                self.log("Reloaded from local file")
+            except Exception as e:
+                self.log(f"Install from file failed: {e}")
+                BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+        else:
+            msg = "Файл не найден" if _localize("settings") != "re:extera Settings" else "File not found"
+            BulletinHelper.show_info(msg, get_last_fragment())
+
+    def _open_re_extera_settings(self):
+        if self.loader is not None:
+            self.loader.open_settings()
+
+    # ── Plugin lifecycle ───────────────────────────────────────────────────
+
+    def on_plugin_load(self) -> None:
+        try:
+            self.log(f"Init {__version__}")
+            launch_activity = get_last_fragment().getContext()
+            self.loader = Loader(self, launch_activity)
+
+            # Hook tg://re/install URL pressing (from unstable)
+            try:
+                method = ChatActivity.getClass().getDeclaredMethod(
+                    "didPressMessageUrl",
+                    CharacterStyle.getClass(),
+                    Boolean.TYPE,
+                    MessageObject.getClass(),
+                    ChatMessageCell.getClass()
+                )
+                self.hook_method(method, InstallHook(self))
+            except Exception as e:
+                self.log(f"Failed to hook install method: {e}")
+
+            self.loader.load_and_start()
+        except Exception as e:
+            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+            self.log(f"Error: {e}")
+
+    def on_plugin_unload(self) -> None:
+        # Note: the `return` in the original prevents unloading — keep as is
+        return
+        if self.loader is not None:
+            self.loader.unload()

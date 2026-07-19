@@ -3,6 +3,7 @@ name: Build Dex
 on:
   push:
     branches: [ "master", "main" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "master", "main" ]
 
@@ -26,8 +27,25 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew buildDex
 
-    - name: Upload Dex artifact
+    - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: classes.dex
-        path: build/dex/classes.dex
+        name: re-extera-dev
+        path: |
+          build/dex/classes.dex
+          loader.plugin
+
+    - name: Prepare release assets
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        cp build/dex/classes.dex build/dex/re-extera-release.dex
+        cp loader.plugin build/dex/loader.plugin
+
+    - name: Upload to Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          build/dex/re-extera-release.dex
+          build/dex/loader.plugin
+        generate_release_notes: true
