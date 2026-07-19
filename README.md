@@ -3,7 +3,7 @@
 ## re:extera
 *[Licensed under the GNU General Public License v3.0](LICENSE)*
 
-Plugin for exteraGram / AyuGram that adds ghost mode, deleted message recovery, and various other features. Loaded at runtime via DEX injection.
+Plugin for exteraGram that adds ghost mode, deleted message recovery, and various other features. Loaded at runtime via DEX injection.
 
 [![Channel](https://img.shields.io/badge/Channel-Telegram-blue.svg)](https://t.me/shikaatuProjectsLog)
 [![Download](https://img.shields.io/badge/Download-latest-green.svg)](https://github.com/fossSquad/re-extera/releases/latest)
@@ -32,7 +32,7 @@ cd re-extera
 Output DEX will be at `build/dex/classes.dex`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
 
 ### Installing
-1. Install the plugin via the [loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin) — put it in `AyuGram/plugins/` or `exteraGram/plugins/`
+1. Install the [loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin)
 2. The plugin will download and load the DEX automatically
 3. Switch between dev (nightly) and release (stable) channels in plugin settings
 
@@ -41,5 +41,5 @@ Latest dev builds are available as CI artifacts. Set the plugin channel to **Dev
 
 ### Credits
 - [@bleizix](https://github.com/bleizix) — original idea and implementation
-- [@shikaatux](https://github.com/shikaatux) — plugin engine, loader, and ongoing development
-- [exteraGram](https://github.com/exteraSquad/exteraGram) / [AyuGram](https://github.com/AyuGram/AyuGram) — plugin runtime
+- [@shikaatux](https://github.com/logopek) — plugin engine, loader, and ongoing development
+- [exteraGram](https://github.com/exteraSquad/exteraGram) — plugin runtime
