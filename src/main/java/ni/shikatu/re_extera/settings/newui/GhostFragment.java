@@ -48,7 +48,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         UItem ghostItem = UItem.asExteraExpandableSwitch(GhostIds.GHOST_ID.getId(), Localization.GHOST_MODE, String.format("%d/5", Integer.valueOf(Settings.countOfGhost())), new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                this.f$0.lambda$ghostUItem$0(view);
+                lambda$ghostUItem$0(view);
             }
         });
         ghostItem.setChecked(Settings.getGhostModeEnabledGlobal());
@@ -56,7 +56,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         ghostItem.clickCallback = new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                this.f$0.lambda$ghostUItem$1(view);
+                lambda$ghostUItem$1(view);
             }
         };
         return ghostItem;
@@ -147,7 +147,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 new SendSilenceDialog(getParentActivity(), new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {
-                        this.f$0.lambda$onClick$2();
+                        lambda$onClick$2();
                     }
                 }).show();
                 break;
@@ -258,7 +258,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             this.always.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$prepare$0(view);
+                    lambda$prepare$0(view);
                 }
             });
             this.onlyWithGhost = new RadioColorCell(this.context);
@@ -266,7 +266,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             this.onlyWithGhost.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$prepare$1(view);
+                    lambda$prepare$1(view);
                 }
             });
             this.never = new RadioColorCell(this.context);
@@ -274,7 +274,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             this.never.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$prepare$2(view);
+                    lambda$prepare$2(view);
                 }
             });
             this.layout.addView(this.always);

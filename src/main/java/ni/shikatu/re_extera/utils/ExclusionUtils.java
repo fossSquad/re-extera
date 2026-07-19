@@ -68,19 +68,19 @@ public final class ExclusionUtils {
             this.cellAlways.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$new$0(view);
+                    lambda$new$0(view);
                 }
             });
             this.cellNever.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$new$1(view);
+                    lambda$new$1(view);
                 }
             });
             this.cellDefault.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$new$2(view);
+                    lambda$new$2(view);
                 }
             });
             this.layout.addView(this.cellAlways);

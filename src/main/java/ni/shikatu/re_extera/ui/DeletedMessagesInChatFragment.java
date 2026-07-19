@@ -378,7 +378,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         this.adapter.reloadAsync(this.did, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$reloadMessages$0(currentGeneration);
+                lambda$reloadMessages$0(currentGeneration);
             }
         });
     }
@@ -985,7 +985,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             Utilities.globalQueue.postRunnable(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
-                    this.f$0.lambda$reloadAsync$2(did, currentGeneration, onDone);
+                    lambda$reloadAsync$2(did, currentGeneration, onDone);
                 }
             });
         }
@@ -1012,7 +1012,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
-                    this.f$0.lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);
+                    lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);
                 }
             });
         }

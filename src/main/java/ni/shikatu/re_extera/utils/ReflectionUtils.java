@@ -141,7 +141,7 @@ public final class ReflectionUtils {
             restartButton.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$new$0(activity, view);
+                    lambda$new$0(activity, view);
                 }
             });
             linearLayout.addView((View) restartButton, LayoutHelper.createLinear(-1, 48, 0, 16, 28, 16, 12));
@@ -156,7 +156,7 @@ public final class ReflectionUtils {
             continueButton.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    this.f$0.lambda$new$1(view);
+                    lambda$new$1(view);
                 }
             });
             linearLayout.addView(continueButton, LayoutHelper.createLinear(-1, -2, 0, 16, 0, 16, 16));

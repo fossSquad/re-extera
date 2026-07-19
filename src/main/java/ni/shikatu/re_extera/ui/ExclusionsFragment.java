@@ -104,7 +104,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         cell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                this.f$0.lambda$createExclusionCell$0(exception, position, view);
+                lambda$createExclusionCell$0(exception, position, view);
             }
         });
         cell.setBackground(Theme.getSelectorDrawable(true));
@@ -132,7 +132,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
-                this.f$0.lambda$showOptionsMenu$1(exception, position, dialogInterface, i);
+                lambda$showOptionsMenu$1(exception, position, dialogInterface, i);
             }
         });
         builder.show();
@@ -170,7 +170,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         new ExclusionUtils.ExclusionReadingDialog(getContext(), exception.dialogId, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$showEditReadingDialog$2(exception, position);
+                lambda$showEditReadingDialog$2(exception, position);
             }
         }).show();
     }
@@ -190,7 +190,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         new ExclusionUtils.ExclusionTypingDialog(getContext(), exception.dialogId, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$showEditTypingDialog$3(exception, position);
+                lambda$showEditTypingDialog$3(exception, position);
             }
         }).show();
     }
@@ -211,7 +211,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         builder.setTitle(Localization.DELETE_FROM_EXCLUSIONS);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
-                this.f$0.lambda$showDeleteConfirmation$4(exception, position, alertDialog, i);
+                lambda$showDeleteConfirmation$4(exception, position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);

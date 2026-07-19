@@ -99,7 +99,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         cell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                this.f$0.lambda$createShadowbanCell$0(entry, position, view);
+                lambda$createShadowbanCell$0(entry, position, view);
             }
         });
         cell.setBackground(Theme.getSelectorDrawable(true));
@@ -133,7 +133,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
-                this.f$0.lambda$showOptionsMenu$1(entry, position, dialogInterface, i);
+                lambda$showOptionsMenu$1(entry, position, dialogInterface, i);
             }
         });
         builder.show();
@@ -164,7 +164,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         ShadowbanDialog.showEdit(getContext(), entry, new ShadowbanDialog.OnShadowbanResult() { 
             @Override // ni.shikatu.re_extera.ui.ShadowbanDialog.OnShadowbanResult
             public final void onResult(boolean z, boolean z2) {
-                this.f$0.lambda$showEditDialog$2(entry, z, z2);
+                lambda$showEditDialog$2(entry, z, z2);
             }
         });
     }
@@ -184,7 +184,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         builder.setTitle(Localization.REMOVE_FROM_SHADOWBAN);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
-                this.f$0.lambda$showDeleteConfirmation$3(entry, position, alertDialog, i);
+                lambda$showDeleteConfirmation$3(entry, position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);

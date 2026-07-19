@@ -122,7 +122,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
-                this.f$0.lambda$showOptionsMenu$0(filter, position, dialogInterface, i);
+                lambda$showOptionsMenu$0(filter, position, dialogInterface, i);
             }
         });
         builder.show();
@@ -178,7 +178,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setView(container);
         builder.setPositiveButton(isEdit ? Localization.SAVE : Localization.ADD, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
-                this.f$0.lambda$showFilterDialog$1(editText, context, isEdit, existingFilter, position, alertDialog, i);
+                lambda$showFilterDialog$1(editText, context, isEdit, existingFilter, position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);
@@ -232,7 +232,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setMessage(Localization.DELETE_FILTER_ABOUT);
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
-                this.f$0.lambda$showDeleteConfirmation$3(position, alertDialog, i);
+                lambda$showDeleteConfirmation$3(position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);

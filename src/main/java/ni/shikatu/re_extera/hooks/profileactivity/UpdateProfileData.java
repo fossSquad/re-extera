@@ -115,7 +115,7 @@ public class UpdateProfileData extends XC_MethodHook {
                 getRealLastSeenTime(currentAccount, user, new TimeCallback() { 
                     @Override // ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.TimeCallback
                     public final void onTime(int i) {
-                        this.f$0.lambda$afterHookedMethod$1(currentAccount, onlineView, activity, i);
+                        lambda$afterHookedMethod$1(currentAccount, onlineView, activity, i);
                     }
                 });
             }
@@ -129,7 +129,7 @@ public class UpdateProfileData extends XC_MethodHook {
         AndroidUtilities.runOnUIThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$afterHookedMethod$0(onlineView, formatted, activity);
+                lambda$afterHookedMethod$0(onlineView, formatted, activity);
             }
         });
     }
@@ -157,7 +157,7 @@ public class UpdateProfileData extends XC_MethodHook {
                 request.id.add(inputUser);
                 ConnectionsManager.getInstance(currentAccount).sendRequest(request, new RequestDelegate() { 
                     public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                        this.f$0.lambda$getRealLastSeenTime$2(callback, tLObject, tL_error);
+                        lambda$getRealLastSeenTime$2(callback, tLObject, tL_error);
                     }
                 });
             }

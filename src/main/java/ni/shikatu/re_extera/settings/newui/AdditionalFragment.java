@@ -149,7 +149,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         builder.setTitle(Localization.CLEAR_DB + "?");
         builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
-                this.f$0.lambda$showClearDbDialog$2(alertDialog, i);
+                lambda$showClearDbDialog$2(alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { 

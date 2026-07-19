@@ -383,7 +383,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         this.adapter.reloadAsync(this.did, this.mid, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$reloadMessages$0(currentGeneration);
+                lambda$reloadMessages$0(currentGeneration);
             }
         });
     }
@@ -978,7 +978,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             Utilities.globalQueue.postRunnable(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
-                    this.f$0.lambda$reloadAsync$2(did, mid, currentGeneration, onDone);
+                    lambda$reloadAsync$2(did, mid, currentGeneration, onDone);
                 }
             });
         }
@@ -1003,7 +1003,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
-                    this.f$0.lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);
+                    lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);
                 }
             });
         }

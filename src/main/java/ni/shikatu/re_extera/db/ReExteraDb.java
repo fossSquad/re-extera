@@ -49,7 +49,7 @@ public final class ReExteraDb {
         this.dbHandler.postDelayed(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.pruneStaleEntries();
+                pruneStaleEntries();
             }
         }, TimeUnit.SECONDS.toMillis(30L));
     }
@@ -90,7 +90,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$putDeletedMessageAsync$0(did, mid);
+                lambda$putDeletedMessageAsync$0(did, mid);
             }
         });
     }
@@ -148,7 +148,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$batchPutDeletedMessagesAsync$1(did, copy);
+                lambda$batchPutDeletedMessagesAsync$1(did, copy);
             }
         });
     }
@@ -329,7 +329,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$saveOriginalMessageAsync$2(did, mid, message);
+                lambda$saveOriginalMessageAsync$2(did, mid, message);
             }
         });
     }
@@ -396,7 +396,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$saveNewVersionMessageAsync$3(did, mid, msg);
+                lambda$saveNewVersionMessageAsync$3(did, mid, msg);
             }
         });
     }
@@ -538,7 +538,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$setDialogReadingAsync$4(did, value);
+                lambda$setDialogReadingAsync$4(did, value);
             }
         });
     }
@@ -552,7 +552,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$setDialogTypingAsync$5(did, value);
+                lambda$setDialogTypingAsync$5(did, value);
             }
         });
     }
@@ -738,7 +738,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$addShadowbanAsync$6(userId, hideDialog, hideInGroups);
+                lambda$addShadowbanAsync$6(userId, hideDialog, hideInGroups);
             }
         });
     }
@@ -757,7 +757,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$removeShadowbanAsync$7(userId);
+                lambda$removeShadowbanAsync$7(userId);
             }
         });
     }
@@ -879,7 +879,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                this.f$0.lambda$updateShadowbanAsync$8(userId, hideDialog, hideInGroups);
+                lambda$updateShadowbanAsync$8(userId, hideDialog, hideInGroups);
             }
         });
     }

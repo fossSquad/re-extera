@@ -141,7 +141,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                     }).add(R.drawable.msg_settings, Localization.ADDITIONAL_SETTINGS, new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
-                            this.f$0.showAdditionalDeleted();
+                            showAdditionalDeleted();
                         }
                     }).show();
                     break;
