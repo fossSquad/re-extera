@@ -32,6 +32,15 @@ from org.telegram.messenger import LocaleController, BuildVars, ApplicationLoade
 from java.nio import ByteBuffer
 from dalvik.system import InMemoryDexClassLoader, DexClassLoader
 from java import dynamic_proxy
+from java.lang import Runnable
+
+class UIRunnable(dynamic_proxy(Runnable)):
+    def __init__(self, func):
+        super().__init__()
+        self.func = func
+    def run(self):
+        self.func()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Constants
@@ -567,7 +576,7 @@ class Loader:
                     
                     def show_ui():
                         BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
-                    AndroidUtilities.runOnUIThread(show_ui)
+                    AndroidUtilities.runOnUIThread(UIRunnable(show_ui))
             except Exception as e:
                 self.plugin.log(f"Async update failed: {e}")
                 
@@ -585,25 +594,25 @@ class Loader:
                         msg = f"Check failed: {err}" if err else "Failed to check updates"
                         def show_err():
                             BulletinHelper.show_info(msg, get_last_fragment())
-                        AndroidUtilities.runOnUIThread(show_err)
+                        AndroidUtilities.runOnUIThread(UIRunnable(show_err))
                         return
 
                     if self._needs_update(remote_version):
                         self.download_and_cache(remote_version, download_url)
                         def show_success():
                             BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
-                        AndroidUtilities.runOnUIThread(show_success)
+                        AndroidUtilities.runOnUIThread(UIRunnable(show_success))
                     else:
                         msg = "Уже последняя версия" if _localize("settings") != "re:extera Settings" else "Already up to date"
                         def show_uptodate():
                             BulletinHelper.show_info(msg, get_last_fragment())
-                        AndroidUtilities.runOnUIThread(show_uptodate)
+                        AndroidUtilities.runOnUIThread(UIRunnable(show_uptodate))
 
                 except Exception as e:
                     self.plugin.log(f"Manual update check failed: {e}")
                     def show_exc():
                         BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
-                    AndroidUtilities.runOnUIThread(show_exc)
+                    AndroidUtilities.runOnUIThread(UIRunnable(show_exc))
             
             threading.Thread(target=run_manual).start()
 
