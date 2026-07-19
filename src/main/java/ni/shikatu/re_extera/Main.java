@@ -91,6 +91,10 @@ public final class Main {
     }
 
     public static void initAndStart() {
+        if (hooks != null) {
+            Main.log("Already initialized, skipping", new Object[0]);
+            return;
+        }
         Main.log("initAndStart", new Object[0]);
         getInstance().start();
     }
