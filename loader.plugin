@@ -22,12 +22,13 @@ import zipfile
 import shutil
 import os
 import time
+import threading
 from android.app import Activity
 from hook_utils import find_class
 from ui.bulletin import BulletinHelper
 from ui.settings import Header, Divider, Text, Switch
 from org.telegram.ui import LaunchActivity
-from org.telegram.messenger import LocaleController, BuildVars, ApplicationLoader, FileLoader, NotificationCenter, MessageObject
+from org.telegram.messenger import LocaleController, BuildVars, ApplicationLoader, FileLoader, NotificationCenter, MessageObject, AndroidUtilities
 from java.nio import ByteBuffer
 from dalvik.system import InMemoryDexClassLoader, DexClassLoader
 from java import dynamic_proxy
@@ -319,9 +320,9 @@ class Loader:
             self.plugin.log(f"Error reading cached version: {e}")
             return 0
 
-    def _check_dev_version(self):
+    def _check_dev_version(self, force=False):
         """Return (remote_version_id, download_url) or (None, None)."""
-        if not self.config.can_check():
+        if not force and not self.config.can_check():
             self.plugin.log("Dev check skipped (rate limit cooldown)")
             self.config.last_error = "Rate limit: wait 1 min"
             return None, None
@@ -347,9 +348,9 @@ class Loader:
             self.plugin.log(f"Error checking dev version: {e}")
             return None, None
 
-    def _check_release_version(self):
+    def _check_release_version(self, force=False):
         """Return (remote_version_id, download_url) or (None, None)."""
-        if not self.config.can_check():
+        if not force and not self.config.can_check():
             self.plugin.log("Release check skipped (rate limit cooldown)")
             self.config.data["last_error"] = "Rate limit: wait 1 min"
             return None, None
@@ -462,6 +463,10 @@ class Loader:
             try:
                 self.start_from_bytes(local_bytes)
                 self.plugin.log("Loaded from local storage")
+                try:
+                    self._check_async_update()
+                except Exception as e:
+                    self.plugin.log(f"Update check failed: {e}")
                 return
             except Exception as e:
                 self.plugin.log(f"Local DEX failed ({e}), falling through to cache/download")
@@ -496,7 +501,6 @@ class Loader:
                 remote_version, download_url = self._check_version()
 
                 if remote_version is None:
-                    BulletinHelper.show_info("Failed to fetch version info", get_last_fragment())
                     return
 
                 dex_bytes = self.download_and_cache(remote_version, download_url)
@@ -507,44 +511,68 @@ class Loader:
                 if "proxy" in err:
                     return
                 self.plugin.log(f"Fatal error: {e}")
-                BulletinHelper.show_info(f"Error loading re:extera: {e}", get_last_fragment())
 
-    def _check_version(self):
+    def _check_version(self, force=False):
         if self.channel == "dev":
-            return self._check_dev_version()
-        return self._check_release_version()
+            return self._check_dev_version(force)
+        return self._check_release_version(force)
 
     def _check_async_update(self):
         """Check for updates in background and notify if available."""
-        remote_version, download_url = self._check_version()
-        if remote_version is None:
-            return
+        def run_check():
+            try:
+                remote_version, download_url = self._check_version()
+                if remote_version is None:
+                    return
 
-        if self._needs_update(remote_version):
-            self.plugin.log("Update available, downloading...")
-            self.download_and_cache(remote_version, download_url)
-            BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
+                if self._needs_update(remote_version):
+                    self.plugin.log("Update available, downloading...")
+                    self.download_and_cache(remote_version, download_url)
+                    
+                    def show_ui():
+                        BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
+                    AndroidUtilities.runOnUIThread(show_ui)
+            except Exception as e:
+                self.plugin.log(f"Async update failed: {e}")
+                
+        threading.Thread(target=run_check).start()
 
     def check_updates_now(self):
         """Manual update check — called from settings button."""
         try:
             BulletinHelper.show_info(_localize("downloading"), get_last_fragment())
-            remote_version, download_url = self._check_version()
-            if remote_version is None:
-                err = self.config.data.get("last_error", "")
-                msg = f"Check failed: {err}" if err else "Failed to check updates"
-                BulletinHelper.show_info(msg, get_last_fragment())
-                return
+            def run_manual():
+                try:
+                    remote_version, download_url = self._check_version(force=True)
+                    if remote_version is None:
+                        err = self.config.data.get("last_error", "")
+                        msg = f"Check failed: {err}" if err else "Failed to check updates"
+                        def show_err():
+                            BulletinHelper.show_info(msg, get_last_fragment())
+                        AndroidUtilities.runOnUIThread(show_err)
+                        return
 
-            if self._needs_update(remote_version):
-                self.download_and_cache(remote_version, download_url)
-                BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
-            else:
-                msg = "Уже последняя версия" if _localize("settings") != "re:extera Settings" else "Already up to date"
-                BulletinHelper.show_info(msg, get_last_fragment())
+                    if self._needs_update(remote_version):
+                        self.download_and_cache(remote_version, download_url)
+                        def show_success():
+                            BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
+                        AndroidUtilities.runOnUIThread(show_success)
+                    else:
+                        msg = "Уже последняя версия" if _localize("settings") != "re:extera Settings" else "Already up to date"
+                        def show_uptodate():
+                            BulletinHelper.show_info(msg, get_last_fragment())
+                        AndroidUtilities.runOnUIThread(show_uptodate)
+
+                except Exception as e:
+                    self.plugin.log(f"Manual update check failed: {e}")
+                    def show_exc():
+                        BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
+                    AndroidUtilities.runOnUIThread(show_exc)
+            
+            threading.Thread(target=run_manual).start()
 
         except Exception as e:
-            self.plugin.log(f"Manual update check failed: {e}")
+            self.plugin.log(f"Manual check start failed: {e}")
             BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
 
     def get_version_display(self):
