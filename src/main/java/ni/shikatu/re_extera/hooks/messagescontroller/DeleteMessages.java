@@ -31,9 +31,9 @@ public class DeleteMessages extends XC_MethodHook {
         if (!Settings.getSaveManuallyDeleted()) {
             InternalUtils.deleteMessages(currentAccount, did, ids, null, true);
         }
-        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+        org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
-            final ChatActivity chat = lastFragment;
+            final ChatActivity chat = (ChatActivity) lastFragment;
             chat.getClass();
             AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable

@@ -60,11 +60,11 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             if (id != NotificationCenter.messagesDidLoad && id != NotificationCenter.messagesDidLoadWithoutProcess) {
                 return;
             }
-            ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+            org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
             if (!(lastFragment instanceof ChatActivity)) {
                 return;
             }
-            final ChatActivity chatActivity = lastFragment;
+            final ChatActivity chatActivity = (ChatActivity) lastFragment;
             if (args == null || args.length <= 9 || ((Integer) args[8]).intValue() != 1) {
                 return;
             }

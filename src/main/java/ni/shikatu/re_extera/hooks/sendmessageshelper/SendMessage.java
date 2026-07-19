@@ -71,9 +71,9 @@ public class SendMessage extends XC_MethodHook {
             unhook = XposedBridge.hookMethod(OPEN_SCHEDULED_MESSAGES, RETURN_NULL);
             params.scheduleDate = (int) MessageUtils.getScheduleTime(currentAccount, params.photo, params.document);
             if (UPDATE_BOTTOM_OVERLAY != null) {
-                ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+                org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
                 if (lastFragment instanceof ChatActivity) {
-                    ChatActivity chatActivity = lastFragment;
+                    ChatActivity chatActivity = (ChatActivity) lastFragment;
                     ReflectionUtils.invoke(UPDATE_BOTTOM_OVERLAY, chatActivity, new Object[0]);
                 }
             }

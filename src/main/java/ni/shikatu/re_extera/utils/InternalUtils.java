@@ -73,9 +73,9 @@ public final class InternalUtils {
     }
 
     static /* synthetic */ void lambda$deleteMessages$1(int currentAccount, long did, ArrayList copy, MessagesStorage storage, long rChannelId, List messagesIds) {
-        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+        org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
-            final ChatActivity chat = lastFragment;
+            final ChatActivity chat = (ChatActivity) lastFragment;
             if (chat.getCurrentAccount() == currentAccount && chat.getDialogId() == did) {
                 Iterator it = copy.iterator();
                 while (it.hasNext()) {
