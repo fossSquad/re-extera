@@ -34,7 +34,7 @@ public class ShadowbanDialog {
         final TextCheckCell hideDialogCell = new TextCheckCell(context);
         hideDialogCell.setTextAndCheck(Localization.HIDE_DIALOG, hideDialog[0], true);
         hideDialogCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        hideDialogCell.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanDialog$$ExternalSyntheticLambda1
+        hideDialogCell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ShadowbanDialog.lambda$show$0(hideDialog, hideDialogCell, view);
@@ -44,7 +44,7 @@ public class ShadowbanDialog {
         final TextCheckCell hideInGroupsCell = new TextCheckCell(context);
         hideInGroupsCell.setTextAndCheck(Localization.HIDE_IN_GROUPS, hideInGroups[0], false);
         hideInGroupsCell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        hideInGroupsCell.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanDialog$$ExternalSyntheticLambda2
+        hideInGroupsCell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ShadowbanDialog.lambda$show$1(hideInGroups, hideInGroupsCell, view);
@@ -54,7 +54,7 @@ public class ShadowbanDialog {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Localization.SHADOWBAN);
         builder.setView(layout);
-        builder.setPositiveButton(Localization.SAVE, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanDialog$$ExternalSyntheticLambda3
+        builder.setPositiveButton(Localization.SAVE, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 ShadowbanDialog.lambda$show$2(callback, hideDialog, hideInGroups, alertDialog, i);
             }
@@ -80,7 +80,7 @@ public class ShadowbanDialog {
     }
 
     public static void showAddAndSave(Context context, final long userId, final Runnable onComplete) {
-        show(context, userId, true, true, new OnShadowbanResult() { // from class: ni.shikatu.re_extera.ui.ShadowbanDialog$$ExternalSyntheticLambda0
+        show(context, userId, true, true, new OnShadowbanResult() { 
             @Override // ni.shikatu.re_extera.ui.ShadowbanDialog.OnShadowbanResult
             public final void onResult(boolean z, boolean z2) {
                 ShadowbanDialog.lambda$showAddAndSave$3(userId, onComplete, z, z2);

@@ -74,7 +74,7 @@ public class FragmentCreate extends XC_MethodHook {
         Context context = thisObject.getContext();
         ExceptionsPopupWrapper exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, currentAccount, dialog_id, thisObject), thisObject.getResourceProvider());
         final ActionBarMenuSubItem exceptionsItem = headerItem.addSwipeBackItem(R.drawable.filled_giveaway_premium, (Drawable) null, "re:extera", exceptionsPopupWrapper.windowLayout);
-        exceptionsItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$$ExternalSyntheticLambda0
+        exceptionsItem.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 exceptionsItem.openSwipeBack();
@@ -111,12 +111,12 @@ public class FragmentCreate extends XC_MethodHook {
             String str = Localization.YES;
             final int i = this.val$currentAccount;
             final long j = this.val$dialog_id;
-            builder.setPositiveButton(str, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda0
+            builder.setPositiveButton(str, new AlertDialog.OnButtonClickListener() { 
                 public final void onClick(AlertDialog alertDialog, int i2) {
                     FragmentCreate.AnonymousClass1.lambda$finallyRemoveAllDeletedMessages$0(i, j, alertDialog, i2);
                 }
             });
-            builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda1
+            builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { 
                 public final void onClick(AlertDialog alertDialog, int i2) {
                     alertDialog.dismiss();
                 }
@@ -139,7 +139,7 @@ public class FragmentCreate extends XC_MethodHook {
             Context context = this.val$context;
             long j = this.val$dialog_id;
             final long j2 = this.val$dialog_id;
-            new ExclusionUtils.ExclusionReadingDialog(context, j, new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda3
+            new ExclusionUtils.ExclusionReadingDialog(context, j, new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     SendRequest.notifyDialogIdChanged(j2);
@@ -152,7 +152,7 @@ public class FragmentCreate extends XC_MethodHook {
             Context context = this.val$context;
             long j = this.val$dialog_id;
             final long j2 = this.val$dialog_id;
-            new ExclusionUtils.ExclusionTypingDialog(context, j, new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate$1$$ExternalSyntheticLambda2
+            new ExclusionUtils.ExclusionTypingDialog(context, j, new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     SendRequest.notifyDialogIdChanged(j2);

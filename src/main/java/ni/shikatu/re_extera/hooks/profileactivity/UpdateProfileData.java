@@ -112,7 +112,7 @@ public class UpdateProfileData extends XC_MethodHook {
             long last = lastRequestTimeByAccount.get(currentAccount, 0L);
             if (now - last > REQUEST_COOLDOWN_MS) {
                 lastRequestTimeByAccount.put(currentAccount, now);
-                getRealLastSeenTime(currentAccount, user, new TimeCallback() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData$$ExternalSyntheticLambda1
+                getRealLastSeenTime(currentAccount, user, new TimeCallback() { 
                     @Override // ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData.TimeCallback
                     public final void onTime(int i) {
                         this.f$0.lambda$afterHookedMethod$1(currentAccount, onlineView, activity, i);
@@ -126,7 +126,7 @@ public class UpdateProfileData extends XC_MethodHook {
     public /* synthetic */ void lambda$afterHookedMethod$1(int currentAccount, final SimpleTextView[] onlineView, final ProfileActivity activity, int timestamp) {
         final String formatted = formatLastSeen(timestamp);
         cachedTextByAccount.put(currentAccount, formatted);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData$$ExternalSyntheticLambda2
+        AndroidUtilities.runOnUIThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$afterHookedMethod$0(onlineView, formatted, activity);
@@ -155,7 +155,7 @@ public class UpdateProfileData extends XC_MethodHook {
                 callback.onTime(0);
             } else {
                 request.id.add(inputUser);
-                ConnectionsManager.getInstance(currentAccount).sendRequest(request, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData$$ExternalSyntheticLambda0
+                ConnectionsManager.getInstance(currentAccount).sendRequest(request, new RequestDelegate() { 
                     public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                         this.f$0.lambda$getRealLastSeenTime$2(callback, tLObject, tL_error);
                     }

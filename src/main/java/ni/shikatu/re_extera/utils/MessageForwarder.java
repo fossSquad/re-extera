@@ -70,7 +70,7 @@ public class MessageForwarder {
         for (MessageObject msg : messages) {
             long groupId = msg.getGroupId();
             if (groupId != 0) {
-                grouped.computeIfAbsent(Long.valueOf(groupId), new Function() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda1
+                grouped.computeIfAbsent(Long.valueOf(groupId), new Function() { 
                     @Override // java.util.function.Function
                     public final Object apply(Object obj) {
                         return MessageForwarder.lambda$sendMessageCopy$0((Long) obj);
@@ -99,7 +99,7 @@ public class MessageForwarder {
             return;
         }
         final ArrayList<MessageObject> batch = batches.get(index);
-        ensureMediaReady(accountInstance, batch, new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda2
+        ensureMediaReady(accountInstance, batch, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 MessageForwarder.lambda$sendBatchSequentially$1(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg, batches, index);
@@ -249,7 +249,7 @@ public class MessageForwarder {
         final AtomicInteger remaining = new AtomicInteger(toDownload.size());
         Iterator<MessageObject> it = toDownload.iterator();
         while (it.hasNext()) {
-            downloadMedia(accountInstance, it.next(), new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda3
+            downloadMedia(accountInstance, it.next(), new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     MessageForwarder.lambda$ensureMediaReady$2(remaining, onComplete);
@@ -341,7 +341,7 @@ public class MessageForwarder {
                 progressDialog.setCancelDialog(false);
                 progressDialog.setCanceledOnTouchOutside(false);
                 progressDialog.setCancelable(false);
-                progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.utils.MessageForwarder$$ExternalSyntheticLambda0
+                progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { 
                     public final void onClick(AlertDialog alertDialog, int i) {
                         MessageForwarder.lambda$updateProgress$3(currentAccount, cancelFileNames, nc, observer, alertDialog, i);
                     }

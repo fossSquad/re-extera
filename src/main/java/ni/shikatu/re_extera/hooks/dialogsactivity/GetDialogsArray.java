@@ -14,7 +14,7 @@ public class GetDialogsArray extends XC_MethodHook {
             if (dialogs.isEmpty()) {
                 return;
             }
-            dialogs.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray$$ExternalSyntheticLambda0
+            dialogs.removeIf(new Predicate() { 
                 @Override // java.util.function.Predicate
                 public final boolean test(Object obj) {
                     return GetDialogsArray.lambda$afterHookedMethod$0((TLRPC.Dialog) obj);

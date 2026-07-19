@@ -12,10 +12,10 @@ public final class Defaults {
     public static final int ALWAYS = 1;
     public static final int GLOBAL_VALUE = 0;
     public static final int NEVER = -1;
-    public static final List<Class<?>> readingRequests = Defaults$$ExternalSyntheticBackport0.m(new Object[]{TLRPC.TL_messages_readHistory.class, TLRPC.TL_messages_readEncryptedHistory.class, TLRPC.TL_messages_readDiscussion.class, TLRPC.TL_channels_readHistory.class, TLRPC.TL_messages_markDialogUnread.class, TLRPC.TL_messages_readMessageContents.class, TLRPC.TL_channels_readMessageContents.class});
-    public static final List<Class<?>> typingRequests = Defaults$$ExternalSyntheticBackport0.m(new Object[]{TLRPC.TL_messages_setTyping.class, TLRPC.TL_messages_setEncryptedTyping.class});
-    public static final List<Class<?>> storiesRequests = Defaults$$ExternalSyntheticBackport0.m(new Object[]{TL_stories.TL_stories_readStories.class, TL_stories.TL_stories_incrementStoryViews.class});
-    public static final List<Class<?>> sendMessageRequests = Defaults$$ExternalSyntheticBackport0.m(new Object[]{TLRPC.TL_messages_sendMessage.class, TLRPC.TL_messages_sendMedia.class, TLRPC.TL_messages_sendMultiMedia.class, TLRPC.TL_messages_sendInlineBotResult.class, TLRPC.TL_messages_sendEncrypted.class, TLRPC.TL_messages_sendEncryptedFile.class, TLRPC.TL_messages_sendEncryptedMultiMedia.class, TLRPC.TL_messages_sendEncryptedService.class, TLRPC.TL_messages_sendReaction.class});
+    public static final List<Class<?>> readingRequests = java.util.Arrays.asList(TLRPC.TL_messages_readHistory.class, TLRPC.TL_messages_readEncryptedHistory.class, TLRPC.TL_messages_readDiscussion.class, TLRPC.TL_channels_readHistory.class, TLRPC.TL_messages_markDialogUnread.class, TLRPC.TL_messages_readMessageContents.class, TLRPC.TL_channels_readMessageContents.class);
+    public static final List<Class<?>> typingRequests = java.util.Arrays.asList(TLRPC.TL_messages_setTyping.class, TLRPC.TL_messages_setEncryptedTyping.class);
+    public static final List<Class<?>> storiesRequests = java.util.Arrays.asList(TL_stories.TL_stories_readStories.class, TL_stories.TL_stories_incrementStoryViews.class);
+    public static final List<Class<?>> sendMessageRequests = java.util.Arrays.asList(TLRPC.TL_messages_sendMessage.class, TLRPC.TL_messages_sendMedia.class, TLRPC.TL_messages_sendMultiMedia.class, TLRPC.TL_messages_sendInlineBotResult.class, TLRPC.TL_messages_sendEncrypted.class, TLRPC.TL_messages_sendEncryptedFile.class, TLRPC.TL_messages_sendEncryptedMultiMedia.class, TLRPC.TL_messages_sendEncryptedService.class, TLRPC.TL_messages_sendReaction.class);
     public static final List<Class<?>> onlineRequests = combineOnline();
 
     private Defaults() {

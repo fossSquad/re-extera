@@ -98,7 +98,7 @@ public final class MessageUtils {
                 int id = it.next().intValue();
                 final ChatMessageCell cell = visibleCells.get(Integer.valueOf(id));
                 if (cell != null && cell.getMessageObject() != null) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.MessageUtils$$ExternalSyntheticLambda0
+                    AndroidUtilities.runOnUIThread(new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             MessageUtils.lambda$forceUpdateViews$0(cell, adapter, chatListView);

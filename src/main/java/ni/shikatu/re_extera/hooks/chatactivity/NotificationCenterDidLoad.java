@@ -79,7 +79,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
                     ReflectionUtils.set(LOADING_FORWARD_FIELD, chatActivity, false);
                 }
                 if (PROGRESS_VIEW_FIELD != null) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad$$ExternalSyntheticLambda0
+                    AndroidUtilities.runOnUIThread(new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             NotificationCenterDidLoad.lambda$afterHookedMethod$0(chatActivity);

@@ -65,19 +65,19 @@ public final class ExclusionUtils {
             this.cellAlways = buildCell(Localization.ALWAYS + " " + verb());
             this.cellNever = buildCell(Localization.NEVER + Localization.NOT + verb());
             this.cellDefault = buildCell(Localization.BASED_ON_GLOBAL);
-            this.cellAlways.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionDialog$$ExternalSyntheticLambda0
+            this.cellAlways.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$new$0(view);
                 }
             });
-            this.cellNever.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionDialog$$ExternalSyntheticLambda1
+            this.cellNever.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$new$1(view);
                 }
             });
-            this.cellDefault.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExclusionUtils$ExclusionDialog$$ExternalSyntheticLambda2
+            this.cellDefault.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$new$2(view);

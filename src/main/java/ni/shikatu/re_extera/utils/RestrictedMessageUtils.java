@@ -24,12 +24,12 @@ public final class RestrictedMessageUtils {
     }
 
     public static void createMenu(final BaseFragment fragment, View view, final MessageObject toForward) {
-        ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda0
+        ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 RestrictedMessageUtils.forwardMessages(fragment, new ArrayList(Collections.singletonList(toForward)));
             }
-        }).add(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { // from class: ni.shikatu.re_extera.utils.RestrictedMessageUtils$$ExternalSyntheticLambda1
+        }).add(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 RestrictedMessageUtils.saveMessagesToSaved(fragment, new ArrayList(Collections.singletonList(toForward)));

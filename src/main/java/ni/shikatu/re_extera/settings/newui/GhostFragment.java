@@ -45,7 +45,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
     }
 
     private UItem ghostUItem() {
-        UItem ghostItem = UItem.asExteraExpandableSwitch(GhostIds.GHOST_ID.getId(), Localization.GHOST_MODE, String.format("%d/5", Integer.valueOf(Settings.countOfGhost())), new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda2
+        UItem ghostItem = UItem.asExteraExpandableSwitch(GhostIds.GHOST_ID.getId(), Localization.GHOST_MODE, String.format("%d/5", Integer.valueOf(Settings.countOfGhost())), new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 this.f$0.lambda$ghostUItem$0(view);
@@ -53,7 +53,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         });
         ghostItem.setChecked(Settings.getGhostModeEnabledGlobal());
         ghostItem.setCollapsed(!this.isGhostExpanded);
-        ghostItem.clickCallback = new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda3
+        ghostItem.clickCallback = new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 this.f$0.lambda$ghostUItem$1(view);
@@ -144,7 +144,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 presentFragment(new ExclusionsFragment());
                 break;
             case ReExteraDb.DB_VERSION /* 9 */:
-                new SendSilenceDialog(getParentActivity(), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda1
+                new SendSilenceDialog(getParentActivity(), new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {
                         this.f$0.lambda$onClick$2();
@@ -226,7 +226,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             return false;
         }
         view.performHapticFeedback(VibratorUtils.getType(3), 1);
-        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$$ExternalSyntheticLambda0
+        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 AndroidUtilities.addToClipboard(settingLink);
@@ -255,7 +255,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             this.layout.setOrientation(1);
             this.always = new RadioColorCell(this.context);
             this.always.setTextAndValue(Localization.ALWAYS, Settings.getSendSilence() == Settings.SendSilence.YES.getType());
-            this.always.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$SendSilenceDialog$$ExternalSyntheticLambda0
+            this.always.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$prepare$0(view);
@@ -263,7 +263,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             });
             this.onlyWithGhost = new RadioColorCell(this.context);
             this.onlyWithGhost.setTextAndValue(Localization.ONLY_WITH_GHOST, Settings.getSendSilence() == Settings.SendSilence.ONLY_WITH_GHOST.getType());
-            this.onlyWithGhost.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$SendSilenceDialog$$ExternalSyntheticLambda1
+            this.onlyWithGhost.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$prepare$1(view);
@@ -271,7 +271,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             });
             this.never = new RadioColorCell(this.context);
             this.never.setTextAndValue(Localization.NEVER, Settings.getSendSilence() == Settings.SendSilence.NO.getType());
-            this.never.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.GhostFragment$SendSilenceDialog$$ExternalSyntheticLambda2
+            this.never.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$prepare$2(view);

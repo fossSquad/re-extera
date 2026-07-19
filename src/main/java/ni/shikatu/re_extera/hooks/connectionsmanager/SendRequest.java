@@ -61,7 +61,7 @@ public class SendRequest extends XC_MethodHook {
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (Settings.getImmediateOfflineWithGhost() && !(param.args[0] instanceof TL_account.updateStatus)) {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-            ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, new RequestDelegate() { // from class: ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest$$ExternalSyntheticLambda0
+            ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, new RequestDelegate() { 
                 public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                     SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
                 }

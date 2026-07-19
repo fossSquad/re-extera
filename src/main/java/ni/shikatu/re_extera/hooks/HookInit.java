@@ -116,7 +116,7 @@ public final class HookInit {
     }
 
     private void tryHook(String name, final Class<?> clazz, final String methodName, final XC_MethodHook hook, final Class<?>... parameterTypes) {
-        tryAddHook(name, new HookRegistrar() { // from class: ni.shikatu.re_extera.hooks.HookInit$$ExternalSyntheticLambda0
+        tryAddHook(name, new HookRegistrar() { 
             @Override // ni.shikatu.re_extera.hooks.HookInit.HookRegistrar
             public final XC_MethodHook.Unhook register() {
                 return XposedBridge.hookMethod(clazz.getDeclaredMethod(methodName, parameterTypes), hook);

@@ -96,7 +96,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         TLRPC.User user = MessagesController.getInstance(this.currentAccount).getUser(Long.valueOf(userId));
         cell.setData(user, (TLRPC.EncryptedChat) null, (CharSequence) null, statusText, false, false);
         cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        cell.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanFragment$$ExternalSyntheticLambda1
+        cell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 this.f$0.lambda$createShadowbanCell$0(entry, position, view);
@@ -130,7 +130,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         builder.setTitle(userName);
         CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_SHADOWBAN, Localization.REMOVE_FROM_SHADOWBAN};
         int[] icons = {R.drawable.msg_openprofile, R.drawable.floating_pencil, R.drawable.msg_delete};
-        builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanFragment$$ExternalSyntheticLambda3
+        builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
                 this.f$0.lambda$showOptionsMenu$1(entry, position, dialogInterface, i);
@@ -161,7 +161,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
     }
 
     private void showEditDialog(final ShadowbanEntry entry, int position) {
-        ShadowbanDialog.showEdit(getContext(), entry, new ShadowbanDialog.OnShadowbanResult() { // from class: ni.shikatu.re_extera.ui.ShadowbanFragment$$ExternalSyntheticLambda0
+        ShadowbanDialog.showEdit(getContext(), entry, new ShadowbanDialog.OnShadowbanResult() { 
             @Override // ni.shikatu.re_extera.ui.ShadowbanDialog.OnShadowbanResult
             public final void onResult(boolean z, boolean z2) {
                 this.f$0.lambda$showEditDialog$2(entry, z, z2);
@@ -182,7 +182,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
     private void showDeleteConfirmation(final ShadowbanEntry entry, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(Localization.REMOVE_FROM_SHADOWBAN);
-        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.ShadowbanFragment$$ExternalSyntheticLambda2
+        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showDeleteConfirmation$3(entry, position, alertDialog, i);
             }
@@ -212,7 +212,7 @@ public class ShadowbanFragment extends BasePreferencesActivity {
         if (parts.isEmpty()) {
             return "";
         }
-        return ExclusionsFragment$$ExternalSyntheticBackport0.m(", ", parts);
+        return android.text.TextUtils.join(", ", parts);
     }
 
     private UniversalAdapter getAdapter() {

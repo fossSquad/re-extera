@@ -95,7 +95,7 @@ public final class ReflectionUtils {
         Main.getInstance().onUnload();
         final BaseFragment last = LaunchActivity.getLastFragment();
         if (last != null) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.ReflectionUtils$$ExternalSyntheticLambda0
+            AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     new ReflectionUtils.HooksInitFailedBottomSheet(last).show();
@@ -138,7 +138,7 @@ public final class ReflectionUtils {
             linearLayout.addView(descriptionView, LayoutHelper.createLinear(-1, -2, 0, 24, 8, 24, 0));
             ButtonWithCounterView restartButton = new ButtonWithCounterView(activity, true, this.resourcesProvider);
             restartButton.setText(Localization.CLOSE_APPLICATION, false);
-            restartButton.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ReflectionUtils$HooksInitFailedBottomSheet$$ExternalSyntheticLambda0
+            restartButton.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$new$0(activity, view);
@@ -153,7 +153,7 @@ public final class ReflectionUtils {
             continueButton.setTextColor(getThemedColor(Theme.key_featuredStickers_addButton));
             continueButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector), 2));
             continueButton.setPadding(AndroidUtilities.dp(16.0f), AndroidUtilities.dp(10.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(10.0f));
-            continueButton.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ReflectionUtils$HooksInitFailedBottomSheet$$ExternalSyntheticLambda1
+            continueButton.setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     this.f$0.lambda$new$1(view);

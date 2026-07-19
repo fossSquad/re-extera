@@ -65,7 +65,7 @@ public class DialogsActivityHook extends XC_MethodHook {
         ArrayList<Integer> layoutWithGhost = GhostMenuHelper.withGhostMenuItem(ExteraConfig.getMainMenuLayout(), true);
         ExteraConfig.getMainMenuLayout().clear();
         ExteraConfig.getMainMenuLayout().addAll(layoutWithGhost);
-        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook$$ExternalSyntheticLambda0
+        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return DialogsActivityHook.lambda$onBeforeAddItems$0((Integer) obj);
@@ -87,7 +87,7 @@ public class DialogsActivityHook extends XC_MethodHook {
         }
         final ItemOptions io = (ItemOptions) param.args[0];
         boolean enabled = Settings.getGhostModeEnabledGlobal();
-        io.add(R.drawable.ghost, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { // from class: ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook$$ExternalSyntheticLambda1
+        io.add(R.drawable.ghost, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 DialogsActivityHook.lambda$onBeforeAddItem$1(io, param);

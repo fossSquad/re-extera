@@ -35,7 +35,7 @@ public class DeleteMessages extends XC_MethodHook {
         if (lastFragment instanceof ChatActivity) {
             final ChatActivity chat = lastFragment;
             chat.getClass();
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.DeleteMessages$$ExternalSyntheticLambda0
+            AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     chat.clearSelectionMode();

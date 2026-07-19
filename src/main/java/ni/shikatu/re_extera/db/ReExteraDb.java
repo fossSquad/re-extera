@@ -46,7 +46,7 @@ public final class ReExteraDb {
         this.dbThread = new HandlerThread("re_extera_db");
         this.dbThread.start();
         this.dbHandler = new Handler(this.dbThread.getLooper());
-        this.dbHandler.postDelayed(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda1
+        this.dbHandler.postDelayed(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.pruneStaleEntries();
@@ -87,7 +87,7 @@ public final class ReExteraDb {
     }
 
     public void putDeletedMessageAsync(final long did, final int mid) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda7
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$putDeletedMessageAsync$0(did, mid);
@@ -145,7 +145,7 @@ public final class ReExteraDb {
             return;
         }
         final ArrayList<Integer> copy = new ArrayList<>(mids);
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda8
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$batchPutDeletedMessagesAsync$1(did, copy);
@@ -326,7 +326,7 @@ public final class ReExteraDb {
     }
 
     public void saveOriginalMessageAsync(final long did, final int mid, final TLRPC.Message message) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda3
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$saveOriginalMessageAsync$2(did, mid, message);
@@ -393,7 +393,7 @@ public final class ReExteraDb {
     }
 
     public void saveNewVersionMessageAsync(final long did, final int mid, final TLRPC.Message msg) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda10
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$saveNewVersionMessageAsync$3(did, mid, msg);
@@ -535,7 +535,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogReadingAsync(final long did, final int value) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda6
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$setDialogReadingAsync$4(did, value);
@@ -549,7 +549,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogTypingAsync(final long did, final int value) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda5
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$setDialogTypingAsync$5(did, value);
@@ -735,7 +735,7 @@ public final class ReExteraDb {
     }
 
     public void addShadowbanAsync(final long userId, final boolean hideDialog, final boolean hideInGroups) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda4
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$addShadowbanAsync$6(userId, hideDialog, hideInGroups);
@@ -754,7 +754,7 @@ public final class ReExteraDb {
     }
 
     public void removeShadowbanAsync(final long userId) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda9
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$removeShadowbanAsync$7(userId);
@@ -876,7 +876,7 @@ public final class ReExteraDb {
     }
 
     public void updateShadowbanAsync(final long userId, final boolean hideDialog, final boolean hideInGroups) {
-        postToDbThread(new Runnable() { // from class: ni.shikatu.re_extera.db.ReExteraDb$$ExternalSyntheticLambda2
+        postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$updateShadowbanAsync$8(userId, hideDialog, hideInGroups);

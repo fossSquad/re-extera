@@ -335,7 +335,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         this.contentView.addView(this.emptyView, LayoutHelper.createFrame(-2, -2, 17));
         this.contentView.addView(this.actionBar);
         this.fragmentView = this.contentView;
-        this.fragmentView.post(new MessageHistoryFragment$$ExternalSyntheticLambda1(this));
+        this.fragmentView.post(this::reloadMessages);
         return this.fragmentView;
     }
 
@@ -349,7 +349,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
     public void onResume() {
         super.onResume();
         if (this.fragmentView != null) {
-            this.fragmentView.post(new MessageHistoryFragment$$ExternalSyntheticLambda1(this));
+            this.fragmentView.post(this::reloadMessages);
         }
     }
 
@@ -380,7 +380,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         }
         final int currentGeneration = this.reloadGeneration + 1;
         this.reloadGeneration = currentGeneration;
-        this.adapter.reloadAsync(this.did, this.mid, new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$$ExternalSyntheticLambda0
+        this.adapter.reloadAsync(this.did, this.mid, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$reloadMessages$0(currentGeneration);
@@ -975,7 +975,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         void reloadAsync(final long did, final int mid, final Runnable onDone) {
             final int currentGeneration = this.loadGeneration + 1;
             this.loadGeneration = currentGeneration;
-            Utilities.globalQueue.postRunnable(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$HistoryAdapter$$ExternalSyntheticLambda2
+            Utilities.globalQueue.postRunnable(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     this.f$0.lambda$reloadAsync$2(did, mid, currentGeneration, onDone);
@@ -993,14 +993,14 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
                 }
                 loadedItems.add(new MessageObject(this.currentAccount, version, false, false));
             }
-            loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$HistoryAdapter$$ExternalSyntheticLambda0
+            loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { 
                 @Override // java.util.function.ToIntFunction
                 public final int applyAsInt(Object obj) {
                     return ((MessageObject) obj).messageOwner.date;
                 }
             }));
             final ArrayList<MessageObject> loadedRows = buildRows(loadedItems);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.ui.MessageHistoryFragment$HistoryAdapter$$ExternalSyntheticLambda1
+            AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     this.f$0.lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);

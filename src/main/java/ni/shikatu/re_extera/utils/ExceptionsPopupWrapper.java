@@ -58,7 +58,7 @@ public class ExceptionsPopupWrapper {
         this.windowLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(context, 0, resourcesProvider);
         this.windowLayout.setFitItems(true);
         if (swipeBackLayout != null) {
-            ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_arrow_back, LocaleController.getString(R.string.Back), false, resourcesProvider).setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExceptionsPopupWrapper$$ExternalSyntheticLambda0
+            ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_arrow_back, LocaleController.getString(R.string.Back), false, resourcesProvider).setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     swipeBackLayout.closeForeground();
@@ -66,21 +66,21 @@ public class ExceptionsPopupWrapper {
             });
         }
         ActionBarMenuSubItem itemReading = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_archive_hide, Localization.EXCEPTION_READING_TEXT, false, resourcesProvider);
-        itemReading.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExceptionsPopupWrapper$$ExternalSyntheticLambda1
+        itemReading.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$1(callback, view);
             }
         });
         ActionBarMenuSubItem itemTyping = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.floating_pencil, Localization.EXCEPTION_TYPING_TEXT, false, resourcesProvider);
-        itemTyping.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExceptionsPopupWrapper$$ExternalSyntheticLambda2
+        itemTyping.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$2(callback, view);
             }
         });
         ActionBarMenuSubItem itemViewDeleted = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.chats_archive, Localization.VIEW_DELETED, false, resourcesProvider);
-        itemViewDeleted.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExceptionsPopupWrapper$$ExternalSyntheticLambda3
+        itemViewDeleted.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$3(callback, view);
@@ -88,7 +88,7 @@ public class ExceptionsPopupWrapper {
         });
         addGap(9992, this.windowLayout, resourcesProvider);
         ActionBarMenuSubItem itemFinallyDelete = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_clear, Localization.CLEAR_DELETED, false, resourcesProvider);
-        itemFinallyDelete.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.ExceptionsPopupWrapper$$ExternalSyntheticLambda4
+        itemFinallyDelete.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$4(callback, view);

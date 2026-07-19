@@ -34,7 +34,7 @@ public final class Main {
     public static HookInit hooks;
     private static final Method initiateFragmentMethod;
     private static volatile Main instance;
-    public static final List<Class<? extends BaseFragment>> fragments = Defaults$$ExternalSyntheticBackport0.m(new Object[]{AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class});
+    public static final List<Class<? extends BaseFragment>> fragments = java.util.Arrays.asList(AdditionalFragment.class, SettingsFragmentNew.class, DeletedAndEditedMessagesFragment.class, GhostFragment.class, RegexFiltersFragment.class, ShadowbanFragment.class);
     public static final Set<TLObject> ignoredRequests = Collections.newSetFromMap(new ConcurrentHashMap());
 
     static {

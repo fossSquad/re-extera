@@ -96,7 +96,7 @@ public final class GhostMenuHelper {
 
     public static ArrayList<Integer> withGhostMenuItem(List<Integer> sourceIds, boolean mainSection) {
         ArrayList<Integer> ids = new ArrayList<>(sourceIds);
-        ids.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.utils.GhostMenuHelper$$ExternalSyntheticLambda1
+        ids.removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return GhostMenuHelper.lambda$withGhostMenuItem$0((Integer) obj);
@@ -160,13 +160,13 @@ public final class GhostMenuHelper {
     }
 
     public static boolean scrubGhostFromConfig() {
-        boolean changed = ExteraConfig.getMainMenuLayout().removeIf(new Predicate() { // from class: ni.shikatu.re_extera.utils.GhostMenuHelper$$ExternalSyntheticLambda2
+        boolean changed = ExteraConfig.getMainMenuLayout().removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return GhostMenuHelper.lambda$scrubGhostFromConfig$1((Integer) obj);
             }
         });
-        return changed | ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { // from class: ni.shikatu.re_extera.utils.GhostMenuHelper$$ExternalSyntheticLambda3
+        return changed | ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return GhostMenuHelper.lambda$scrubGhostFromConfig$2((Integer) obj);
@@ -196,7 +196,7 @@ public final class GhostMenuHelper {
         DrawerMenuItemView itemView = new DrawerMenuItemView(drawerMenuView.getContext());
         itemView.setMenuItem(GHOST_MENU_ITEM_ID, currentAccount, R.drawable.ghost, getDrawerTitle());
         final Runnable onItemClick = getDrawerOnItemClick(drawerMenuView);
-        itemView.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.utils.GhostMenuHelper$$ExternalSyntheticLambda0
+        itemView.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 GhostMenuHelper.lambda$injectIntoDrawer$3(onItemClick, fragment, view);
@@ -411,7 +411,7 @@ public final class GhostMenuHelper {
 
     private static DrawerInsertionInfo resolveDrawerInsertionInfo(int currentAccount, BaseFragment fragment) {
         ArrayList<Integer> layout = new ArrayList<>(ExteraConfig.getMainMenuLayout());
-        layout.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.utils.GhostMenuHelper$$ExternalSyntheticLambda4
+        layout.removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return GhostMenuHelper.lambda$resolveDrawerInsertionInfo$4((Integer) obj);

@@ -61,7 +61,7 @@ public final class InternalUtils {
             ReflectionUtils.invokeOriginalMethod(markMessagesAsDeleted, storage, new Object[]{Long.valueOf(did), copy, false, 0, 0});
             if (shouldNotify) {
                 ProcessDeletedMessages.onRequestToDelete.addAll(copy);
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda3
+                AndroidUtilities.runOnUIThread(new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {
                         InternalUtils.lambda$deleteMessages$1(currentAccount, did, copy, storage, rChannelId, messagesIds);
@@ -81,14 +81,14 @@ public final class InternalUtils {
                 while (it.hasNext()) {
                     final int mid = ((Integer) it.next()).intValue();
                     Main.log("Removing in %d mid: %d", Long.valueOf(did), Integer.valueOf(mid));
-                    Optional optionalFindFirst = chat.messages.stream().filter(new Predicate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda1
+                    Optional optionalFindFirst = chat.messages.stream().filter(new Predicate() { 
                         @Override // java.util.function.Predicate
                         public final boolean test(Object obj) {
                             return InternalUtils.lambda$deleteMessages$0(mid, (MessageObject) obj);
                         }
                     }).findFirst();
                     chat.getClass();
-                    optionalFindFirst.ifPresent(new Consumer() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda2
+                    optionalFindFirst.ifPresent(new Consumer() { 
                         @Override // java.util.function.Consumer
                         public final void accept(Object obj) {
                             chat.removeMessageWithThanos((MessageObject) obj);
@@ -167,7 +167,7 @@ public final class InternalUtils {
             ((TLRPC.TL_messages_readHistory) r).max_id = maxId;
         }
         Main.addIgnoredRequest(r);
-        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda0
+        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { 
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 InternalUtils.lambda$sendReadMessage$2(vibrate, tLObject, tL_error);
             }
@@ -199,7 +199,7 @@ public final class InternalUtils {
             ((TLRPC.TL_messages_readHistory) r).max_id = messageObject.getId();
         }
         Main.addIgnoredRequest(r);
-        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { // from class: ni.shikatu.re_extera.utils.InternalUtils$$ExternalSyntheticLambda4
+        ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { 
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 InternalUtils.lambda$sendReadMessage$3(vibrate, tLObject, tL_error);
             }

@@ -40,7 +40,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
             if (otherItem != null && userId > 0) {
                 if (ShadowbanCache.isShadowbanned(userId)) {
                     ActionBarMenuSubItem subItem = otherItem.addSubItem(0, R.drawable.msg_block2, Localization.REMOVE_FROM_SHADOWBAN);
-                    subItem.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda0
+                    subItem.setOnClickListener(new View.OnClickListener() { 
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view) {
                             ProfileMenuShadowban.lambda$afterHookedMethod$0(userId, otherItem, currentAccount, activity, view);
@@ -48,7 +48,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
                     });
                 } else {
                     ActionBarMenuSubItem subItem2 = otherItem.addSubItem(0, R.drawable.msg_block, Localization.ADD_TO_SHADOWBAN);
-                    subItem2.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda1
+                    subItem2.setOnClickListener(new View.OnClickListener() { 
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view) {
                             ProfileMenuShadowban.lambda$afterHookedMethod$2(otherItem, activity, userId, currentAccount, view);
@@ -70,7 +70,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
 
     static /* synthetic */ void lambda$afterHookedMethod$2(ActionBarMenuItem otherItem, final ProfileActivity activity, long userId, final int currentAccount, View v) {
         otherItem.closeSubMenu();
-        ShadowbanDialog.showAddAndSave(activity.getParentActivity(), userId, new Runnable() { // from class: ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShadowban$$ExternalSyntheticLambda2
+        ShadowbanDialog.showAddAndSave(activity.getParentActivity(), userId, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 ProfileMenuShadowban.lambda$afterHookedMethod$1(currentAccount, activity);

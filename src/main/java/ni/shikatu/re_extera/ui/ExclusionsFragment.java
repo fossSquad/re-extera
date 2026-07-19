@@ -101,7 +101,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
             cell.setData(chat, (TLRPC.EncryptedChat) null, (CharSequence) null, statusText, false, false);
         }
         cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        cell.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda2
+        cell.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 this.f$0.lambda$createExclusionCell$0(exception, position, view);
@@ -129,7 +129,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         builder.setTitle(dialogName);
         CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.DELETE_FROM_EXCLUSIONS};
         int[] icons = {R.drawable.msg_openprofile, R.drawable.msg_archive_hide, R.drawable.floating_pencil, R.drawable.msg_delete};
-        builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda3
+        builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
                 this.f$0.lambda$showOptionsMenu$1(exception, position, dialogInterface, i);
@@ -167,7 +167,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     private void showEditReadingDialog(final DialogExclusion exception, final int position) {
-        new ExclusionUtils.ExclusionReadingDialog(getContext(), exception.dialogId, new Runnable() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda5
+        new ExclusionUtils.ExclusionReadingDialog(getContext(), exception.dialogId, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$showEditReadingDialog$2(exception, position);
@@ -187,7 +187,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     }
 
     private void showEditTypingDialog(final DialogExclusion exception, final int position) {
-        new ExclusionUtils.ExclusionTypingDialog(getContext(), exception.dialogId, new Runnable() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda1
+        new ExclusionUtils.ExclusionTypingDialog(getContext(), exception.dialogId, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$showEditTypingDialog$3(exception, position);
@@ -209,7 +209,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     private void showDeleteConfirmation(final DialogExclusion exception, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(Localization.DELETE_FROM_EXCLUSIONS);
-        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment$$ExternalSyntheticLambda4
+        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showDeleteConfirmation$4(exception, position, alertDialog, i);
             }
@@ -254,7 +254,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         if (parts.isEmpty()) {
             return Localization.NO_EXLCUSIONS;
         }
-        return ExclusionsFragment$$ExternalSyntheticBackport0.m(", ", parts);
+        return android.text.TextUtils.join(", ", parts);
     }
 
     private String getExclusionText(int exclusion) {

@@ -31,7 +31,7 @@ public class SortDialogsHook extends XC_MethodHook {
         try {
             ArrayList<TLRPC.Dialog> allDialogs = (ArrayList) ReflectionUtils.get(ALL_DIALOGS_FIELD, param.thisObject);
             if (allDialogs != null && !allDialogs.isEmpty()) {
-                allDialogs.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.SortDialogsHook$$ExternalSyntheticLambda0
+                allDialogs.removeIf(new Predicate() { 
                     @Override // java.util.function.Predicate
                     public final boolean test(Object obj) {
                         return SortDialogsHook.lambda$afterHookedMethod$0((TLRPC.Dialog) obj);

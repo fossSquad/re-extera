@@ -331,7 +331,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         this.contentView.addView(this.emptyView, LayoutHelper.createFrame(-2, -2, 17));
         this.contentView.addView(this.actionBar);
         this.fragmentView = this.contentView;
-        this.fragmentView.post(new DeletedMessagesInChatFragment$$ExternalSyntheticLambda0(this));
+        this.fragmentView.post(this::reloadMessages);
         return this.fragmentView;
     }
 
@@ -345,7 +345,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
     public void onResume() {
         super.onResume();
         if (this.fragmentView != null) {
-            this.fragmentView.post(new DeletedMessagesInChatFragment$$ExternalSyntheticLambda0(this));
+            this.fragmentView.post(this::reloadMessages);
         }
     }
 
@@ -375,7 +375,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         }
         final int currentGeneration = this.reloadGeneration + 1;
         this.reloadGeneration = currentGeneration;
-        this.adapter.reloadAsync(this.did, new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$$ExternalSyntheticLambda1
+        this.adapter.reloadAsync(this.did, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 this.f$0.lambda$reloadMessages$0(currentGeneration);
@@ -982,7 +982,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         void reloadAsync(final long did, final Runnable onDone) {
             final int currentGeneration = this.loadGeneration + 1;
             this.loadGeneration = currentGeneration;
-            Utilities.globalQueue.postRunnable(new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda0
+            Utilities.globalQueue.postRunnable(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     this.f$0.lambda$reloadAsync$2(did, currentGeneration, onDone);
@@ -1002,14 +1002,14 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
                     }
                 }
             }
-            loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda1
+            loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { 
                 @Override // java.util.function.ToIntFunction
                 public final int applyAsInt(Object obj) {
                     return ((MessageObject) obj).messageOwner.date;
                 }
             }));
             final ArrayList<MessageObject> loadedRows = buildRows(loadedItems);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment$DeletedAdapter$$ExternalSyntheticLambda2
+            AndroidUtilities.runOnUIThread(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     this.f$0.lambda$reloadAsync$1(currentGeneration, loadedItems, loadedRows, onDone);

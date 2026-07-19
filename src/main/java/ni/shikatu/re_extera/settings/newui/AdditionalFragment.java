@@ -135,7 +135,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             return false;
         }
         view.performHapticFeedback(VibratorUtils.getType(3), 1);
-        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda4
+        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 AndroidUtilities.addToClipboard(settingLink);
@@ -147,12 +147,12 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     private void showClearDbDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(Localization.CLEAR_DB + "?");
-        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda1
+        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showClearDbDialog$2(alertDialog, i);
             }
         });
-        builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda2
+        builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 alertDialog.dismiss();
             }
@@ -168,7 +168,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         progressDialog.setCancelable(false);
         progressDialog.show();
         final int currentAccount = getCurrentAccount();
-        new Thread(new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda3
+        new Thread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 AdditionalFragment.lambda$showClearDbDialog$1(currentAccount, progressDialog);
@@ -179,7 +179,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     static /* synthetic */ void lambda$showClearDbDialog$1(int currentAccount, final AlertDialog progressDialog) {
         InternalUtils.clearSavedMessages(currentAccount);
         progressDialog.getClass();
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.AdditionalFragment$$ExternalSyntheticLambda0
+        AndroidUtilities.runOnUIThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 progressDialog.dismiss();

@@ -72,7 +72,7 @@ public final class ShadowbanCache {
     }
 
     public static void notifyDialogsUpdate(final int account) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: ni.shikatu.re_extera.utils.ShadowbanCache$$ExternalSyntheticLambda0
+        AndroidUtilities.runOnUIThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 ShadowbanCache.lambda$notifyDialogsUpdate$0(account);

@@ -133,12 +133,12 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$$ExternalSyntheticLambda0
+                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             AndroidUtilities.addToClipboard(settingLink);
                         }
-                    }).add(R.drawable.msg_settings, Localization.ADDITIONAL_SETTINGS, new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$$ExternalSyntheticLambda1
+                    }).add(R.drawable.msg_settings, Localization.ADDITIONAL_SETTINGS, new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             this.f$0.showAdditionalDeleted();
@@ -151,7 +151,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 final String settingLink2 = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink2)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$$ExternalSyntheticLambda2
+                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             AndroidUtilities.addToClipboard(settingLink2);
@@ -170,7 +170,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         layout.setOrientation(1);
         final TextCheckCell saveManuallyDeletedMessages = new TextCheckCell(getContext());
         saveManuallyDeletedMessages.setTextAndValueAndCheck(Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, false);
-        saveManuallyDeletedMessages.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$$ExternalSyntheticLambda3
+        saveManuallyDeletedMessages.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 DeletedAndEditedMessagesFragment.lambda$showAdditionalDeleted$2(saveManuallyDeletedMessages, view);
@@ -179,7 +179,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         layout.addView(saveManuallyDeletedMessages);
         final TextCheckCell useExpandableBlockQuote = new TextCheckCell(getContext());
         useExpandableBlockQuote.setTextAndValueAndCheck(Localization.USE_COLLAPSED_BLOCKQUOTE, Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION, Settings.getUseExpandableBlockQuote(), true, false);
-        useExpandableBlockQuote.setOnClickListener(new View.OnClickListener() { // from class: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$$ExternalSyntheticLambda4
+        useExpandableBlockQuote.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 DeletedAndEditedMessagesFragment.lambda$showAdditionalDeleted$3(useExpandableBlockQuote, view);

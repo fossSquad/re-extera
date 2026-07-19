@@ -14,7 +14,7 @@ public class FilterShadowbannedDialogs extends XC_MethodHook {
             if (dialogs.isEmpty()) {
                 return;
             }
-            dialogs.removeIf(new Predicate() { // from class: ni.shikatu.re_extera.hooks.messagescontroller.FilterShadowbannedDialogs$$ExternalSyntheticLambda0
+            dialogs.removeIf(new Predicate() { 
                 @Override // java.util.function.Predicate
                 public final boolean test(Object obj) {
                     return FilterShadowbannedDialogs.lambda$afterHookedMethod$0((TLRPC.Dialog) obj);

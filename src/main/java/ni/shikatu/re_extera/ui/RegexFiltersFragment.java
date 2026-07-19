@@ -119,7 +119,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setTitle(filter);
         CharSequence[] items = {Localization.EDIT_REGEX_FILTER, Localization.COPY_FILTER, Localization.DELETE_FILTER};
         int[] icons = {R.drawable.floating_pencil, R.drawable.msg_copy, R.drawable.msg_delete};
-        builder.setItems(items, icons, new DialogInterface.OnClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda3
+        builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
                 this.f$0.lambda$showOptionsMenu$0(filter, position, dialogInterface, i);
@@ -176,14 +176,14 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
         container.addView((View) editText, (ViewGroup.LayoutParams) LayoutHelper.createFrame(-1, -2.0f, 0, 24.0f, 12.0f, 24.0f, 0.0f));
         builder.setView(container);
-        builder.setPositiveButton(isEdit ? Localization.SAVE : Localization.ADD, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda1
+        builder.setPositiveButton(isEdit ? Localization.SAVE : Localization.ADD, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showFilterDialog$1(editText, context, isEdit, existingFilter, position, alertDialog, i);
             }
         });
         builder.setNegativeButton(Localization.CANCEL, (AlertDialog.OnButtonClickListener) null);
         AlertDialog dialog = builder.create();
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda2
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() { 
             @Override // android.content.DialogInterface.OnShowListener
             public final void onShow(DialogInterface dialogInterface) {
                 RegexFiltersFragment.lambda$showFilterDialog$2(editText, dialogInterface);
@@ -230,7 +230,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(Localization.DELETE_FILTER);
         builder.setMessage(Localization.DELETE_FILTER_ABOUT);
-        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment$$ExternalSyntheticLambda0
+        builder.setPositiveButton(Localization.YES, new AlertDialog.OnButtonClickListener() { 
             public final void onClick(AlertDialog alertDialog, int i) {
                 this.f$0.lambda$showDeleteConfirmation$3(position, alertDialog, i);
             }
