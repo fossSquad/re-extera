@@ -30,4 +30,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: classes.dex
-        path: build/outputs/dex/release/classes.dex
+        path: build/dex/classes.dex
