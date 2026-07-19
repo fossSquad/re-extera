@@ -84,6 +84,12 @@ public final class Main {
         LaunchActivity.instance.presentFragment(new SettingsFragmentNew());
     }
 
+    public static void showSettingsExternal() {
+        if (instance != null) {
+            instance.showSettings();
+        }
+    }
+
     public static void addIgnoredRequest(TLObject request) {
         if (request != null) {
             ignoredRequests.add(request);

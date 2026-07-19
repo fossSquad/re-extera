@@ -257,6 +257,8 @@ class Loader:
         # Try InMemoryDexClassLoader first (no disk write needed)
         try:
             clazz, loader = self._load_dex_inmemory(bytesdex)
+            self.dex_loader = loader
+            self.dex_main_class = clazz
             self._call_start(clazz)
             self.plugin.log(f"Loaded {CLASS_NAME} (in-memory)")
             return
@@ -268,6 +270,8 @@ class Loader:
         if os.path.exists(dex_path):
             try:
                 clazz, loader = self._load_dex_from_file(dex_path)
+                self.dex_loader = loader
+                self.dex_main_class = clazz
                 self._call_start(clazz)
                 self.plugin.log(f"Loaded {CLASS_NAME} (from file)")
                 return
@@ -608,8 +612,11 @@ class Plugin(BasePlugin):
 
     def _open_re_extera_settings(self):
         try:
-            from ni.shikatu.re_extera.settings.newui import SettingsFragmentNew
-            LaunchActivity.instance.presentFragment(SettingsFragmentNew())
+            if self.loader is None or self.loader.dex_main_class is None:
+                self.log("DEX not loaded")
+                return
+            show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
+            show_method.invoke(None)
         except Exception as e:
             self.log(f"Error opening DEX settings: {e}")
 
