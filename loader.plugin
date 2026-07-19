@@ -1,10 +1,10 @@
-__id__ = "re_extera_dex"
+__id__ = "re_extera_loader"
 
 __name__ = "re:extera v2"
 
 __description__ = "Enable ghost mode, save deleted messages and more!"
 
-__author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins"
+__author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad"
 
 __version__ = "2.5.0"
 
@@ -562,6 +562,11 @@ class Plugin(BasePlugin):
             text=_localize("install_file"),
             on_click=lambda v: self._on_install_file()
         ))
+        items.append(Divider())
+        items.append(Text(
+            text="DEX Settings",
+            on_click=lambda v: self._open_re_extera_settings()
+        ))
 
         return items
 
@@ -602,8 +607,11 @@ class Plugin(BasePlugin):
             BulletinHelper.show_info(msg, get_last_fragment())
 
     def _open_re_extera_settings(self):
-        if self.loader is not None:
-            self.loader.open_settings()
+        try:
+            from ni.shikatu.re_extera.settings.newui import SettingsFragmentNew
+            LaunchActivity.instance.presentFragment(SettingsFragmentNew())
+        except Exception as e:
+            self.log(f"Error opening DEX settings: {e}")
 
     # ── Plugin lifecycle ───────────────────────────────────────────────────
 
