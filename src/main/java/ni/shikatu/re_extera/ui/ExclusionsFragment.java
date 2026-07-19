@@ -70,7 +70,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         if (this.exceptions.isEmpty()) {
             items.add(UItem.asCustom(createEmptyView(getContext())));
             return;
@@ -82,10 +82,10 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         items.add(UItem.asShadow((CharSequence) null));
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         return false;
     }
 

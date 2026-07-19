@@ -43,8 +43,8 @@ public final class ReflectionUtils {
         } catch (InvocationTargetException e2) {
             Main.log("InvocationTargetException: %s", e2.getMessage());
             return null;
-        } catch (Exception e3) {
-            Main.log("Reflection invoke error: %s", e3.getMessage());
+        } catch (Exception e) {
+            Main.log("Reflection invoke error: %s", "");
             return null;
         }
     }

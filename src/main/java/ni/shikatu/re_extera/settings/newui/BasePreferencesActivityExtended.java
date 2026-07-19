@@ -11,7 +11,7 @@ public abstract class BasePreferencesActivityExtended extends BasePreferencesAct
 
     protected void refreshCheckBox(UItem item, int position, boolean checked, boolean fullReload) {
         item.setChecked(checked);
-        CheckBoxCell checkBoxCellFindViewByItemId = this.listView.findViewByItemId(item.id);
+        CheckBoxCell checkBoxCellFindViewByItemId = (CheckBoxCell) this.listView.findViewByItemId(item.id);
         if (checkBoxCellFindViewByItemId instanceof CheckBoxCell) {
             CheckBoxCell checkBoxCell = checkBoxCellFindViewByItemId;
             checkBoxCell.setChecked(checked, true);

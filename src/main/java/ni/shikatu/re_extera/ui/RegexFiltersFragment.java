@@ -79,7 +79,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()).setLinkAlias("reExteraFiltersEnable", this));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         for (int i = 0; i < this.filters.size(); i++) {
@@ -90,7 +90,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         items.add(UItem.asShadow((CharSequence) null));
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
         int filterIndex;
         if (item.id == 1) {
             Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
@@ -105,7 +105,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         int index = item.id - 100;
         if (index >= 0 && index < this.filters.size()) {
             showDeleteConfirmation(index);

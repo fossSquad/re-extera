@@ -227,10 +227,8 @@ public class MessageForwarder {
                     throw th5;
                 }
             }
-            Main.log("ForwardCopy: decrypt error: %s", e.getMessage());
-            return null;
         } catch (Exception e) {
-            Main.log("ForwardCopy: decrypt error: %s", e.getMessage());
+            Main.log("ForwardCopy: decrypt error: %s", "");
             return null;
         }
     }
@@ -356,7 +354,7 @@ public class MessageForwarder {
         dialog.cancel();
         progressDialog = null;
         FileLoader fl = FileLoader.getInstance(currentAccount);
-        for (String fileName : new ArrayList(cancelFileNames)) {
+        for (String fileName : new java.util.ArrayList<String>(cancelFileNames)) {
             fl.cancelLoadFile(fileName);
         }
         nc.removeObserver(observer, NotificationCenter.fileLoaded);
@@ -433,7 +431,7 @@ public class MessageForwarder {
             return;
         }
         if (original2.media instanceof TLRPC.TL_messageMediaContact) {
-            TLRPC.TL_messageMediaContact contact = original2.media;
+            TLRPC.TL_messageMediaContact contact = (TLRPC.TL_messageMediaContact) original2.media;
             TLRPC.TL_user tL_user = new TLRPC.TL_user();
             ((TLRPC.User) tL_user).id = contact.user_id;
             ((TLRPC.User) tL_user).first_name = contact.first_name;
@@ -448,12 +446,12 @@ public class MessageForwarder {
         }
         if (original2.media instanceof TLRPC.TL_messageMediaToDo) {
             SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of((TLRPC.TL_messageMediaPoll) null, peer, replyToTopMsg, replyToTopMsg, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0);
-            params.todo = original2.media;
+            params.todo = (TLRPC.TL_messageMediaToDo) original2.media;
             accountInstance2.getSendMessagesHelper().sendMessage(params);
             return;
         }
         if (original2.media instanceof TLRPC.TL_messageMediaDice) {
-            String emoji = msgObj.getDiceEmoji(original2.media);
+            String emoji = msgObj.getDiceEmoji((TLRPC.TL_messageMediaDice) original2.media);
             if (emoji == null || emoji.isEmpty()) {
                 emoji = "🎲";
             }
@@ -496,7 +494,7 @@ public class MessageForwarder {
             original = original2;
             accountInstance.getSendMessagesHelper().sendSticker(document, (String) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (MessageObject.SendAnimationData) null, notify, scheduleDate, 0, false, msgObj, (String) null, 0, 0L, 0L, (MessageSuggestionParams) null);
         } else if (MessageObject.isVoiceMessage(original2)) {
-            accountInstance.getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of(msgObj.getDocument(), (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, (String) null, (ArrayList) null, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, 0, msgObj, (MessageObject.SendAnimationData) null, false, false));
+            accountInstance.getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of((TLRPC.TL_document) msgObj.getDocument(), (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, (String) null, (ArrayList) null, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, 0, msgObj, (MessageObject.SendAnimationData) null, false, false));
             original = original2;
         } else if (MessageObject.isRoundVideoMessage(original2)) {
             VideoEditedInfo videoInfo = buildVideoEditedInfo(document, path, true);
@@ -574,7 +572,7 @@ public class MessageForwarder {
             return media;
         }
         if (message.media instanceof TLRPC.TL_messageMediaPhoto) {
-            TLRPC.TL_messageMediaPhoto mp = message.media;
+            TLRPC.TL_messageMediaPhoto mp = (TLRPC.TL_messageMediaPhoto) message.media;
             TLRPC.PhotoSize photoSize = getPhotoSize(message);
             if (photoSize != null) {
                 media.add(new RequiredMedia(photoSize, mp.photo));
@@ -607,13 +605,13 @@ public class MessageForwarder {
 
     private static void startMediaDownload(FileLoader fileLoader, MessageObject msgObj, RequiredMedia media) {
         if (media.attach instanceof TLRPC.Document) {
-            fileLoader.loadFile(media.attach, msgObj, 3, 0);
+            fileLoader.loadFile((TLRPC.Document) media.attach, msgObj, 3, 0);
             return;
         }
         if ((media.attach instanceof TLRPC.PhotoSize) && media.photoParent != null) {
-            fileLoader.loadFile(ImageLocation.getForPhoto(media.attach, media.photoParent), msgObj, (String) null, 3, 0);
+            fileLoader.loadFile(ImageLocation.getForPhoto((TLRPC.PhotoSize) media.attach, media.photoParent), msgObj, (String) null, 3, 0);
         } else if ((media.attach instanceof TLRPC.VideoSize) && media.photoParent != null) {
-            fileLoader.loadFile(ImageLocation.getForPhoto(media.attach, media.photoParent), msgObj, (String) null, 3, 0);
+            fileLoader.loadFile(ImageLocation.getForPhoto((TLRPC.PhotoSize) media.attach, media.photoParent), msgObj, (String) null, 3, 0);
         }
     }
 
@@ -729,7 +727,7 @@ public class MessageForwarder {
         if (document != null && !(document instanceof TLRPC.TL_documentEmpty)) {
             return new RequiredMedia(document, null);
         }
-        TLRPC.TL_messageMediaPhoto mp = message.media;
+        TLRPC.TL_messageMediaPhoto mp = (TLRPC.TL_messageMediaPhoto) message.media;
         if (mp.photo == null || mp.photo.video_sizes == null || mp.photo.video_sizes.isEmpty() || (videoSize = FileLoader.getClosestVideoSizeWithSize(mp.photo.video_sizes, 1000)) == null) {
             return null;
         }
@@ -740,7 +738,7 @@ public class MessageForwarder {
         if (!(message.media instanceof TLRPC.TL_messageMediaPhoto)) {
             return null;
         }
-        TLRPC.TL_messageMediaPhoto mp = message.media;
+        TLRPC.TL_messageMediaPhoto mp = (TLRPC.TL_messageMediaPhoto) message.media;
         if (mp.photo == null || mp.photo.sizes == null || mp.photo.sizes.isEmpty()) {
             return null;
         }
@@ -751,7 +749,7 @@ public class MessageForwarder {
         int width = -1;
         int height = -1;
         int duration = -1;
-        for (TLRPC.TL_documentAttributeVideo tL_documentAttributeVideo : document.attributes) {
+        for (TLRPC.DocumentAttribute attr : document.attributes) { if (!(attr instanceof TLRPC.TL_documentAttributeVideo)) continue; TLRPC.TL_documentAttributeVideo tL_documentAttributeVideo = (TLRPC.TL_documentAttributeVideo) attr;
             if (tL_documentAttributeVideo instanceof TLRPC.TL_documentAttributeVideo) {
                 TLRPC.TL_documentAttributeVideo v = tL_documentAttributeVideo;
                 width = v.w;

@@ -60,7 +60,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             if (id != NotificationCenter.messagesDidLoad && id != NotificationCenter.messagesDidLoadWithoutProcess) {
                 return;
             }
-            ChatActivity lastFragment = LaunchActivity.getLastFragment();
+            ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
             if (!(lastFragment instanceof ChatActivity)) {
                 return;
             }

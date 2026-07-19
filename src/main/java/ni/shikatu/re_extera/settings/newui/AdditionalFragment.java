@@ -43,7 +43,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         return Localization.OTHER;
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()).setLinkAlias("reExteraIgnoreFlagSecure", this));
         items.add(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()).setLinkAlias("reExteraLocalPremium", this));
         items.add(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()).setLinkAlias("reExteraNoForward", this));
@@ -91,7 +91,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         }
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > AdditionalIds.values().length) {
             return;
         }
@@ -129,7 +129,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         }
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
         if (TextUtils.isEmpty(settingLink)) {
             return false;

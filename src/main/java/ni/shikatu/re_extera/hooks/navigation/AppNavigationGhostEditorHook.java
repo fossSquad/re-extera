@@ -42,11 +42,11 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
     }
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
-        switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$hooks$navigation$AppNavigationGhostEditorHook$Mode[this.mode.ordinal()]) {
-            case Defaults.ALWAYS /* 1 */:
+        switch(this.mode) {
+            case ADD_MENU_SECTION:
                 onBeforeAddMenuSection(param);
                 break;
-            case 2:
+            case ON_CLICK:
                 onBeforeClick(param);
                 break;
         }

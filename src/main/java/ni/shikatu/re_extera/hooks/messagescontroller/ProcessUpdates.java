@@ -52,39 +52,39 @@ public class ProcessUpdates extends XC_MethodHook {
     }
 
     private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
-        if (update instanceof TLRPC.TL_updateEditMessage) {
-            TLRPC.TL_updateEditMessage edit = (TLRPC.TL_updateEditMessage) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
+            org.telegram.tgnet.tl.TL_update.TL_updateEditMessage edit = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
             processEditedMessage(edit.message, currentAccount);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateEditChannelMessage) {
-            TLRPC.TL_updateEditChannelMessage edit2 = (TLRPC.TL_updateEditChannelMessage) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage) {
+            org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage edit2 = (org.telegram.tgnet.tl.TL_update.TL_updateEditChannelMessage) update;
             processEditedMessage(edit2.message, currentAccount);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateDeleteMessages) {
-            TLRPC.TL_updateDeleteMessages del = (TLRPC.TL_updateDeleteMessages) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) {
+            org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages del = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages) update;
             processDeleteMessages(del, currentAccount);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateDeleteChannelMessages) {
-            TLRPC.TL_updateDeleteChannelMessages del2 = (TLRPC.TL_updateDeleteChannelMessages) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) {
+            org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages del2 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages) update;
             processDeleteChannelMessages(del2, channelDeleted);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateDeleteScheduledMessages) {
-            TLRPC.TL_updateDeleteScheduledMessages del3 = (TLRPC.TL_updateDeleteScheduledMessages) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) {
+            org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages del3 = (org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages) update;
             processDeleteScheduledMessages(del3, currentAccount);
             return true;
         }
-        if (update instanceof TLRPC.TL_updateNewMessage) {
-            TLRPC.TL_updateNewMessage newMsg = (TLRPC.TL_updateNewMessage) update;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+            org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
             return true ^ shadowbanFilterHideDialog(newMsg.message);
         }
-        if (!(update instanceof TLRPC.TL_updateNewChannelMessage)) {
+        if (!(update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage)) {
             return true;
         }
-        TLRPC.TL_updateNewChannelMessage newMsg2 = (TLRPC.TL_updateNewChannelMessage) update;
+        org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
         return true ^ shadowbanFilterHideInGroups(newMsg2.message);
     }
 
@@ -130,7 +130,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processDeleteMessages(TLRPC.TL_updateDeleteMessages update, int currentAccount) {
+    private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, int currentAccount) {
         if (update.messages == null) {
             return;
         }
@@ -162,7 +162,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processDeleteScheduledMessages(TLRPC.TL_updateDeleteScheduledMessages update, int currentAccount) {
+    private void processDeleteScheduledMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages update, int currentAccount) {
         long dialogId = DialogObject.getPeerDialogId(update.peer);
         ArrayList<Integer> all = new ArrayList<>();
         if (update.sent_messages != null) {
@@ -177,7 +177,7 @@ public class ProcessUpdates extends XC_MethodHook {
         InternalUtils.deleteMessages(currentAccount, dialogId, all, true);
     }
 
-    private void processDeleteChannelMessages(TLRPC.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
+    private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
         if (update.messages == null || update.messages.isEmpty()) {
             return;
         }

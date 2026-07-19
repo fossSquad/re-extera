@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.library'
+    id 'com.android.library' version '8.2.2'
 }
 
 android {
@@ -55,7 +55,7 @@ repositories {
     maven { url 'https://maven.aliucord.com/snapshots' }
 }
 dependencies {
-    compileOnly project(':TMessagesProj')
+    compileOnly fileTree(dir: 'libs', include: ['*.jar'])
     compileOnly 'com.aliucord:Aliuhook:1.1.3'
     compileOnly 'androidx.appcompat:appcompat:1.7.1'
     compileOnly 'com.google.android.material:material:1.13.0'

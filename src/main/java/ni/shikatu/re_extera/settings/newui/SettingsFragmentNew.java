@@ -85,7 +85,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         return frameLayout;
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.clear();
         items.add(UItem.asCustom(IDs.STICKER_ID.getId(), createStickerView()).setTransparent(true));
         items.add(UItem.asCustom(IDs.THANKS_ID.getId(), createThanksView()).setTransparent(true));
@@ -119,7 +119,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         }
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > IDs.values().length) {
             return;
         }
@@ -136,7 +136,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         }
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         return false;
     }
 }

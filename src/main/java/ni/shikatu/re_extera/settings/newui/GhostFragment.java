@@ -89,7 +89,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(ghostUItem().setLinkAlias("reExteraGhostMode", this));
         if (this.isGhostExpanded) {
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_ONLINE_ID.getId(), Localization.HIDE_ONLINE_STATUS).setChecked(Settings.getHideOnline()).pad());
@@ -106,7 +106,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > GhostIds.values().length) {
             return;
         }
@@ -220,7 +220,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         this.listView.adapter.update(true);
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
         if (TextUtils.isEmpty(settingLink)) {
             return false;

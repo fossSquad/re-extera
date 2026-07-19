@@ -71,7 +71,7 @@ public class SendMessage extends XC_MethodHook {
             unhook = XposedBridge.hookMethod(OPEN_SCHEDULED_MESSAGES, RETURN_NULL);
             params.scheduleDate = (int) MessageUtils.getScheduleTime(currentAccount, params.photo, params.document);
             if (UPDATE_BOTTOM_OVERLAY != null) {
-                ChatActivity lastFragment = LaunchActivity.getLastFragment();
+                ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
                 if (lastFragment instanceof ChatActivity) {
                     ChatActivity chatActivity = lastFragment;
                     ReflectionUtils.invoke(UPDATE_BOTTOM_OVERLAY, chatActivity, new Object[0]);
@@ -261,7 +261,7 @@ public class SendMessage extends XC_MethodHook {
             }
         }
         for (int i = 0; i < entities.size(); i++) {
-            TLRPC.TL_messageEntityCustomEmoji tL_messageEntityCustomEmoji = (TLRPC.MessageEntity) entities.get(i);
+            TLRPC.TL_messageEntityCustomEmoji tL_messageEntityCustomEmoji = (TLRPC.TL_messageEntityCustomEmoji) entities.get(i);
             if (tL_messageEntityCustomEmoji instanceof TLRPC.TL_messageEntityCustomEmoji) {
                 TLRPC.TL_messageEntityCustomEmoji emoji = tL_messageEntityCustomEmoji;
                 if ((!replaceOnlyLocal || emoji.local) && !groupEmoji.contains(Long.valueOf(emoji.document_id))) {

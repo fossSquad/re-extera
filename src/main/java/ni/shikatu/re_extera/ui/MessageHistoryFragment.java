@@ -88,7 +88,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             }
             int count = MessageHistoryFragment.this.chatListView.getChildCount();
             for (int i = 0; i < count; i++) {
-                ChatMessageCell cell2 = MessageHistoryFragment.this.chatListView.getChildAt(i);
+                ChatMessageCell cell2 = (ChatMessageCell) MessageHistoryFragment.this.chatListView.getChildAt(i);
                 if ((cell2 instanceof ChatMessageCell) && (message = (cell = cell2).getMessageObject()) != null && messageObject != null && message.getId() == messageObject.getId() && (imageReceiver = cell.getPhotoImage()) != null) {
                     int[] coords = new int[2];
                     cell2.getLocationInWindow(coords);
@@ -193,7 +193,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
                 this.resourcesProvider = MessageHistoryFragment.this.resourceProvider;
             }
 
-            protected Theme.ResourcesProvider getResourcesProvider() {
+            public Theme.ResourcesProvider getResourcesProvider() {
                 return this.resourcesProvider;
             }
 
@@ -253,7 +253,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
                             int tries2 = tries + 1;
                             if (tries < 20 && (prevHolder = findViewHolderForAdapterPosition(position2 - 1)) != null) {
                                 top = prevHolder.itemView.getTop();
-                                ChatMessageCell chatMessageCell2 = prevHolder.itemView;
+                                ChatMessageCell chatMessageCell2 = (ChatMessageCell) prevHolder.itemView;
                                 if (!(chatMessageCell2 instanceof ChatMessageCell)) {
                                     break;
                                 }
@@ -508,7 +508,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         }
         int count = this.chatListView.getChildCount();
         for (int i = 0; i < count; i++) {
-            ChatMessageCell cell2 = this.chatListView.getChildAt(i);
+            ChatMessageCell cell2 = (ChatMessageCell) this.chatListView.getChildAt(i);
             if ((cell2 instanceof ChatMessageCell) && (messageObject = (cell = cell2).getMessageObject()) != null) {
                 if (messageObject.isVoice() || messageObject.isMusic()) {
                     cell.updateButtonState(false, true, false);
@@ -531,7 +531,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         }
         int count = this.chatListView.getChildCount();
         for (int i = 0; i < count; i++) {
-            ChatMessageCell cell2 = this.chatListView.getChildAt(i);
+            ChatMessageCell cell2 = (ChatMessageCell) this.chatListView.getChildAt(i);
             if ((cell2 instanceof ChatMessageCell) && (playing = (cell = cell2).getMessageObject()) != null && playing.getId() == messageId.intValue()) {
                 MessageObject player = MediaController.getInstance().getPlayingMessageObject();
                 if (player != null) {
@@ -796,7 +796,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
                         intent.setDataAndType(Uri.fromFile(file2), "video/mp4");
                     }
                     getParentActivity().startActivityForResult(intent, 500);
-                } catch (Exception e2) {
+                } catch (Exception e) {
                     alertUserOpenError(message);
                 }
             }
@@ -941,7 +941,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    static class HistoryAdapter extends RecyclerView.Adapter<CellVH> {
+    static class HistoryAdapter extends RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder> {
         private static final int VIEW_TYPE_DATE = 1;
         private static final int VIEW_TYPE_MESSAGE = 0;
         private final Context context;
@@ -1071,25 +1071,25 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             return this.rows.get(i).isDateObject ? 1 : 0;
         }
 
-        public CellVH onCreateViewHolder(ViewGroup parent, int viewType) {
-            ChatActionCell chatMessageCell;
+        public androidx.recyclerview.widget.RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            android.view.View chatMessageCell;
             if (viewType == 1) {
                 chatMessageCell = new ChatActionCell(this.context, false, this.resourcesProvider);
             } else {
                 chatMessageCell = new ChatMessageCell(this.context, this.currentAccount);
-                chatMessageCell.setDelegate(this.delegate);
-                chatMessageCell.setAllowAssistant(false);
+                ((ChatMessageCell)chatMessageCell).setDelegate(this.delegate);
+                ((ChatMessageCell)chatMessageCell).setAllowAssistant(false);
             }
             chatMessageCell.setLayoutParams(new RecyclerView.LayoutParams(-1, -2));
-            return new CellVH(chatMessageCell);
+            return new RecyclerListView.Holder(chatMessageCell);
         }
 
-        public void onBindViewHolder(CellVH holder, int position) {
+        public void onBindViewHolder(androidx.recyclerview.widget.RecyclerView.ViewHolder holder, int position) {
             boolean pinnedBottom;
             boolean pinnedTop;
             MessageObject current = this.rows.get(position);
             if (current.isDateObject) {
-                ChatActionCell chatActionCell = holder.itemView;
+                ChatActionCell chatActionCell = (ChatActionCell) holder.itemView;
                 if (chatActionCell instanceof ChatActionCell) {
                     ChatActionCell actionCell = chatActionCell;
                     actionCell.setMessageObject(current);
@@ -1117,7 +1117,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
                 boolean pinnedTop2 = isSameGroup(current, prev);
                 pinnedTop = pinnedTop2;
             }
-            holder.bind(current, this.currentChat != null, this.currentUser != null && this.currentUser.bot, pinnedBottom, pinnedTop);
+            ((ChatMessageCell) holder.itemView).setMessageObject(current, null, pinnedBottom, pinnedTop, false);
         }
 
         private boolean isSameGroup(MessageObject first, MessageObject second) {

@@ -64,7 +64,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         return frameLayout;
     }
 
-    protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
@@ -74,7 +74,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         items.add(UItem.asCustom(DeletedAndEditedIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
     }
 
-    protected void onClick(UItem item, View view, int position, float x, float y) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > DeletedAndEditedIds.values().length) {
             return;
         }
@@ -123,7 +123,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         }
     }
 
-    protected boolean onLongClick(UItem item, View view, int position, float x, float y) {
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > DeletedAndEditedIds.values().length) {
             return false;
         }

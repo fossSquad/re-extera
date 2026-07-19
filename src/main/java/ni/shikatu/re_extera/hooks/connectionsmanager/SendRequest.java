@@ -33,7 +33,7 @@ public class SendRequest extends XC_MethodHook {
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-        TL_account.updateStatus updatestatus = (TLObject) param.args[0];
+        org.telegram.tgnet.tl.TL_account.updateStatus updatestatus = (org.telegram.tgnet.tl.TL_account.updateStatus) param.args[0];
         if (Main.ignoredRequests.remove(updatestatus)) {
             return;
         }

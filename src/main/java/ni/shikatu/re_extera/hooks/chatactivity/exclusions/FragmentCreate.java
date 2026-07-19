@@ -113,7 +113,7 @@ public class FragmentCreate extends XC_MethodHook {
             final long j = this.val$dialog_id;
             builder.setPositiveButton(str, new AlertDialog.OnButtonClickListener() { 
                 public final void onClick(AlertDialog alertDialog, int i2) {
-                    FragmentCreate.AnonymousClass1.lambda$finallyRemoveAllDeletedMessages$0(i, j, alertDialog, i2);
+                    lambda$finallyRemoveAllDeletedMessages$0(i, j, alertDialog, i2);
                 }
             });
             builder.setNegativeButton(Localization.NO, new AlertDialog.OnButtonClickListener() { 
@@ -124,7 +124,7 @@ public class FragmentCreate extends XC_MethodHook {
             builder.show();
         }
 
-        static /* synthetic */ void lambda$finallyRemoveAllDeletedMessages$0(int currentAccount, long dialog_id, AlertDialog dialog, int which) {
+        void lambda$finallyRemoveAllDeletedMessages$0(int currentAccount, long dialog_id, AlertDialog dialog, int which) {
             InternalUtils.deleteAllMessages(currentAccount, dialog_id);
             dialog.dismiss();
         }

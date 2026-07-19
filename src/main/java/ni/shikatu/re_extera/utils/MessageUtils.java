@@ -61,7 +61,7 @@ public final class MessageUtils {
         if (stored != null) {
             return new MessageObject(currentAccount, stored, false, false);
         }
-        ChatActivity lastFragment = LaunchActivity.getLastFragment();
+        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
             ChatActivity chatActivity = lastFragment;
             if (chatActivity.getCurrentAccount() != currentAccount) {
@@ -86,7 +86,7 @@ public final class MessageUtils {
         if (mids.isEmpty()) {
             return;
         }
-        ChatActivity lastFragment = LaunchActivity.getLastFragment();
+        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
         if (!(lastFragment instanceof ChatActivity)) {
             return;
         }

@@ -488,11 +488,9 @@ public final class ReExteraDb {
                 throw th;
             }
         } catch (Exception e) {
-            Main.log("getException error: %s", e.getMessage());
+            // removed
             return null;
         }
-        Main.log("getException error: %s", e.getMessage());
-        return null;
     }
 
     public int getDialogReading(long did) {
@@ -818,11 +816,9 @@ public final class ReExteraDb {
                 }
             }
         } catch (Exception e) {
-            Main.log("getShadowban error: %s", e.getMessage());
+            // removed
             return null;
         }
-        Main.log("getShadowban error: %s", e.getMessage());
-        return null;
     }
 
     public List<ShadowbanEntry> getAllShadowbanned() {
@@ -844,7 +840,6 @@ public final class ReExteraDb {
                         Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
                         throw th;
                     }
-                    return result;
                 }
             }
             if (c != null) {

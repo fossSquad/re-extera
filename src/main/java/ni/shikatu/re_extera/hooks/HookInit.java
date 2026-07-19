@@ -119,7 +119,11 @@ public final class HookInit {
         tryAddHook(name, new HookRegistrar() { 
             @Override // ni.shikatu.re_extera.hooks.HookInit.HookRegistrar
             public final XC_MethodHook.Unhook register() {
-                return XposedBridge.hookMethod(clazz.getDeclaredMethod(methodName, parameterTypes), hook);
+                try {
+                    return XposedBridge.hookMethod(clazz.getDeclaredMethod(methodName, parameterTypes), hook);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

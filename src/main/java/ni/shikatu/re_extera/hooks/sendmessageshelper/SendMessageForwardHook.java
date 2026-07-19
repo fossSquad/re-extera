@@ -81,6 +81,5 @@ public class SendMessageForwardHook extends XC_MethodHook {
             return true;
         }
         return (chat.migrated_to == null || (migratedTo = controller.getChat(Long.valueOf(chat.migrated_to.channel_id))) == null || !migratedTo.noforwards) ? false : true;
-        return false;
     }
 }

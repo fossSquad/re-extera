@@ -1,0 +1,33 @@
+name: Build Dex
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+
+    - name: Build with Gradle
+      run: ./gradlew buildDex
+
+    - name: Upload Dex artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: classes.dex
+        path: build/outputs/dex/release/classes.dex

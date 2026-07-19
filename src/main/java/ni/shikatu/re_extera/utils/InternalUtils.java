@@ -73,7 +73,7 @@ public final class InternalUtils {
     }
 
     static /* synthetic */ void lambda$deleteMessages$1(int currentAccount, long did, ArrayList copy, MessagesStorage storage, long rChannelId, List messagesIds) {
-        ChatActivity lastFragment = LaunchActivity.getLastFragment();
+        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
             final ChatActivity chat = lastFragment;
             if (chat.getCurrentAccount() == currentAccount && chat.getDialogId() == did) {
@@ -156,11 +156,11 @@ public final class InternalUtils {
     }
 
     public static void sendReadMessage(int currentAccount, TLRPC.InputPeer peer, int maxId, final boolean vibrate) {
-        TLRPC.TL_channels_readHistory r;
+        org.telegram.tgnet.TLObject r;
         if (peer.channel_id != 0) {
             r = new TLRPC.TL_channels_readHistory();
-            r.channel = MessagesController.getInputChannel(peer);
-            r.max_id = maxId;
+            ((TLRPC.TL_channels_readHistory) r).channel = MessagesController.getInputChannel(peer);
+            ((TLRPC.TL_channels_readHistory) r).max_id = maxId;
         } else {
             r = new TLRPC.TL_messages_readHistory();
             ((TLRPC.TL_messages_readHistory) r).peer = peer;
@@ -181,7 +181,7 @@ public final class InternalUtils {
     }
 
     public static void sendReadMessage(MessageObject messageObject, final boolean vibrate) {
-        TLRPC.TL_channels_readHistory r;
+        org.telegram.tgnet.TLObject r;
         if (messageObject == null) {
             return;
         }
@@ -191,8 +191,8 @@ public final class InternalUtils {
         messageObject.setContentIsRead();
         if (messageObject.isFromChannel()) {
             r = new TLRPC.TL_channels_readHistory();
-            r.channel = MessagesController.getInputChannel(controller.getInputPeer(messageObject.getDialogId()));
-            r.max_id = messageObject.getId();
+            ((TLRPC.TL_channels_readHistory) r).channel = MessagesController.getInputChannel(controller.getInputPeer(messageObject.getDialogId()));
+            ((TLRPC.TL_channels_readHistory) r).max_id = messageObject.getId();
         } else {
             r = new TLRPC.TL_messages_readHistory();
             ((TLRPC.TL_messages_readHistory) r).peer = controller.getInputPeer(messageObject.getDialogId());
