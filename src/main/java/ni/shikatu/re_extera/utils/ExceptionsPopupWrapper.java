@@ -33,8 +33,18 @@ public class ExceptionsPopupWrapper {
     }
 
     private Drawable getResizedDelete(Context context) {
-        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
-        drawable.setBounds(0, 0, 20, 20);
+        Drawable drawable = null;
+        try {
+            drawable = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
+        } catch (Throwable t) {
+        }
+        if (drawable == null) {
+            drawable = ContextCompat.getDrawable(context, R.drawable.msg_delete);
+        }
+        if (drawable != null) {
+            drawable = drawable.mutate();
+            drawable.setBounds(0, 0, 20, 20);
+        }
         return drawable;
     }
 

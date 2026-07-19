@@ -11,6 +11,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.Theme;
@@ -68,7 +69,12 @@ public class MeasureTime extends XC_MethodHook {
             prefix.append((CharSequence) " ");
             builderTime.insert(0, (CharSequence) prefix);
             ReflectionUtils.set(CURRENT_TIME_STRING, cell, builderTime);
-            int extraWidth = (int) Math.ceil(paint.measureText(prefix, 0, prefix.length()));
+            int extraWidth;
+            if (deletedIcon != null && prefix.toString().contains("....")) {
+                extraWidth = AndroidUtilities.dp(16) + (int) Math.ceil(paint.measureText(" "));
+            } else {
+                extraWidth = (int) Math.ceil(paint.measureText(prefix, 0, prefix.length()));
+            }
             Integer timeTextWidthGot = (Integer) ReflectionUtils.get(TIME_TEXT_WIDTH, cell);
             Integer timeWidthGot = (Integer) ReflectionUtils.get(TIME_WIDTH, cell);
             if (timeTextWidthGot != null) {
@@ -93,7 +99,7 @@ public class MeasureTime extends XC_MethodHook {
                 span.setOverrideColor(cell.getThemedColor(Theme.key_color_red));
             }
             span.setRelativeSize(paint.getFontMetricsInt());
-            builder.setSpan(span, 0, builder.length(), 0);
+            builder.setSpan(span, 0, builder.length(), 33);
         } else {
             return null;
         }

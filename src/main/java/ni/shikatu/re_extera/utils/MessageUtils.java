@@ -61,9 +61,9 @@ public final class MessageUtils {
         if (stored != null) {
             return new MessageObject(currentAccount, stored, false, false);
         }
-        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+        org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
         if (lastFragment instanceof ChatActivity) {
-            ChatActivity chatActivity = lastFragment;
+            ChatActivity chatActivity = (ChatActivity) lastFragment;
             if (chatActivity.getCurrentAccount() != currentAccount) {
                 return null;
             }
@@ -80,33 +80,34 @@ public final class MessageUtils {
         return null;
     }
 
-    public static void forceUpdateViews(int currentAccount, long did, Collection<Integer> mids) {
-        final RecyclerListView chatListView;
-        final RecyclerView.Adapter<?> adapter;
+    public static void forceUpdateViews(final int currentAccount, final long did, final Collection<Integer> mids) {
         if (mids.isEmpty()) {
             return;
         }
-        ChatActivity lastFragment = (ChatActivity) LaunchActivity.getLastFragment();
+        final org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
         if (!(lastFragment instanceof ChatActivity)) {
             return;
         }
-        ChatActivity activity = lastFragment;
-        if (activity.getCurrentAccount() == currentAccount && activity.getDialogId() == did && (adapter = (chatListView = activity.getChatListView()).getAdapter()) != null) {
-            HashMap<Integer, ChatMessageCell> visibleCells = getVisibleCells(chatListView);
-            Iterator<Integer> it = mids.iterator();
-            while (it.hasNext()) {
-                int id = it.next().intValue();
-                final ChatMessageCell cell = visibleCells.get(Integer.valueOf(id));
-                if (cell != null && cell.getMessageObject() != null) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
+        final ChatActivity activity = (ChatActivity) lastFragment;
+        if (activity.getCurrentAccount() != currentAccount || activity.getDialogId() != did) {
+            return;
+        }
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                RecyclerView.Adapter<?> adapter;
+                RecyclerListView chatListView;
+                if ((adapter = (chatListView = activity.getChatListView()).getAdapter()) != null) {
+                    HashMap<Integer, ChatMessageCell> visibleCells = MessageUtils.getVisibleCells(chatListView);
+                    for (Integer id : mids) {
+                        final ChatMessageCell cell = visibleCells.get(id);
+                        if (cell != null && cell.getMessageObject() != null) {
                             MessageUtils.lambda$forceUpdateViews$0(cell, adapter, chatListView);
                         }
-                    });
+                    }
                 }
             }
-        }
+        });
     }
 
     static /* synthetic */ void lambda$forceUpdateViews$0(ChatMessageCell cell, RecyclerView.Adapter adapter, RecyclerListView chatListView) {

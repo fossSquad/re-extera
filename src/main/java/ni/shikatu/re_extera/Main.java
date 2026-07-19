@@ -67,7 +67,18 @@ public final class Main {
         Context context = getApplicationContext();
         ReExteraDb.init(context);
         ShadowbanCache.init();
-        MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
+        try {
+            MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
+        } catch (Throwable t) {
+            MeasureTime.deletedIcon = null;
+        }
+        if (MeasureTime.deletedIcon == null) {
+            MeasureTime.deletedIcon = ContextCompat.getDrawable(context, R.drawable.msg_delete);
+        }
+        if (MeasureTime.deletedIcon != null) {
+            MeasureTime.deletedIcon = MeasureTime.deletedIcon.mutate();
+            MeasureTime.deletedIcon.setBounds(0, 0, MeasureTime.deletedIcon.getIntrinsicWidth(), MeasureTime.deletedIcon.getIntrinsicHeight());
+        }
         Localization.updateStrings();
         hooks = new HookInit();
         hooks.init();

@@ -15,7 +15,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
             int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
             long uid = ((Long) param.args[0]).longValue();
             long channelId = ((Long) param.args[1]).longValue();
-            long did = channelId != 0 ? channelId : uid;
+            long did = channelId != 0 ? -channelId : uid;
             ArrayList<Integer> ids = (ArrayList) param.args[2];
             if (ids == null || ids.isEmpty()) {
                 return;
