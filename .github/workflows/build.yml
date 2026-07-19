@@ -30,12 +30,15 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew buildDex
 
+    - name: Copy classes.dex to root
+      run: cp build/dex/classes.dex .
+
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
       with:
         name: re-extera-dev
         path: |
-          build/dex/classes.dex
+          classes.dex
           loader.plugin
 
     - name: Upload to Release
@@ -43,6 +46,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          build/dex/classes.dex
+          classes.dex
           loader.plugin
         generate_release_notes: true
