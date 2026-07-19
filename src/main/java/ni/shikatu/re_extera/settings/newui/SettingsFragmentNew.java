@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import androidx.core.content.ContextCompat;
-import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
@@ -33,8 +32,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         THANKS_ID,
         GHOST_MODE_BTN_ID,
         DELETED_AND_EDITED_MESSAGES_BTN_ID,
-        ADDITIONAL_BTN_ID,
-        LOADER_SETTINGS_ID;
+        ADDITIONAL_BTN_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -98,8 +96,6 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         items.add(UItem.asShadow());
         items.add(UItem.asButton(IDs.ADDITIONAL_BTN_ID.getId(), this.additionalIcon, Localization.OTHER));
         items.add(UItem.asShadow());
-        items.add(UItem.asButton(IDs.LOADER_SETTINGS_ID.getId(), this.additionalIcon, "Loader Settings"));
-        items.add(UItem.asShadow());
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(String.format("**Version: %s**", Main.VERSION))));
     }
 
@@ -120,10 +116,6 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$SettingsFragmentNew$IDs[IDs.ADDITIONAL_BTN_ID.ordinal()] = 3;
             } catch (NoSuchFieldError e3) {
             }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$SettingsFragmentNew$IDs[IDs.LOADER_SETTINGS_ID.ordinal()] = 4;
-            } catch (NoSuchFieldError e4) {
-            }
         }
     }
 
@@ -141,21 +133,10 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
             case 3:
                 presentFragment(new AdditionalFragment());
                 break;
-            case 4:
-                openLoaderSettings();
-                break;
         }
     }
 
     public boolean onLongClick(UItem item, View view, int position, float x, float y) {
         return false;
-    }
-
-    private void openLoaderSettings() {
-        try {
-            PluginsController.INSTANCE.openPluginSettings("re_extera_loader");
-        } catch (Exception e) {
-            Main.log("Failed to open loader settings: %s", e.getMessage());
-        }
     }
 }
