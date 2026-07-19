@@ -84,17 +84,17 @@ public final class MessageUtils {
         if (mids.isEmpty()) {
             return;
         }
-        final org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
-        if (!(lastFragment instanceof ChatActivity)) {
-            return;
-        }
-        final ChatActivity activity = (ChatActivity) lastFragment;
-        if (activity.getCurrentAccount() != currentAccount || activity.getDialogId() != did) {
-            return;
-        }
         AndroidUtilities.runOnUIThread(new Runnable() {
             @Override
             public void run() {
+                org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
+                if (!(lastFragment instanceof ChatActivity)) {
+                    return;
+                }
+                ChatActivity activity = (ChatActivity) lastFragment;
+                if (activity.getCurrentAccount() != currentAccount || activity.getDialogId() != did) {
+                    return;
+                }
                 RecyclerView.Adapter<?> adapter;
                 RecyclerListView chatListView;
                 if ((adapter = (chatListView = activity.getChatListView()).getAdapter()) != null) {
