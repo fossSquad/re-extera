@@ -40,7 +40,7 @@ METHOD_NAME = "start"
 
 # Dev channel — CI artifact via nightly.link
 DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/main/re-extera-dev.zip"
-DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=main&per_page=1&status=success"
+DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=master&per_page=1&status=success"
 
 # Release channel — GitHub Releases
 RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases/latest"
@@ -224,22 +224,13 @@ class Loader:
         return clazz, loader
 
     def _call_start(self, clazz):
-        """Try to call Main.start() — may fail on proxy, but hooks already registered."""
+        """Call Main.initAndStart() — static void, no proxy needed."""
         try:
-            instance_method = clazz.getMethod("getInstance")
-            instance = instance_method.invoke(None)
-            self.instance = instance
-            start_method = clazz.getMethod(METHOD_NAME)
-            start_method.invoke(instance)
+            start_method = clazz.getMethod("initAndStart")
+            start_method.invoke(None)
+            self.plugin.log("Called initAndStart")
         except Exception as e:
-            self.plugin.log(f"start() proxy issue (non-fatal, hooks still active): {e}")
-            # instance may still be set despite proxy error
-            if self.instance is None:
-                try:
-                    instance_method = clazz.getMethod("getInstance")
-                    self.instance = instance_method.invoke(None)
-                except Exception:
-                    pass
+            self.plugin.log(f"initAndStart failed: {e}")
 
     def start_from_bytes(self, bytesdex):
         cache_dir = self.cache_dir
@@ -514,12 +505,12 @@ class Loader:
     def get_version_display(self):
         """Human-readable version string for the menu."""
         try:
-            inst = self.getInstance()
-            if inst is None:
-                return "not loaded"
-            v = inst.getClass().getDeclaredField("VERSION_CODE")
-            v.setAccessible(True)
-            return f"v{int(v.get(None))}"
+            if self.dex_main_class is not None:
+                v = self.dex_main_class.getDeclaredField("VERSION")
+                v.setAccessible(True)
+                ver = str(v.get(None))
+                return f"v{ver}"
+            return "not loaded"
         except Exception:
             cached = self.config.get_version(self.channel)
             return f"cached:{cached}" if cached else "?"

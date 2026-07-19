@@ -90,6 +90,11 @@ public final class Main {
         }
     }
 
+    public static void initAndStart() {
+        Main.log("initAndStart", new Object[0]);
+        getInstance().start();
+    }
+
     public static void addIgnoredRequest(TLObject request) {
         if (request != null) {
             ignoredRequests.add(request);
