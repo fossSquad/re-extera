@@ -33,27 +33,27 @@ public class SendRequest extends XC_MethodHook {
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-        org.telegram.tgnet.tl.TL_account.updateStatus updatestatus = (org.telegram.tgnet.tl.TL_account.updateStatus) param.args[0];
-        if (Main.ignoredRequests.remove(updatestatus)) {
+        org.telegram.tgnet.TLObject request = (org.telegram.tgnet.TLObject) param.args[0];
+        if (Main.ignoredRequests.remove(request)) {
             return;
         }
-        if (updatestatus instanceof TL_account.updateStatus) {
-            TL_account.updateStatus statusUpdate = updatestatus;
+        if (request instanceof TL_account.updateStatus) {
+            TL_account.updateStatus statusUpdate = (TL_account.updateStatus) request;
             if (Settings.getHideOnlineWithGhost()) {
                 statusUpdate.offline = true;
             }
         }
-        if (Settings.getReadOnInteract() && isInteractionRequest(updatestatus)) {
-            dispatchReadOnInteract(currentAccount, updatestatus);
+        if (Settings.getReadOnInteract() && isInteractionRequest(request)) {
+            dispatchReadOnInteract(currentAccount, request);
             return;
         }
-        if (Defaults.readingRequests.contains(updatestatus.getClass())) {
+        if (Defaults.readingRequests.contains(request.getClass())) {
             applyReadingPolicy(param);
             return;
         }
-        if (Defaults.typingRequests.contains(updatestatus.getClass())) {
+        if (Defaults.typingRequests.contains(request.getClass())) {
             applyTypingPolicy(param);
-        } else if (Defaults.storiesRequests.contains(updatestatus.getClass()) && Settings.getNoReadStoriesWithGhost()) {
+        } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
             param.setResult((Object) null);
         }
     }

@@ -11,10 +11,11 @@ public abstract class BasePreferencesActivityExtended extends BasePreferencesAct
 
     protected void refreshCheckBox(UItem item, int position, boolean checked, boolean fullReload) {
         item.setChecked(checked);
-        CheckBoxCell checkBoxCellFindViewByItemId = (CheckBoxCell) this.listView.findViewByItemId(item.id);
-        if (checkBoxCellFindViewByItemId instanceof CheckBoxCell) {
-            CheckBoxCell checkBoxCell = checkBoxCellFindViewByItemId;
-            checkBoxCell.setChecked(checked, true);
+        android.view.View view = this.listView.findViewByItemId(item.id);
+        if (view instanceof CheckBoxCell) {
+            ((CheckBoxCell) view).setChecked(checked, true);
+        } else if (view instanceof org.telegram.ui.Cells.TextCheckCell) {
+            ((org.telegram.ui.Cells.TextCheckCell) view).setChecked(checked);
         }
         if (fullReload) {
             this.listView.adapter.update(true);
