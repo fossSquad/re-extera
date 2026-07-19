@@ -12,7 +12,7 @@ __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
 
 __min_version__ = "12.2.3"
 
-from typing import Any
+from typing import Any, List
 from base_plugin import BasePlugin, MethodHook
 from client_utils import get_last_fragment
 import requests
@@ -22,15 +22,13 @@ import zipfile
 import shutil
 import os
 from android.app import Activity
-from android.text.style import CharacterStyle
 from hook_utils import find_class
 from ui.bulletin import BulletinHelper
-from ui.settings import EditText, Text, Switch
-from org.telegram.ui import LaunchActivity, ChatActivity
+from ui.settings import Header, Divider, Text, Switch
+from org.telegram.ui import LaunchActivity
 from org.telegram.messenger import LocaleController, BuildVars, ApplicationLoader, FileLoader, NotificationCenter, MessageObject
-from org.telegram.ui.Cells import ChatMessageCell
 from java.nio import ByteBuffer
-from dalvik.system import InMemoryDexClassLoader
+from dalvik.system import InMemoryDexClassLoader, DexClassLoader
 from java import dynamic_proxy
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -107,59 +105,6 @@ class DownloadListener(dynamic_proxy(NotificationCenter.NotificationCenterDelega
     def cleanup(self):
         self.nc.removeObserver(self, NotificationCenter.fileLoaded)
         self.nc.removeObserver(self, NotificationCenter.fileLoadFailed)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# InstallHook — intercepts tg://re/install links (from unstable)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class InstallHook(MethodHook):
-    def __init__(self, plugin):
-        self.plugin = plugin
-
-    def before_hooked_method(self, param):
-        try:
-            span = param.args[0]
-            message_obj = param.args[2]
-            if span is None or message_obj is None:
-                return
-
-            url = span.getURL()
-            if not url or not url.startswith("tg://re/install"):
-                return
-
-            self.plugin.log(f"Installing from: {url}")
-            document = message_obj.getDocument()
-            if document is None:
-                return
-
-            current_account = message_obj.currentAccount
-            loader = FileLoader.getInstance(current_account)
-            file_name = FileLoader.getAttachFileName(document)
-            download_path = loader.getPathToAttach(document, True).getAbsolutePath()
-
-            target_dir = "/storage/emulated/0/Android/media/com.exteragram.messenger/"
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir)
-            target_path = os.path.join(target_dir, "classes.dex")
-
-            if os.path.exists(download_path):
-                shutil.copy2(download_path, target_path)
-                self.plugin.log("Installed from cache")
-                BulletinHelper.show_info(_localize("updated_cache"))
-                return
-
-            self.plugin.log(f"File not found, registering listener for {file_name}...")
-            listener = DownloadListener(self.plugin, current_account, file_name,
-                                        download_path, target_path)
-            nc = NotificationCenter.getInstance(current_account)
-            nc.addObserver(listener, NotificationCenter.fileLoaded)
-            nc.addObserver(listener, NotificationCenter.fileLoadFailed)
-            loader.loadFile(document, message_obj, 1, 1)
-            BulletinHelper.show_info(_localize("downloading"))
-
-        except Exception as e:
-            self.plugin.log(f"InstallHook: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -257,22 +202,82 @@ class Loader:
                 self.plugin.log(f"Error getting instance: {e}")
         return self.instance
 
-    def start_from_bytes(self, bytesdex):
+    def _load_dex_inmemory(self, bytesdex):
+        """Try loading DEX via InMemoryDexClassLoader (fast but proxy-prone)."""
+        buffer = ByteBuffer.wrap(bytesdex)
+        loader = InMemoryDexClassLoader(
+            buffer, ApplicationLoader.applicationContext.getClassLoader()
+        )
+        clazz = loader.loadClass(CLASS_NAME)
+        # Static initializer ran during loadClass — hooks may already register
+        return clazz, loader
+
+    def _load_dex_from_file(self, dex_path):
+        """Fallback: write DEX to a file and load via DexClassLoader."""
+        loader = DexClassLoader(
+            dex_path,
+            ApplicationLoader.applicationContext.getDir("dex_opt", 0).getAbsolutePath(),
+            None,
+            ApplicationLoader.applicationContext.getClassLoader()
+        )
+        clazz = loader.loadClass(CLASS_NAME)
+        return clazz, loader
+
+    def _call_start(self, clazz):
+        """Try to call Main.start() — may fail on proxy, but hooks already registered."""
         try:
-            buffer = ByteBuffer.wrap(bytesdex)
-            self.dex_loader = InMemoryDexClassLoader(
-                buffer, ApplicationLoader.applicationContext.getClassLoader()
-            )
-            clazz = self.dex_loader.loadClass(CLASS_NAME)
-            start_method = clazz.getMethod(METHOD_NAME)
             instance_method = clazz.getMethod("getInstance")
             instance = instance_method.invoke(None)
             self.instance = instance
+            start_method = clazz.getMethod(METHOD_NAME)
             start_method.invoke(instance)
-            self.plugin.log(f"Loaded {CLASS_NAME}")
         except Exception as e:
-            self.plugin.log(f"Error invoking start method: {e}")
-            raise
+            self.plugin.log(f"start() proxy issue (non-fatal, hooks still active): {e}")
+            # instance may still be set despite proxy error
+            if self.instance is None:
+                try:
+                    instance_method = clazz.getMethod("getInstance")
+                    self.instance = instance_method.invoke(None)
+                except Exception:
+                    pass
+
+    def start_from_bytes(self, bytesdex):
+        cache_dir = self.cache_dir
+        dex_path = os.path.join(cache_dir, "classes.dex")
+
+        # Write DEX to cache file first (needed for DexClassLoader fallback)
+        try:
+            if not os.path.exists(cache_dir):
+                os.makedirs(cache_dir)
+            with open(dex_path, 'wb') as f:
+                f.write(bytesdex)
+        except Exception as e:
+            self.plugin.log(f"Failed to cache DEX to file: {e}")
+
+        # Try InMemoryDexClassLoader first (no disk write needed)
+        try:
+            clazz, loader = self._load_dex_inmemory(bytesdex)
+            self._call_start(clazz)
+            self.plugin.log(f"Loaded {CLASS_NAME} (in-memory)")
+            return
+        except Exception as e:
+            proxy_err = "proxy" in str(e).lower()
+            self.plugin.log(f"InMemory load {'proxy issue' if proxy_err else 'failed'}: {e}")
+
+        # Fallback: DexClassLoader from file (handles proxy better)
+        if os.path.exists(dex_path):
+            try:
+                clazz, loader = self._load_dex_from_file(dex_path)
+                self._call_start(clazz)
+                self.plugin.log(f"Loaded {CLASS_NAME} (from file)")
+                return
+            except Exception as e:
+                self.plugin.log(f"File load also failed: {e}")
+
+        # Last resort: class already loaded by InMemoryDexClassLoader's static init
+        # Hooks may work even without a valid Python proxy
+        self.plugin.log(f"DEX proxy unavailable — hooks from static init may still work")
+        self.instance = None
 
     def open_settings(self):
         try:
@@ -338,9 +343,19 @@ class Loader:
                 self.plugin.log("No release assets found")
                 return None, None
 
-            download_url = assets[0].get("browser_download_url", "")
+            # Find the .dex asset specifically (not loader.plugin)
+            dex_url = None
+            for asset in assets:
+                name = asset.get("name", "")
+                if name.endswith(".dex"):
+                    dex_url = asset.get("browser_download_url", "")
+                    break
+            if not dex_url:
+                self.plugin.log("No .dex asset found in release")
+                return None, None
+
             self.plugin.log(f"Latest release: {tag}")
-            return tag, download_url
+            return tag, dex_url
         except Exception as e:
             self.plugin.log(f"Error checking release version: {e}")
             return None, None
@@ -403,17 +418,26 @@ class Loader:
     def load_and_start(self):
         self.plugin.log(f"Loading (channel: {self.channel})")
 
-        try:
-            # 1. Try local sideload first (unstable feature)
-            local_bytes = self._load_from_local_path()
-            if local_bytes is not None:
+        # 1. Try local sideload first (unstable feature)
+        local_bytes = self._load_from_local_path()
+        if local_bytes is not None:
+            try:
                 self.start_from_bytes(local_bytes)
                 self.plugin.log("Loaded from local storage")
                 return
+            except Exception as e:
+                self.plugin.log(f"Local DEX failed ({e}), falling through to cache/download")
+                # Remove stale local DEX so next attempt falls through
+                try:
+                    os.remove(LOCAL_DEX_PATH)
+                    self.plugin.log("Removed stale local DEX")
+                except Exception:
+                    pass
 
-            # 2. Try cache
-            cached_bytes = self._load_from_cache()
-            if cached_bytes is not None:
+        # 2. Try cache
+        cached_bytes = self._load_from_cache()
+        if cached_bytes is not None:
+            try:
                 self.start_from_bytes(cached_bytes)
                 self.plugin.log("Loaded from cache")
 
@@ -422,9 +446,15 @@ class Loader:
                     self._check_async_update()
                 except Exception as e:
                     self.plugin.log(f"Update check failed: {e}")
-            else:
-                # 4. No cache — download fresh
-                self.plugin.log("No cache, downloading...")
+            except Exception as e:
+                self.plugin.log(f"Cached DEX failed ({e}), will download fresh")
+        else:
+            self.plugin.log("No cache found")
+
+        # 4. If we get here, no usable DEX was loaded — download fresh
+        if self.instance is None:
+            self.plugin.log("Downloading fresh DEX...")
+            try:
                 remote_version, download_url = self._check_version()
 
                 if remote_version is None:
@@ -434,13 +464,12 @@ class Loader:
                 dex_bytes = self.download_and_cache(remote_version, download_url)
                 self.start_from_bytes(dex_bytes)
                 self.plugin.log("Loaded from fresh download")
-
-        except Exception as e:
-            err = str(e)
-            if "proxy" in err:
-                return
-            self.plugin.log(f"Fatal error: {e}")
-            BulletinHelper.show_info(f"Error loading re:extera: {e}", get_last_fragment())
+            except Exception as e:
+                err = str(e)
+                if "proxy" in err:
+                    return
+                self.plugin.log(f"Fatal error: {e}")
+                BulletinHelper.show_info(f"Error loading re:extera: {e}", get_last_fragment())
 
     def _check_version(self):
         if self.channel == "dev":
@@ -502,33 +531,29 @@ class Plugin(BasePlugin):
 
     # ── Settings / Menu ────────────────────────────────────────────────────
 
-    def create_settings(self) -> list[Any]:
+    def create_settings(self) -> List[Any]:
         items = []
 
-        # Status section
-        channel = self.loader.config.channel if self.loader else "release"
-        version = self.loader.get_version_display() if self.loader else "?"
+        try:
+            channel = self.loader.config.channel if self.loader else "release"
+            version = self.loader.get_version_display() if self.loader else "?"
+        except Exception:
+            channel = "release"
+            version = "?"
 
-        items.append(Text(
-            text=f"Channel: {channel.upper()}",
-            on_click=lambda v: None
-        ))
-        items.append(Text(
-            text=f"DEX: {version}",
-            on_click=lambda v: None
-        ))
-        items.append(Text(text="───", on_click=lambda v: None))
+        items.append(Text(text=f"Channel: {channel.upper()}", on_click=lambda v: None))
+        items.append(Text(text=f"DEX: {version}", on_click=lambda v: None))
+        items.append(Divider())
 
-        # Channel switch
         items.append(Switch(
+            key="dev_channel",
             text=_localize("channel_dev"),
-            is_checked=channel == "dev",
-            on_switch=lambda v: self._on_channel_switch(v)
+            default=channel == "dev",
+            on_change=lambda v: self._on_channel_switch(v)
         ))
 
-        items.append(Text(text="───", on_click=lambda v: None))
+        items.append(Divider())
 
-        # Action buttons
         items.append(Text(
             text=_localize("check_updates"),
             on_click=lambda v: self._on_check_updates()
@@ -536,10 +561,6 @@ class Plugin(BasePlugin):
         items.append(Text(
             text=_localize("install_file"),
             on_click=lambda v: self._on_install_file()
-        ))
-        items.append(Text(
-            text=_localize("settings"),
-            on_click=lambda v: self._open_re_extera_settings()
         ))
 
         return items
@@ -591,20 +612,6 @@ class Plugin(BasePlugin):
             self.log(f"Init {__version__}")
             launch_activity = get_last_fragment().getContext()
             self.loader = Loader(self, launch_activity)
-
-            # Hook tg://re/install URL pressing (from unstable)
-            try:
-                method = ChatActivity.getClass().getDeclaredMethod(
-                    "didPressMessageUrl",
-                    CharacterStyle.getClass(),
-                    Boolean.TYPE,
-                    MessageObject.getClass(),
-                    ChatMessageCell.getClass()
-                )
-                self.hook_method(method, InstallHook(self))
-            except Exception as e:
-                self.log(f"Failed to hook install method: {e}")
-
             self.loader.load_and_start()
         except Exception as e:
             BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
