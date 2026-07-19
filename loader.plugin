@@ -21,6 +21,7 @@ import io
 import zipfile
 import shutil
 import os
+import time
 from android.app import Activity
 from hook_utils import find_class
 from ui.bulletin import BulletinHelper
@@ -39,7 +40,7 @@ CLASS_NAME = "ni.shikatu.re_extera.Main"
 METHOD_NAME = "start"
 
 # Dev channel — CI artifact via nightly.link
-DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/main/re-extera-dev.zip"
+DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/master/re-extera-dev.zip"
 DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=master&per_page=1&status=success"
 
 # Release channel — GitHub Releases
@@ -112,6 +113,8 @@ class DownloadListener(dynamic_proxy(NotificationCenter.NotificationCenterDelega
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class Config:
+    MIN_CHECK_INTERVAL = 60  # seconds between version checks
+
     def __init__(self, cache_dir):
         self.path = os.path.join(cache_dir, "config.json")
         self.data = self._load()
@@ -123,7 +126,7 @@ class Config:
                     return json.load(f)
         except Exception:
             pass
-        return {"channel": "release", "versions": {}}
+        return {"channel": "release", "versions": {}, "last_check": 0, "last_error": ""}
 
     def _save(self):
         try:
@@ -153,6 +156,15 @@ class Config:
 
     def clear_cache_for(self, channel):
         self.data.setdefault("versions", {})[channel] = 0
+        self._save()
+
+    def can_check(self):
+        now = time.time()
+        last = self.data.get("last_check", 0)
+        return now - last >= self.MIN_CHECK_INTERVAL
+
+    def mark_checked(self):
+        self.data["last_check"] = time.time()
         self._save()
 
 
@@ -309,8 +321,15 @@ class Loader:
 
     def _check_dev_version(self):
         """Return (remote_version_id, download_url) or (None, None)."""
+        if not self.config.can_check():
+            self.plugin.log("Dev check skipped (rate limit cooldown)")
+            self.config.last_error = "Rate limit: wait 1 min"
+            return None, None
         try:
-            r = requests.get(DEV_API_URL, timeout=5)
+            self.config.mark_checked()
+            headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+            r = requests.get(DEV_API_URL, headers=headers, timeout=5)
+            self.plugin.log(f"Dev API HTTP {r.status_code}")
             r.raise_for_status()
             data = r.json()
             runs = data.get("workflow_runs", [])
@@ -321,15 +340,24 @@ class Loader:
             run = runs[0]
             run_id = run.get("id", 0)
             self.plugin.log(f"Latest dev run: #{run_id}")
-            return str(run_id), DEV_ARTIFACT_URL
+            # Dynamic nightly.link URL with run_id
+            dev_url = f"https://nightly.link/fossSquad/re-extera/actions/runs/{run_id}/re-extera-dev.zip"
+            return str(run_id), dev_url
         except Exception as e:
             self.plugin.log(f"Error checking dev version: {e}")
             return None, None
 
     def _check_release_version(self):
         """Return (remote_version_id, download_url) or (None, None)."""
+        if not self.config.can_check():
+            self.plugin.log("Release check skipped (rate limit cooldown)")
+            self.config.data["last_error"] = "Rate limit: wait 1 min"
+            return None, None
         try:
-            r = requests.get(RELEASE_API_URL, timeout=5)
+            self.config.mark_checked()
+            headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+            r = requests.get(RELEASE_API_URL, headers=headers, timeout=5)
+            self.plugin.log(f"Release API HTTP {r.status_code}")
             r.raise_for_status()
             data = r.json()
             tag = data.get("tag_name", "")
@@ -366,7 +394,21 @@ class Loader:
     def _download_dev_dex(self):
         """Download dev DEX from nightly.link (zip → extract classes.dex)."""
         self.plugin.log(f"Downloading dev DEX from {DEV_ARTIFACT_URL}")
-        r = requests.get(DEV_ARTIFACT_URL, timeout=60)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br, zstd",
+            "Connection": "keep-alive",
+            "Referer": "https://nightly.link/fossSquad/re-extera/workflows/build/master?preview",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+            "Priority": "u=0, i",
+        }
+        r = requests.get(DEV_ARTIFACT_URL, headers=headers, timeout=60)
         r.raise_for_status()
         with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
             dex_bytes = zf.read("classes.dex")
@@ -376,7 +418,8 @@ class Loader:
     def _download_release_dex(self, url):
         """Download release DEX from GitHub Releases."""
         self.plugin.log(f"Downloading release DEX from {url}")
-        r = requests.get(url, timeout=60)
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+        r = requests.get(url, headers=headers, timeout=60)
         r.raise_for_status()
         self.plugin.log(f"Downloaded {len(r.content)} bytes from releases")
         return r.content
@@ -488,7 +531,9 @@ class Loader:
             BulletinHelper.show_info(_localize("downloading"), get_last_fragment())
             remote_version, download_url = self._check_version()
             if remote_version is None:
-                BulletinHelper.show_info("Failed to check updates", get_last_fragment())
+                err = self.config.data.get("last_error", "")
+                msg = f"Check failed: {err}" if err else "Failed to check updates"
+                BulletinHelper.show_info(msg, get_last_fragment())
                 return
 
             if self._needs_update(remote_version):
