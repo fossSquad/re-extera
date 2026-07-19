@@ -7,10 +7,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import androidx.core.content.ContextCompat;
-import com.exteragram.messenger.plugins.Plugin;
-import com.exteragram.messenger.plugins.PythonPluginsEngine;
+import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.utils.text.LocaleUtils;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
@@ -155,13 +153,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
 
     private void openLoaderSettings() {
         try {
-            Plugin plugin = PythonPluginsEngine.getInstance().getPlugin("re_extera_loader");
-            if (plugin != null) {
-                Method m = PythonPluginsEngine.class.getMethod("openPluginSettings", Plugin.class, BaseFragment.class);
-                m.invoke(null, plugin, this);
-            } else {
-                Main.log("Loader plugin not found", new Object[0]);
-            }
+            PluginsController.INSTANCE.openPluginSettings("re_extera_loader");
         } catch (Exception e) {
             Main.log("Failed to open loader settings: %s", e.getMessage());
         }
