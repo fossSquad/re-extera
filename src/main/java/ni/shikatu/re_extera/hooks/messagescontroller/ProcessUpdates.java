@@ -40,13 +40,18 @@ public class ProcessUpdates extends XC_MethodHook {
         param.args[0] = updates;
     }
 
-    private void flushChannelDeleted(LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount) {
+    private void flushChannelDeleted(LongSparseArray<ArrayList<Integer>> channelDeleted, final int currentAccount) {
         for (int i = 0; i < channelDeleted.size(); i++) {
-            long did = channelDeleted.keyAt(i);
-            ArrayList<Integer> ids = (ArrayList) channelDeleted.valueAt(i);
+            final long did = channelDeleted.keyAt(i);
+            final ArrayList<Integer> ids = (ArrayList) channelDeleted.valueAt(i);
             if (ids != null && !ids.isEmpty()) {
                 this.redb.batchPutDeletedMessagesAsync(did, ids);
-                MessageUtils.forceUpdateViews(currentAccount, did, ids);
+                this.redb.postToDbThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        MessageUtils.forceUpdateViews(currentAccount, did, ids);
+                    }
+                });
             }
         }
     }
@@ -130,7 +135,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, int currentAccount) {
+    private void processDeleteMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteMessages update, final int currentAccount) {
         if (update.messages == null) {
             return;
         }
@@ -142,6 +147,9 @@ public class ProcessUpdates extends XC_MethodHook {
                 int id = ((Integer) it.next()).intValue();
                 MessageObject obj = MessageUtils.getMessage(currentAccount, 0L, id);
                 if (obj != null) {
+                    if (obj.messageOwner != null && obj.messageOwner.peer_id instanceof TLRPC.TL_peerChannel) {
+                        continue;
+                    }
                     long did = obj.getDialogId();
                     ArrayList<Integer> list = (ArrayList) toUpdateGrouped.get(did);
                     if (list == null) {
@@ -152,11 +160,16 @@ public class ProcessUpdates extends XC_MethodHook {
                 }
             }
             for (int i = 0; i < toUpdateGrouped.size(); i++) {
-                long did2 = toUpdateGrouped.keyAt(i);
-                ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
+                final long did2 = toUpdateGrouped.keyAt(i);
+                final ArrayList<Integer> ids = (ArrayList) toUpdateGrouped.valueAt(i);
                 if (ids != null && !ids.isEmpty()) {
                     this.redb.batchPutDeletedMessagesAsync(did2, ids);
-                    MessageUtils.forceUpdateViews(currentAccount, did2, ids);
+                    this.redb.postToDbThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            MessageUtils.forceUpdateViews(currentAccount, did2, ids);
+                        }
+                    });
                 }
             }
         }

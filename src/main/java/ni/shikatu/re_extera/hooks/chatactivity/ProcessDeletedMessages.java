@@ -11,10 +11,16 @@ public class ProcessDeletedMessages extends XC_MethodHook {
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (Settings.getSaveDeletedMessages()) {
-            ChatActivity thisObject = (ChatActivity) param.thisObject;
-            long dialogId = thisObject.getDialogId();
-            MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, new ArrayList());
-            param.args[0] = new ArrayList(onRequestToDelete);
+            final ChatActivity thisObject = (ChatActivity) param.thisObject;
+            final long dialogId = thisObject.getDialogId();
+            final ArrayList<Integer> originalMessages = new ArrayList<>((java.util.Collection<Integer>) param.args[0]);
+            ni.shikatu.re_extera.db.ReExteraDb.get().postToDbThread(new Runnable() {
+                @Override
+                public void run() {
+                    MessageUtils.forceUpdateViews(thisObject.getCurrentAccount(), dialogId, originalMessages);
+                }
+            });
+            param.args[0] = new ArrayList<>(onRequestToDelete);
             onRequestToDelete.clear();
         }
     }
