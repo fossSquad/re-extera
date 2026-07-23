@@ -91,7 +91,10 @@ public class Localization {
     public static String RESTART_APP_ABOUT;
     public static String RE_EXTERA_SETTINGS;
     public static String SAVE;
+    public static String SAVE_BOT_CHATS;
     public static String SAVE_DELETED_MESSAGES;
+    public static String SAVE_READ_DATE;
+    public static String READ_AT;
     public static String SAVE_ONE_TIME_MESSAGES;
     public static String SAVE_OWN_MESSAGES;
     public static String SAVE_SELF_DELETED_MESSAGES;
@@ -125,6 +128,9 @@ public class Localization {
             THANKS = "Спасибо @bleizix";
             RE_EXTERA_SETTINGS = "Настройки re:extera";
             SAVE_DELETED_MESSAGES = "Сохранять удаленные сообщения";
+            SAVE_BOT_CHATS = "Сохранять в чатах с ботами";
+            SAVE_READ_DATE = "Сохранять дату чтения";
+            READ_AT = "Прочитано в %s";
             MESSAGE_HISTORY = "История";
             MESSAGE_HISTORY_TOGGLE = "Сохранить историю правок";
             MESSAGE_HISTORY_TITLE = "История правок";
@@ -235,6 +241,9 @@ public class Localization {
         ALPHA_WARNING = "This function eats a lot of cpu";
         RE_EXTERA_SETTINGS = "re:extera Settings";
         SAVE_DELETED_MESSAGES = "Save deleted messages";
+        SAVE_BOT_CHATS = "Save in bot chats";
+        SAVE_READ_DATE = "Save read date";
+        READ_AT = "Read at %s";
         MESSAGE_HISTORY = "History";
         MESSAGE_HISTORY_TOGGLE = "Save message history";
         MESSAGE_HISTORY_TITLE = "Message history";

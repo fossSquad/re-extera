@@ -17,6 +17,7 @@ public class ProcessSelectedOption extends XC_MethodHook {
     public static final int OPT_DELETE = 24;
     public static final int OPT_MESSAGE_HISTORY = 6363;
     public static final int OPT_READ_MESSAGE = 6565;
+    public static final int OPT_READ_AT = 6767;
     private static final Field SELECTED_OBJECT_FIELD;
     public static MessageObject selectedObject;
 

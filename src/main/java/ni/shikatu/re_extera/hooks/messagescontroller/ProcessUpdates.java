@@ -86,11 +86,22 @@ public class ProcessUpdates extends XC_MethodHook {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
             return true ^ shadowbanFilterHideDialog(newMsg.message);
         }
-        if (!(update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage)) {
-            return true;
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+            org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
+            return true ^ shadowbanFilterHideInGroups(newMsg2.message);
         }
-        org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-        return true ^ shadowbanFilterHideInGroups(newMsg2.message);
+        if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {
+            if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
+                org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;
+                long did = org.telegram.messenger.DialogObject.getPeerDialogId(outbox.peer);
+                ReExteraDb.get().saveReadEventAsync(did, outbox.max_id);
+            } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) {
+                org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox outbox2 = (org.telegram.tgnet.tl.TL_update.TL_updateReadChannelOutbox) update;
+                long did = -outbox2.channel_id;
+                ReExteraDb.get().saveReadEventAsync(did, outbox2.max_id);
+            }
+        }
+        return true;
     }
 
     private boolean shadowbanFilterHideDialog(TLRPC.Message message) {
