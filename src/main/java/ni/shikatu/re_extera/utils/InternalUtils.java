@@ -60,7 +60,10 @@ public final class InternalUtils {
             final ArrayList<Integer> copy = new ArrayList<>(messagesIds);
             ReflectionUtils.invokeOriginalMethod(markMessagesAsDeleted, storage, new Object[]{Long.valueOf(did), copy, false, 0, 0});
             if (shouldNotify) {
-                ProcessDeletedMessages.onRequestToDelete.addAll(copy);
+                for (Integer msgId : copy) {
+                    ProcessDeletedMessages.onRequestToDelete.offer(msgId);
+                }
+                Main.log("deleteMessages: queued %d ids for did=%d", copy.size(), did);
                 AndroidUtilities.runOnUIThread(new Runnable() { 
                     @Override // java.lang.Runnable
                     public final void run() {
