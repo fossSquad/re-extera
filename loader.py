@@ -43,7 +43,7 @@ CLASS_NAME = "ni.shikatu.re_extera.Main"
 METHOD_NAME = "start"
 DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/master/re-extera-dev.zip"
 DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=master&per_page=1&status=success"
-RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases/latest"
+RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases"
 LOCAL_DEX_PATH = "/storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex"
 CACHE_DIR_NAME = "re_extera_cache"
 DEX_OPT_DIR_NAME = "dex_opt"
@@ -348,11 +348,26 @@ class Loader:
             r = requests.get(RELEASE_API_URL, headers=headers, timeout=5)
             self.plugin.log(f"Release API HTTP {r.status_code}")
             r.raise_for_status()
-            data = r.json()
-            tag = data.get("tag_name", "")
-            assets = data.get("assets", [])
+            releases = r.json()
+            
+            tg_version = BuildVars.BUILD_VERSION_STRING
+            suffix = f"-{tg_version}"
+            
+            target_release = None
+            for release in releases:
+                if release.get("tag_name", "").endswith(suffix):
+                    target_release = release
+                    break
+            
+            if not target_release:
+                self.plugin.log(f"No release found for Telegram version {tg_version}")
+                return None, None
+
+            tag = target_release.get("tag_name", "")
+            assets = target_release.get("assets", [])
+            
             if not tag or not assets:
-                self.plugin.log("No release assets found")
+                self.plugin.log("No release assets found in target release")
                 return None, None
 
             dex_url = None
@@ -364,10 +379,10 @@ class Loader:
                 elif name.endswith("loader.plugin"):
                     plugin_url = asset.get("browser_download_url", "")
             if not dex_url:
-                self.plugin.log("No .dex asset found in release")
+                self.plugin.log(f"No .dex asset found in release {tag}")
                 return None, None
 
-            self.plugin.log(f"Latest release: {tag}")
+            self.plugin.log(f"Latest release for TG {tg_version}: {tag}")
             return tag, (dex_url, plugin_url)
         except Exception as e:
             self.plugin.log(f"Error checking release version: {e}")
