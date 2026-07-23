@@ -169,7 +169,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(1);
         final TextCheckCell saveManuallyDeletedMessages = new TextCheckCell(getContext());
-        saveManuallyDeletedMessages.setTextAndValueAndCheck(Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, false);
+        setTextAndValueAndCheck(saveManuallyDeletedMessages, Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, false);
         saveManuallyDeletedMessages.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -178,7 +178,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         });
         layout.addView(saveManuallyDeletedMessages);
         final TextCheckCell useExpandableBlockQuote = new TextCheckCell(getContext());
-        useExpandableBlockQuote.setTextAndValueAndCheck(Localization.USE_COLLAPSED_BLOCKQUOTE, Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION, Settings.getUseExpandableBlockQuote(), true, false);
+        setTextAndValueAndCheck(useExpandableBlockQuote, Localization.USE_COLLAPSED_BLOCKQUOTE, Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION, Settings.getUseExpandableBlockQuote(), true, false);
         useExpandableBlockQuote.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -190,6 +190,20 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         builder.setTitle(Localization.ADDITIONAL_SETTINGS);
         builder.setView(layout);
         builder.show();
+    }
+
+    private void setTextAndValueAndCheck(TextCheckCell cell, String text, String value, boolean checked, boolean multiline, boolean divider) {
+        try {
+            java.lang.reflect.Method m = TextCheckCell.class.getMethod("setTextAndValueAndCheck", CharSequence.class, CharSequence.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
+            m.invoke(cell, text, value, checked, multiline, divider);
+        } catch (Throwable e) {
+            try {
+                java.lang.reflect.Method m = TextCheckCell.class.getMethod("setTextAndValueAndCheck", String.class, String.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
+                m.invoke(cell, text, value, checked, multiline, divider);
+            } catch (Throwable e2) {
+                cell.setTextAndCheck(text, checked, divider);
+            }
+        }
     }
 
     static /* synthetic */ void lambda$showAdditionalDeleted$2(TextCheckCell saveManuallyDeletedMessages, View v1) {
