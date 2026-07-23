@@ -44,10 +44,22 @@ jobs:
           classes.dex
           loader.plugin
 
+    - name: Parse tag for release name
+      id: parse_tag
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        WITHOUT_V=${TAG_NAME#v}
+        PLUGIN_VER=${WITHOUT_V%-*}
+        TG_VER=${WITHOUT_V#*-}
+        echo "plugin=$PLUGIN_VER" >> $GITHUB_OUTPUT
+        echo "tg=$TG_VER" >> $GITHUB_OUTPUT
+
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
+        name: re:extera v${{ steps.parse_tag.outputs.plugin }} for Telegram ${{ steps.parse_tag.outputs.tg }}
         files: |
           classes.dex
           loader.plugin
