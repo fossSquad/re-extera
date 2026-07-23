@@ -59,7 +59,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v2
       with:
-        name: re:extera v${{ steps.parse_tag.outputs.plugin }} for Telegram ${{ steps.parse_tag.outputs.tg }}
+        name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
         files: |
           classes.dex
           loader.plugin
