@@ -1124,6 +1124,12 @@ public final class ReExteraDb {
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
+        public void onOpen(SQLiteDatabase db) {
+            super.onOpen(db);
+            onCreate(db);
+        }
+
+        @Override // android.database.sqlite.SQLiteOpenHelper
         public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
             if (oldV < 3) {
                 db.execSQL("DROP TABLE IF EXISTS message_edits");
