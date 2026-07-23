@@ -1,17 +1,13 @@
+# metadata
 __id__ = "re_extera_loader"
-
-__name__ = "re:extera v2"
-
+__name__ = "aartzz's re:extera"
 __description__ = "Enable ghost mode, save deleted messages and more!"
-
-__author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad"
-
+__author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad & @migor1103"
 __version__ = "2.5.0"
-
 __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
-
 __min_version__ = "12.2.3"
 
+# imports
 from typing import Any, List
 from base_plugin import BasePlugin, MethodHook
 from client_utils import get_last_fragment
@@ -42,50 +38,41 @@ class UIRunnable(dynamic_proxy(Runnable)):
         self.func()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Constants
-# ═══════════════════════════════════════════════════════════════════════════════
-
+# constants
 CLASS_NAME = "ni.shikatu.re_extera.Main"
 METHOD_NAME = "start"
-
-# Dev channel — CI artifact via nightly.link
 DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/master/re-extera-dev.zip"
 DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=master&per_page=1&status=success"
-
-# Release channel — GitHub Releases
 RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases/latest"
-
-# Local DEX path for sideloading (unstable loader feature)
 LOCAL_DEX_PATH = "/storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex"
+CACHE_DIR_NAME = "re_extera_cache"
+DEX_OPT_DIR_NAME = "dex_opt"
+VERSION_FIELD_NAME = "VERSION"
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Helpers
-# ═══════════════════════════════════════════════════════════════════════════════
 
+# localization
 def _localize(key):
-    """Simple localization helper."""
     ru = LocaleController.getInstance().getCurrentLocale().getLanguage() == "ru"
     strings = {
-        "settings": ("Настройки re:extera", "re:extera Settings"),
-        "channel_dev": ("Dev-сборки", "Dev builds"),
-        "channel_release": ("Релизные сборки", "Release builds"),
-        "check_updates": ("Проверить обновления", "Check for updates"),
-        "install_file": ("Установить из файла", "Install from file"),
-        "update_avail": ("Доступна новая версия re:extera! Перезапустите приложение для применения обновления.",
-                         "New re:extera version available! Restart the app to apply the update."),
-        "downloading": ("Загрузка...", "Downloading..."),
-        "updated_cache": ("Обновлено из кеша", "Updated from cache"),
-        "installed": ("Установка завершена", "Install completed"),
-        "channel_switch": ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
+        "settings":        ("Настройки re:extera",  "re:extera Settings"),
+        "channel_dev":     ("Dev-сборки",            "Dev builds"),
+        "channel_release": ("Релизные сборки",       "Release builds"),
+        "check_updates":   ("Проверить обновления",  "Check for updates"),
+        "install_file":    ("Установить из файла",   "Install from file"),
+        "update_avail":    ("Доступна новая версия re:extera! Перезапустите приложение для применения обновления.",
+                            "New re:extera version available! Restart the app to apply the update."),
+        "downloading":     ("Загрузка...",           "Downloading..."),
+        "updated_cache":   ("Обновлено из кеша",     "Updated from cache"),
+        "installed":       ("Установка завершена",   "Install completed"),
+        "channel_switch":  ("Канал изменён. Перезапустите приложение.", "Channel changed. Restart the app."),
+        "up_to_date":      ("Уже последняя версия",  "Already up to date"),
+        "file_not_found":  ("Файл не найден",        "File not found"),
     }
     return strings[key][1 if not ru else 0]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# DownloadListener — handles file download events (from unstable)
-# ═══════════════════════════════════════════════════════════════════════════════
-
+# file download handler from dev
 class DownloadListener(dynamic_proxy(NotificationCenter.NotificationCenterDelegate)):
     def __init__(self, plugin, account, file_name, download_path, target_path):
         super().__init__()
@@ -118,10 +105,7 @@ class DownloadListener(dynamic_proxy(NotificationCenter.NotificationCenterDelega
         self.nc.removeObserver(self, NotificationCenter.fileLoadFailed)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Config — persists channel preference
-# ═══════════════════════════════════════════════════════════════════════════════
-
+# default config
 class Config:
     MIN_CHECK_INTERVAL = 60  # seconds between version checks
 
@@ -178,10 +162,7 @@ class Config:
         self._save()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Loader — loads DEX from dev or release channel
-# ═══════════════════════════════════════════════════════════════════════════════
-
+# .dex loader
 class Loader:
     def __init__(self, plugin: BasePlugin, activity: Activity):
         self.plugin = plugin
@@ -191,7 +172,7 @@ class Loader:
 
         base_cache = os.path.join(
             ApplicationLoader.applicationContext.getFilesDir().getAbsolutePath(),
-            "re_extera_cache"
+            CACHE_DIR_NAME
         )
         self.config = Config(base_cache)
         self.channel = self.config.channel
@@ -202,18 +183,15 @@ class Loader:
             os.makedirs(self.cache_dir)
 
     def _switch_cache(self, channel):
-        """Point cache to a different channel directory."""
         self.channel = channel
         base_cache = os.path.join(
             ApplicationLoader.applicationContext.getFilesDir().getAbsolutePath(),
-            "re_extera_cache"
+            CACHE_DIR_NAME
         )
         self.cache_dir = os.path.join(base_cache, channel)
         self.cache_file = os.path.join(self.cache_dir, "cached.dat")
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
-
-    # ── Instance / DEX management ──────────────────────────────────────────
 
     def getInstance(self):
         if self.instance is None:
@@ -225,20 +203,17 @@ class Loader:
         return self.instance
 
     def _load_dex_inmemory(self, bytesdex):
-        """Try loading DEX via InMemoryDexClassLoader (fast but proxy-prone)."""
         buffer = ByteBuffer.wrap(bytesdex)
         loader = InMemoryDexClassLoader(
             buffer, ApplicationLoader.applicationContext.getClassLoader()
         )
         clazz = loader.loadClass(CLASS_NAME)
-        # Static initializer ran during loadClass — hooks may already register
         return clazz, loader
 
     def _load_dex_from_file(self, dex_path):
-        """Fallback: write DEX to a file and load via DexClassLoader."""
         loader = DexClassLoader(
             dex_path,
-            ApplicationLoader.applicationContext.getDir("dex_opt", 0).getAbsolutePath(),
+            ApplicationLoader.applicationContext.getDir(DEX_OPT_DIR_NAME, 0).getAbsolutePath(),
             None,
             ApplicationLoader.applicationContext.getClassLoader()
         )
@@ -246,7 +221,6 @@ class Loader:
         return clazz, loader
 
     def _call_start(self, clazz):
-        """Call Main.initAndStart() — static void, no proxy needed."""
         try:
             start_method = clazz.getMethod("initAndStart")
             start_method.invoke(None)
@@ -258,7 +232,6 @@ class Loader:
         cache_dir = self.cache_dir
         dex_path = os.path.join(cache_dir, "classes.dex")
 
-        # Write DEX to cache file first (needed for DexClassLoader fallback)
         try:
             if not os.path.exists(cache_dir):
                 os.makedirs(cache_dir)
@@ -267,7 +240,6 @@ class Loader:
         except Exception as e:
             self.plugin.log(f"Failed to cache DEX to file: {e}")
 
-        # Try InMemoryDexClassLoader first (no disk write needed)
         try:
             clazz, loader = self._load_dex_inmemory(bytesdex)
             self.dex_loader = loader
@@ -279,7 +251,6 @@ class Loader:
             proxy_err = "proxy" in str(e).lower()
             self.plugin.log(f"InMemory load {'proxy issue' if proxy_err else 'failed'}: {e}")
 
-        # Fallback: DexClassLoader from file (handles proxy better)
         if os.path.exists(dex_path):
             try:
                 clazz, loader = self._load_dex_from_file(dex_path)
@@ -291,8 +262,6 @@ class Loader:
             except Exception as e:
                 self.plugin.log(f"File load also failed: {e}")
 
-        # Last resort: class already loaded by InMemoryDexClassLoader's static init
-        # Hooks may work even without a valid Python proxy
         self.plugin.log(f"DEX proxy unavailable — hooks from static init may still work")
         self.instance = None
 
@@ -315,8 +284,6 @@ class Loader:
         except Exception as e:
             self.plugin.log(f"Error unloading: {e}")
 
-    # ── Version checking ───────────────────────────────────────────────────
-
     def _get_cached_version(self):
         try:
             inst = self.getInstance()
@@ -330,14 +297,13 @@ class Loader:
             return 0
 
     def _check_dev_version(self, force=False):
-        """Return (remote_version_id, download_url) or (None, None)."""
         if not force and not self.config.can_check():
             self.plugin.log("Dev check skipped (rate limit cooldown)")
             self.config.last_error = "Rate limit: wait 1 min"
             return None, None
         try:
             self.config.mark_checked()
-            headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+            headers = {"User-Agent": USER_AGENT}
             r = requests.get(DEV_API_URL, headers=headers, timeout=5)
             self.plugin.log(f"Dev API HTTP {r.status_code}")
             r.raise_for_status()
@@ -350,7 +316,6 @@ class Loader:
             run = runs[0]
             run_id = run.get("id", 0)
             self.plugin.log(f"Latest dev run: #{run_id}")
-            # Dynamic nightly.link URL with run_id
             dev_url = f"https://nightly.link/fossSquad/re-extera/actions/runs/{run_id}/re-extera-dev.zip"
             return str(run_id), (dev_url, None)
         except Exception as e:
@@ -358,14 +323,13 @@ class Loader:
             return None, None
 
     def _check_release_version(self, force=False):
-        """Return (remote_version_id, download_url) or (None, None)."""
         if not force and not self.config.can_check():
             self.plugin.log("Release check skipped (rate limit cooldown)")
             self.config.data["last_error"] = "Rate limit: wait 1 min"
             return None, None
         try:
             self.config.mark_checked()
-            headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+            headers = {"User-Agent": USER_AGENT}
             r = requests.get(RELEASE_API_URL, headers=headers, timeout=5)
             self.plugin.log(f"Release API HTTP {r.status_code}")
             r.raise_for_status()
@@ -395,18 +359,14 @@ class Loader:
             return None, None
 
     def _needs_update(self, remote_version):
-        """Compare remote version with cached local version."""
         cached = self.config.get_version(self.channel)
         self.plugin.log(f"Remote: {remote_version}, Cached: {cached}")
         return str(remote_version) != str(cached)
 
-    # ── Downloading ────────────────────────────────────────────────────────
-
     def _download_dev_dex(self):
-        """Download dev DEX from nightly.link (zip → extract classes.dex)."""
         self.plugin.log(f"Downloading dev DEX from {DEV_ARTIFACT_URL}")
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0",
+            "User-Agent": USER_AGENT,
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
             "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -422,7 +382,6 @@ class Loader:
         r = requests.get(DEV_ARTIFACT_URL, headers=headers, timeout=60)
         r.raise_for_status()
         with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
-            # Handle both old path (build/dex/classes.dex) and new path (classes.dex)
             dex_path = next((n for n in zf.namelist() if n.endswith("classes.dex")), "classes.dex")
             dex_bytes = zf.read(dex_path)
             try:
@@ -434,16 +393,14 @@ class Loader:
         return dex_bytes, plugin_bytes
 
     def _download_release_dex(self, url):
-        """Download release DEX from GitHub Releases."""
         self.plugin.log(f"Downloading release DEX from {url}")
-        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"}
+        headers = {"User-Agent": USER_AGENT}
         r = requests.get(url, headers=headers, timeout=60)
         r.raise_for_status()
         self.plugin.log(f"Downloaded {len(r.content)} bytes from releases")
         return r.content
 
     def download_and_cache(self, remote_version, urls):
-        """Download DEX based on current channel, cache it."""
         dex_url, plugin_url = urls
         plugin_bytes = None
 
@@ -453,7 +410,7 @@ class Loader:
             dex_bytes = self._download_release_dex(dex_url)
             if plugin_url:
                 try:
-                    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
+                    headers = {"User-Agent": USER_AGENT}
                     r = requests.get(plugin_url, headers=headers, timeout=60)
                     r.raise_for_status()
                     plugin_bytes = r.content
@@ -483,10 +440,7 @@ class Loader:
         except Exception as e:
             self.plugin.log(f"Failed to update plugin: {e}")
 
-    # ── Loading ────────────────────────────────────────────────────────────
-
     def _load_from_local_path(self):
-        """Try to load DEX from LOCAL_DEX_PATH (sideload)."""
         if os.path.exists(LOCAL_DEX_PATH):
             self.plugin.log(f"Local DEX found at {LOCAL_DEX_PATH}")
             with open(LOCAL_DEX_PATH, 'rb') as f:
@@ -502,7 +456,6 @@ class Loader:
     def load_and_start(self):
         self.plugin.log(f"Loading (channel: {self.channel})")
 
-        # 1. Try local sideload first (unstable feature)
         local_bytes = self._load_from_local_path()
         if local_bytes is not None:
             try:
@@ -515,21 +468,17 @@ class Loader:
                 return
             except Exception as e:
                 self.plugin.log(f"Local DEX failed ({e}), falling through to cache/download")
-                # Remove stale local DEX so next attempt falls through
                 try:
                     os.remove(LOCAL_DEX_PATH)
                     self.plugin.log("Removed stale local DEX")
                 except Exception:
                     pass
 
-        # 2. Try cache
         cached_bytes = self._load_from_cache()
         if cached_bytes is not None:
             try:
                 self.start_from_bytes(cached_bytes)
                 self.plugin.log("Loaded from cache")
-
-                # 3. Async update check
                 try:
                     self._check_async_update()
                 except Exception as e:
@@ -539,7 +488,6 @@ class Loader:
         else:
             self.plugin.log("No cache found")
 
-        # 4. If we get here, no usable DEX was loaded — download fresh
         if self.instance is None:
             self.plugin.log("Downloading fresh DEX...")
             try:
@@ -563,7 +511,6 @@ class Loader:
         return self._check_release_version(force)
 
     def _check_async_update(self):
-        """Check for updates in background and notify if available."""
         def run_check():
             try:
                 remote_version, download_url = self._check_version()
@@ -573,17 +520,16 @@ class Loader:
                 if self._needs_update(remote_version):
                     self.plugin.log("Update available, downloading...")
                     self.download_and_cache(remote_version, download_url)
-                    
+
                     def show_ui():
                         BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
                     AndroidUtilities.runOnUIThread(UIRunnable(show_ui))
             except Exception as e:
                 self.plugin.log(f"Async update failed: {e}")
-                
+
         threading.Thread(target=run_check).start()
 
     def check_updates_now(self):
-        """Manual update check — called from settings button."""
         try:
             BulletinHelper.show_info(_localize("downloading"), get_last_fragment())
             def run_manual():
@@ -603,9 +549,8 @@ class Loader:
                             BulletinHelper.show_info(_localize("update_avail"), get_last_fragment())
                         AndroidUtilities.runOnUIThread(UIRunnable(show_success))
                     else:
-                        msg = "Уже последняя версия" if _localize("settings") != "re:extera Settings" else "Already up to date"
                         def show_uptodate():
-                            BulletinHelper.show_info(msg, get_last_fragment())
+                            BulletinHelper.show_info(_localize("up_to_date"), get_last_fragment())
                         AndroidUtilities.runOnUIThread(UIRunnable(show_uptodate))
 
                 except Exception as e:
@@ -613,7 +558,7 @@ class Loader:
                     def show_exc():
                         BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
                     AndroidUtilities.runOnUIThread(UIRunnable(show_exc))
-            
+
             threading.Thread(target=run_manual).start()
 
         except Exception as e:
@@ -621,10 +566,9 @@ class Loader:
             BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
 
     def get_version_display(self):
-        """Human-readable version string for the menu."""
         try:
             if self.dex_main_class is not None:
-                v = self.dex_main_class.getDeclaredField("VERSION")
+                v = self.dex_main_class.getDeclaredField(VERSION_FIELD_NAME)
                 v.setAccessible(True)
                 ver = str(v.get(None))
                 return f"v{ver}"
@@ -634,15 +578,10 @@ class Loader:
             return f"cached:{cached}" if cached else "?"
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Plugin
-# ═══════════════════════════════════════════════════════════════════════════════
-
+# loader settings
 class Plugin(BasePlugin):
     def __init__(self):
         self.loader = None
-
-    # ── Settings / Menu ────────────────────────────────────────────────────
 
     def create_settings(self) -> List[Any]:
         items = []
@@ -702,7 +641,6 @@ class Plugin(BasePlugin):
         self.loader.check_updates_now()
 
     def _on_install_file(self):
-        """Check LOCAL_DEX_PATH and reload."""
         if self.loader is None:
             return
         if os.path.exists(LOCAL_DEX_PATH):
@@ -716,8 +654,7 @@ class Plugin(BasePlugin):
                 self.log(f"Install from file failed: {e}")
                 BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
         else:
-            msg = "Файл не найден" if _localize("settings") != "re:extera Settings" else "File not found"
-            BulletinHelper.show_info(msg, get_last_fragment())
+            BulletinHelper.show_info(_localize("file_not_found"), get_last_fragment())
 
     def _open_re_extera_settings(self):
         try:
@@ -728,8 +665,6 @@ class Plugin(BasePlugin):
             show_method.invoke(None)
         except Exception as e:
             self.log(f"Error opening DEX settings: {e}")
-
-    # ── Plugin lifecycle ───────────────────────────────────────────────────
 
     def on_plugin_load(self) -> None:
         try:
@@ -742,7 +677,6 @@ class Plugin(BasePlugin):
             self.log(f"Error: {e}")
 
     def on_plugin_unload(self) -> None:
-        # Note: the `return` in the original prevents unloading — keep as is
         return
         if self.loader is not None:
             self.loader.unload()
