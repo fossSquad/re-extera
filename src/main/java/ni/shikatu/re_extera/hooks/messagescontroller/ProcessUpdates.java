@@ -177,17 +177,20 @@ public class ProcessUpdates extends XC_MethodHook {
 
     private void processDeleteScheduledMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteScheduledMessages update, int currentAccount) {
         long dialogId = DialogObject.getPeerDialogId(update.peer);
-        ArrayList<Integer> all = new ArrayList<>();
-        if (update.sent_messages != null) {
-            all.addAll(update.sent_messages);
+        // update.sent_messages = IDs of the NEW real messages that were just delivered
+        //   from the scheduled list — these must NOT be deleted, they are live messages.
+        // update.messages     = IDs of the scheduled-slot entries being removed.
+        //   Only these should be saved as "deleted scheduled messages".
+        if (update.sent_messages != null && !update.sent_messages.isEmpty()) {
+            Main.log("processDeleteScheduledMessages: ignoring %d sent_messages (live) for did=%d",
+                    update.sent_messages.size(), dialogId);
         }
-        if (update.messages != null) {
-            all.addAll(update.messages);
-        }
-        if (all.isEmpty()) {
+        if (update.messages == null || update.messages.isEmpty()) {
             return;
         }
-        InternalUtils.deleteMessages(currentAccount, dialogId, all, true);
+        ArrayList<Integer> toDelete = new ArrayList<>(update.messages);
+        Main.log("processDeleteScheduledMessages: saving %d deleted scheduled ids for did=%d", toDelete.size(), dialogId);
+        InternalUtils.deleteMessages(currentAccount, dialogId, toDelete, true);
     }
 
     private void processDeleteChannelMessages(org.telegram.tgnet.tl.TL_update.TL_updateDeleteChannelMessages update, LongSparseArray<ArrayList<Integer>> channelDeleted) {
