@@ -23,6 +23,15 @@ public class FillMessageMenu extends XC_MethodHook {
             items.add(0, Localization.MESSAGE_HISTORY);
             options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_MESSAGE_HISTORY));
         }
+        if (msgObj.isOut() && Settings.getSaveReadDate()) {
+            int readDate = ReExteraDb.get().getReadDate(msgObj.getDialogId(), msgObj.getId());
+            if (readDate > 0) {
+                String timeStr = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date(readDate * 1000L));
+                icons.add(0, Integer.valueOf(R.drawable.msg_info)); // fallback icon
+                items.add(0, String.format(Localization.READ_AT, timeStr));
+                options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_READ_AT));
+            }
+        }
         boolean hideReading = Settings.getHideReadingWithGhost() || SendRequest.getCurrentReadingStatus() == -1;
         boolean alwaysRead = SendRequest.getCurrentReadingStatus() == 1;
         if (((hideReading && !alwaysRead) || oneTime) && !msgObj.isOut()) {

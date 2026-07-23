@@ -180,6 +180,30 @@ public final class Settings {
         putBool("save_deleted_messages", v);
     }
 
+    public static boolean getSaveBotChats() {
+        return getBool("save_bot_chats", false);
+    }
+
+    public static void setSaveBotChats(boolean v) {
+        putBool("save_bot_chats", v);
+    }
+
+    public static boolean getSaveReadDate() {
+        return getBool("save_read_date", false);
+    }
+
+    public static void setSaveReadDate(boolean v) {
+        putBool("save_read_date", v);
+    }
+
+    public static boolean getSaveLastOnline() {
+        return getBool("save_last_online", false);
+    }
+
+    public static void setSaveLastOnline(boolean v) {
+        putBool("save_last_online", v);
+    }
+
     public static boolean getSaveEditedMessages() {
         return getBool("save_edited_messages", false);
     }

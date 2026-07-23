@@ -22,7 +22,7 @@ import org.telegram.tgnet.TLRPC;
 public final class ReExteraDb {
     private static final int BATCH_IN_SIZE = 500;
     public static final String DB_NAME = "re_extera.db";
-    public static final int DB_VERSION = 9;
+    public static final int DB_VERSION = 11;
     private static final long DELETED_KEYS_TTL_MS = TimeUnit.DAYS.toMillis(30);
     private static volatile ReExteraDb instance;
     private final Handler dbHandler;
@@ -851,8 +851,131 @@ public final class ReExteraDb {
         return result;
     }
 
+    public void lambda$saveLastOnlineAsync$90(long userId, int ts) {
+        SQLiteDatabase db = this.helper.getWritableDatabase();
+        try {
+            SQLiteStatement st = db.compileStatement("INSERT OR REPLACE INTO last_online_users(user_id, online_ts) VALUES(?, ?)");
+            try {
+                st.bindLong(1, userId);
+                st.bindLong(2, ts);
+                st.executeInsert();
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Throwable th) {
+                if (st != null) {
+                    try {
+                        st.close();
+                    } catch (Throwable th2) {
+                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                    }
+                }
+                throw th;
+            }
+        } catch (Exception e) {
+            Main.log("saveLastOnline error: %s", e.getMessage());
+        }
+    }
+
+    public void saveLastOnlineAsync(final long userId, final int ts) {
+        postToDbThread(new Runnable() { 
+            @Override // java.lang.Runnable
+            public final void run() {
+                lambda$saveLastOnlineAsync$90(userId, ts);
+            }
+        });
+    }
+
+    public int getLastOnline(long userId) {
+        SQLiteDatabase db = this.helper.getReadableDatabase();
+        try {
+            Cursor c = db.rawQuery("SELECT online_ts FROM last_online_users WHERE user_id = ?", new String[]{String.valueOf(userId)});
+            try {
+                int i = (c.moveToFirst() && !c.isNull(0)) ? c.getInt(0) : 0;
+                if (c != null) {
+                    c.close();
+                }
+                return i;
+            } catch (Throwable th) {
+                if (c != null) {
+                    try {
+                        c.close();
+                    } catch (Throwable th2) {
+                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                    }
+                }
+                throw th;
+            }
+        } catch (Exception e) {
+            Main.log("getLastOnline error: %s", e.getMessage());
+            return 0;
+        }
+    }
+
+    public void lambda$saveReadEventAsync$9(long did, int maxId) {
+        SQLiteDatabase db = this.helper.getWritableDatabase();
+        try {
+            SQLiteStatement st = db.compileStatement("INSERT OR IGNORE INTO read_events(did, max_id, date) VALUES(?, ?, ?)");
+            try {
+                st.bindLong(1, did);
+                st.bindLong(2, maxId);
+                st.bindLong(3, System.currentTimeMillis() / 1000L);
+                st.executeInsert();
+                if (st != null) {
+                    st.close();
+                }
+            } catch (Throwable th) {
+                if (st != null) {
+                    try {
+                        st.close();
+                    } catch (Throwable th2) {
+                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                    }
+                }
+                throw th;
+            }
+        } catch (Exception e) {
+            Main.log("saveReadEvent error: %s", e.getMessage());
+        }
+    }
+
+    public void saveReadEventAsync(final long did, final int maxId) {
+        postToDbThread(new Runnable() { 
+            @Override // java.lang.Runnable
+            public final void run() {
+                lambda$saveReadEventAsync$9(did, maxId);
+            }
+        });
+    }
+
+    public int getReadDate(long did, int mid) {
+        SQLiteDatabase db = this.helper.getReadableDatabase();
+        try {
+            Cursor c = db.rawQuery("SELECT MIN(date) FROM read_events WHERE did = ? AND max_id >= ?", new String[]{String.valueOf(did), String.valueOf(mid)});
+            try {
+                int i = (c.moveToFirst() && !c.isNull(0)) ? c.getInt(0) : 0;
+                if (c != null) {
+                    c.close();
+                }
+                return i;
+            } catch (Throwable th) {
+                if (c != null) {
+                    try {
+                        c.close();
+                    } catch (Throwable th2) {
+                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
+                    }
+                }
+                throw th;
+            }
+        } catch (Exception e) {
+            Main.log("getReadDate error: %s", e.getMessage());
+            return 0;
+        }
+    }
+
     /* JADX INFO: renamed from: updateShadowban, reason: merged with bridge method [inline-methods] */
-    public void lambda$updateShadowbanAsync$8(long userId, boolean hideDialog, boolean hideInGroups) {
+    public void lambda$updateShadowbanAsync$10(long userId, boolean hideDialog, boolean hideInGroups) {
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
         try {
@@ -874,7 +997,7 @@ public final class ReExteraDb {
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                lambda$updateShadowbanAsync$8(userId, hideDialog, hideInGroups);
+                lambda$updateShadowbanAsync$10(userId, hideDialog, hideInGroups);
             }
         });
     }
@@ -886,6 +1009,8 @@ public final class ReExteraDb {
             try {
                 db.delete("deleted_keys", null, null);
                 db.delete("message_edits", null, null);
+                db.delete("read_events", null, null);
+                db.delete("last_online_users", null, null);
                 db.setTransactionSuccessful();
             } catch (Exception e) {
                 Main.log("clearDatabaseOnly error: %s", e.getMessage());
@@ -993,6 +1118,15 @@ public final class ReExteraDb {
             db.execSQL("CREATE TABLE IF NOT EXISTS regex_filters(regex TEXT NOT NULL,PRIMARY KEY(regex))");
             db.execSQL("CREATE TABLE IF NOT EXISTS shadowban_users(user_id INTEGER PRIMARY KEY,hide_dialog INTEGER DEFAULT 1,hide_in_groups INTEGER DEFAULT 1,added_ts INTEGER NOT NULL)");
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_shadowban_added_ts ON shadowban_users(added_ts)");
+            db.execSQL("CREATE TABLE IF NOT EXISTS read_events(did INTEGER NOT NULL, max_id INTEGER NOT NULL, date INTEGER NOT NULL, PRIMARY KEY(did, max_id))");
+            db.execSQL("CREATE INDEX IF NOT EXISTS idx_read_events_did ON read_events(did)");
+            db.execSQL("CREATE TABLE IF NOT EXISTS last_online_users(user_id INTEGER PRIMARY KEY, online_ts INTEGER NOT NULL)");
+        }
+
+        @Override // android.database.sqlite.SQLiteOpenHelper
+        public void onOpen(SQLiteDatabase db) {
+            super.onOpen(db);
+            onCreate(db);
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
@@ -1016,6 +1150,13 @@ public final class ReExteraDb {
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_deleted_did ON deleted_keys(did)");
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_edits_did_mid ON message_edits(did, mid)");
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_shadowban_added_ts ON shadowban_users(added_ts)");
+            }
+            if (oldV < 10) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS read_events(did INTEGER NOT NULL, max_id INTEGER NOT NULL, date INTEGER NOT NULL, PRIMARY KEY(did, max_id))");
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_read_events_did ON read_events(did)");
+            }
+            if (oldV < 11) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS last_online_users(user_id INTEGER PRIMARY KEY, online_ts INTEGER NOT NULL)");
             }
         }
     }
