@@ -27,6 +27,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     private enum DeletedAndEditedIds {
         SAVE_DELETED_MESSAGES_ID,
+        SAVE_BOT_CHATS_ID,
         SAVE_ONE_TIME_MESSAGES_ID,
         SAVE_MESSAGE_HISTORY_ID,
         RED_DELETED_MARK_ID,
@@ -66,6 +67,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
+        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_BOT_CHATS_ID.getId(), Localization.SAVE_BOT_CHATS).setChecked(Settings.getSaveBotChats()).setLinkAlias("reExteraSaveBotChats", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.getId(), Localization.SAVE_ONE_TIME_MESSAGES).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraSaveOneTimeMessages", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
         items.add(UItem.asShadow());
@@ -85,14 +87,18 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 refreshCheckBox(item, position, Settings.getSaveDeletedMessages());
                 break;
             case 2:
+                Settings.setSaveBotChats(!Settings.getSaveBotChats());
+                refreshCheckBox(item, position, Settings.getSaveBotChats());
+                break;
+            case 3:
                 Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
                 refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
                 break;
-            case 3:
+            case 4:
                 Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
-            case 4:
+            case 5:
                 Settings.setRedMark(!Settings.getRedMark());
                 refreshCheckBox(item, position, Settings.getRedMark());
                 break;
@@ -109,15 +115,19 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             } catch (NoSuchFieldError e) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.ordinal()] = 2;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_BOT_CHATS_ID.ordinal()] = 2;
+            } catch (NoSuchFieldError e) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.ordinal()] = 3;
             } catch (NoSuchFieldError e2) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.ordinal()] = 3;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.ordinal()] = 4;
             } catch (NoSuchFieldError e3) {
             }
             try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 4;
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.RED_DELETED_MARK_ID.ordinal()] = 5;
             } catch (NoSuchFieldError e4) {
             }
         }

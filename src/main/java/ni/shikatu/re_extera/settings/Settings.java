@@ -180,6 +180,14 @@ public final class Settings {
         putBool("save_deleted_messages", v);
     }
 
+    public static boolean getSaveBotChats() {
+        return getBool("save_bot_chats", false);
+    }
+
+    public static void setSaveBotChats(boolean v) {
+        putBool("save_bot_chats", v);
+    }
+
     public static boolean getSaveEditedMessages() {
         return getBool("save_edited_messages", false);
     }
