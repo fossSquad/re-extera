@@ -49,6 +49,21 @@ CACHE_DIR_NAME = "re_extera_cache"
 DEX_OPT_DIR_NAME = "dex_opt"
 VERSION_FIELD_NAME = "VERSION"
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:152.0) Gecko/20100101 Firefox/152.0"
+DEV_RUN_URL_TEMPLATE = "https://nightly.link/fossSquad/re-extera/actions/runs/{}/re-extera-dev.zip"
+DEV_DOWNLOAD_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Connection": "keep-alive",
+    "Referer": "https://nightly.link/fossSquad/re-extera/workflows/build/master?preview",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-User": "?1",
+    "Priority": "u=0, i",
+}
 
 
 # localization
@@ -316,7 +331,7 @@ class Loader:
             run = runs[0]
             run_id = run.get("id", 0)
             self.plugin.log(f"Latest dev run: #{run_id}")
-            dev_url = f"https://nightly.link/fossSquad/re-extera/actions/runs/{run_id}/re-extera-dev.zip"
+            dev_url = DEV_RUN_URL_TEMPLATE.format(run_id)
             return str(run_id), (dev_url, None)
         except Exception as e:
             self.plugin.log(f"Error checking dev version: {e}")
@@ -365,21 +380,7 @@ class Loader:
 
     def _download_dev_dex(self):
         self.plugin.log(f"Downloading dev DEX from {DEV_ARTIFACT_URL}")
-        headers = {
-            "User-Agent": USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Connection": "keep-alive",
-            "Referer": "https://nightly.link/fossSquad/re-extera/workflows/build/master?preview",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "same-origin",
-            "Sec-Fetch-User": "?1",
-            "Priority": "u=0, i",
-        }
-        r = requests.get(DEV_ARTIFACT_URL, headers=headers, timeout=60)
+        r = requests.get(DEV_ARTIFACT_URL, headers=DEV_DOWNLOAD_HEADERS, timeout=60)
         r.raise_for_status()
         with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
             dex_path = next((n for n in zf.namelist() if n.endswith("classes.dex")), "classes.dex")
