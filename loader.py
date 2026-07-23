@@ -5,7 +5,7 @@ __description__ = "Enable ghost mode, save deleted messages and more!"
 __author__ = "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad & @migor1103"
 __version__ = "2.5.0"
 __icon__ = "myadestes_1_amashiro_natsuki_plus_nacho_neko/30"
-__min_version__ = "12.2.3"
+__min_version__ = "12.8.1"
 
 # imports
 from typing import Any, List
