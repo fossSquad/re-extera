@@ -196,6 +196,14 @@ public final class Settings {
         putBool("save_read_date", v);
     }
 
+    public static boolean getSaveLastOnline() {
+        return getBool("save_last_online", false);
+    }
+
+    public static void setSaveLastOnline(boolean v) {
+        putBool("save_last_online", v);
+    }
+
     public static boolean getSaveEditedMessages() {
         return getBool("save_edited_messages", false);
     }

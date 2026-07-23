@@ -173,6 +173,7 @@ public final class HookInit {
         tryHook("MessageObject.canForwardMessage", MessageObject.class, "canForwardMessage", new CanForwardMessage(), new Class[0]);
         tryHook("ChatActivity.fillMessageMenu", ChatActivity.class, "fillMessageMenu", new FillMessageMenu(), MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class);
         tryHook("ChatActivity.processSelectedOption", ChatActivity.class, "processSelectedOption", new ProcessSelectedOption(), Integer.TYPE);
+        tryHook("LocaleController.formatUserStatus", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class, boolean[].class);
         tryHook("ChatActivity.createView", ChatActivity.class, "createView", new FragmentCreate(), Context.class);
         tryHook("ChatActivity.hasSelectedNoforwardsMessage", ChatActivity.class, "hasSelectedNoforwardsMessage", new HasSelectedNoForwardsMessage(), new Class[0]);
         tryHook("ChatActivity.sendSecretMediaDelete", ChatActivity.class, "sendSecretMediaDelete", new SendSecretMediaDelete(), MessageObject.class);

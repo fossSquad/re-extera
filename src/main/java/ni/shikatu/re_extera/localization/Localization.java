@@ -94,6 +94,7 @@ public class Localization {
     public static String SAVE_BOT_CHATS;
     public static String SAVE_DELETED_MESSAGES;
     public static String SAVE_READ_DATE;
+    public static String SAVE_LAST_ONLINE;
     public static String READ_AT;
     public static String SAVE_ONE_TIME_MESSAGES;
     public static String SAVE_OWN_MESSAGES;
@@ -130,6 +131,7 @@ public class Localization {
             SAVE_DELETED_MESSAGES = "Сохранять удаленные сообщения";
             SAVE_BOT_CHATS = "Сохранять в чатах с ботами";
             SAVE_READ_DATE = "Сохранять дату чтения";
+            SAVE_LAST_ONLINE = "Сохранять последний онлайн";
             READ_AT = "Прочитано в %s";
             MESSAGE_HISTORY = "История";
             MESSAGE_HISTORY_TOGGLE = "Сохранить историю правок";
@@ -243,6 +245,7 @@ public class Localization {
         SAVE_DELETED_MESSAGES = "Save deleted messages";
         SAVE_BOT_CHATS = "Save in bot chats";
         SAVE_READ_DATE = "Save read date";
+        SAVE_LAST_ONLINE = "Save last online";
         READ_AT = "Read at %s";
         MESSAGE_HISTORY = "History";
         MESSAGE_HISTORY_TOGGLE = "Save message history";

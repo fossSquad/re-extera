@@ -101,6 +101,14 @@ public class ProcessUpdates extends XC_MethodHook {
                 ReExteraDb.get().saveReadEventAsync(did, outbox2.max_id);
             }
         }
+        if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus)) {
+            org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) update;
+            if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
+                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, statusUpdate.status.was_online);
+            } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
+                ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
+            }
+        }
         return true;
     }
 
