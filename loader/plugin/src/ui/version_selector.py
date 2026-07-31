@@ -1,145 +1,14 @@
-class Plugin(BasePlugin):
-    def __init__(self):
-        self.loader = None
-        self._logs = []
-        self._api_cache = {}
+import threading
+import requests
+from ui.alert import AlertDialogBuilder
+from ui.bulletin import BulletinHelper
+from client_utils import get_last_fragment
+from org.telegram.messenger import AndroidUtilities, BuildVars
 
-    def _fetch_cached(self, key, fetch_func, callback, ttl=120):
-        now = time.time()
-        if key in self._api_cache:
-            ts, data = self._api_cache[key]
-            if now - ts < ttl:
-                callback(data)
-                return
-                
-        def wrapper():
-            data = fetch_func()
-            if data is not None:
-                self._api_cache[key] = (time.time(), data)
-            callback(data)
-            
-        threading.Thread(target=wrapper).start()
+from ..utils import UIRunnable, _localize
+from ..constants import DEV_RUN_URL_TEMPLATE, RELEASE_API_URL, USER_AGENT
 
-    def log(self, message):
-        import datetime
-        ts = datetime.datetime.now().strftime("%H:%M:%S")
-        self._logs.append(f"[{ts}] {message}")
-        try:
-            super().log(message)
-        except AttributeError:
-            pass
-
-    def create_settings(self) -> List[Any]:
-        items = []
-
-        try:
-            channel = self.loader.config.channel if self.loader else "release"
-            version = self.loader.get_version_display() if self.loader else "?"
-        except Exception:
-            channel = "release"
-            version = "?"
-
-        items.append(Text(text=f"DEX: {version}", on_click=lambda v: None))
-        items.append(Divider())
-
-        items.append(Selector(
-            key="update_channel",
-            text=_localize("update_channel"),
-            icon="msg_channel",
-            items=["Release", "Dev"],
-            default=1 if channel == "dev" else 0,
-            on_change=lambda v: self._on_channel_switch(v == 1)
-        ))
-
-        items.append(Text(
-            text=_localize("select_version"),
-            icon="msg_download",
-            on_click=lambda v: self._on_select_version()
-        ))
-
-        items.append(Text(
-            text=_localize("check_updates"),
-            icon="msg_retry",
-            on_click=lambda v: self._on_check_updates()
-        ))
-        items.append(Text(
-            text=_localize("install_file"),
-            icon="msg_folders",
-            on_click=lambda v: self._on_install_file()
-        ))
-        
-        items.append(Divider())
-        
-        items.append(Text(
-            text=_localize("copy_logs"),
-            icon="msg_copy",
-            on_click=lambda v: self._on_copy_logs()
-        ))
-        items.append(Divider())
-        items.append(Text(
-            text=_localize("dex_settings"),
-            icon="msg_settings",
-            on_click=lambda v: self._open_re_extera_settings()
-        ))
-
-        return items
-
-    def _on_channel_switch(self, is_dev):
-        if self.loader is None:
-            return
-        new_channel = "dev" if is_dev else "release"
-        old_channel = self.loader.config.channel
-        if new_channel == old_channel:
-            return
-
-        self.loader.config.channel = new_channel
-        self.loader._switch_cache(new_channel)
-        self.log(f"Switched to {new_channel} channel")
-        BulletinHelper.show_info(_localize("channel_switch"), get_last_fragment())
-
-    def _on_check_updates(self):
-        if self.loader is None:
-            return
-        self.loader.check_updates_now()
-
-    def _on_install_file(self):
-        if self.loader is None:
-            return
-        if os.path.exists(LOCAL_DEX_PATH):
-            try:
-                with open(LOCAL_DEX_PATH, 'rb') as f:
-                    dex_bytes = f.read()
-                self.loader.start_from_bytes(dex_bytes)
-                BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
-                self.log("Reloaded from local file")
-            except Exception as e:
-                self.log(f"Install from file failed: {e}")
-                BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
-        else:
-            BulletinHelper.show_info(_localize("file_not_found"), get_last_fragment())
-
-    def _on_copy_logs(self):
-        try:
-            java_logs = ""
-            if self.loader and self.loader.dex_main_class:
-                try:
-                    get_logs_method = self.loader.dex_main_class.getMethod("getLogs")
-                    java_logs = str(get_logs_method.invoke(None))
-                except Exception as e:
-                    self.log(f"Failed to fetch Java logs: {e}")
-                    
-            plugin_logs = "\n".join(self._logs) if self._logs else "No plugin logs"
-            
-            full_logs = "=== Loader Logs ===\n" + plugin_logs
-            if java_logs:
-                full_logs += "\n\n=== Hook Logs ===\n" + java_logs
-                
-            AndroidUtilities.addToClipboard(full_logs)
-            BulletinHelper.show_info(_localize("logs_copied"), get_last_fragment())
-        except Exception as e:
-            self.log(f"Error copying logs: {e}")
-            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
-
+class VersionSelectorMixin:
     def _show_list_dialog(self, title, items, on_click):
         context = get_last_fragment().getParentActivity()
         bld = AlertDialogBuilder(context)
@@ -285,7 +154,7 @@ class Plugin(BasePlugin):
                 name = asset.get("name", "")
                 if name.endswith(".dex"):
                     dex_url = asset.get("browser_download_url", "")
-                elif name.endswith("loader.plugin"):
+                elif name.endswith("loader.plugin") or name.endswith("loader.elyx"):
                     plugin_url = asset.get("browser_download_url", "")
                     
             if dex_url:
@@ -294,34 +163,3 @@ class Plugin(BasePlugin):
                 BulletinHelper.show_info("No DEX in this release", get_last_fragment())
                 
         self._show_list_dialog("Select Release", labels, on_click)
-
-    def _open_re_extera_settings(self):
-        try:
-            if self.loader is None or self.loader.dex_main_class is None:
-                self.log("DEX not loaded")
-                return
-            try:
-                show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
-                show_method.invoke(None)
-            except Exception as e:
-                self.log(f"showSettingsExternal failed, trying fallback: {e}")
-                get_instance = self.loader.dex_main_class.getMethod("getInstance")
-                instance = get_instance.invoke(None)
-                show_method = self.loader.dex_main_class.getMethod("showSettings")
-                show_method.invoke(instance)
-        except Exception as e:
-            self.log(f"Error opening DEX settings: {e}")
-
-    def on_plugin_load(self) -> None:
-        try:
-            self.log(f"Init {__version__}")
-            launch_activity = get_last_fragment().getContext()
-            self.loader = Loader(self, launch_activity)
-            self.loader.load_and_start()
-        except Exception as e:
-            BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
-            self.log(f"Error: {e}")
-
-    def on_plugin_unload(self) -> None:
-        if self.loader is not None:
-            self.loader.unload()

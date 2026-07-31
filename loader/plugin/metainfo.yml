@@ -1,0 +1,6 @@
+id: re_extera_loader
+name: aartzz's re:extera
+description: "{plugin_description}\n\n[Source code](https://github.com/fossSquad/re-extera)"
+author: "@shiawasez | @shikaatuxplugins \noriginal author: @bleizixPlugins\nFOSS recovery by @fossSquad & @migor1103"
+version: "2.8.6"
+app_version: ">=12.8.1"

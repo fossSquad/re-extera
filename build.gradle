@@ -85,10 +85,38 @@ tasks.register("aarToDex", Exec) {
 
 
 tasks.register("buildDex") {
-
     group = "build"
     description = "Собирает модуль и конвертирует его в DEX"
     dependsOn "assembleRelease", "aarToDex"
+}
+
+tasks.register("buildPlugin", Exec) {
+    group = "build"
+    description = "Собирает Python плагин в .elyx архив"
+    
+    workingDir = file("loader")
+    
+    commandLine "bash", "-c", """
+        set -e
+        if [ ! -f ".venv/bin/activate" ] || ! .venv/bin/python3 -c "import pip" &> /dev/null; then
+            rm -r .venv || true
+            python3 -m venv .venv
+            if ! .venv/bin/python3 -c "import pip" &> /dev/null; then
+                curl -sS https://bootstrap.pypa.io/get-pip.py | .venv/bin/python3
+            fi
+        fi
+        source .venv/bin/activate
+        pip install -r requirements.txt
+        elyb build -nf
+        mkdir -p ../build/plugin
+        cp builds/loader.elyx ../build/plugin/loader.elyx
+    """
+}
+
+tasks.register("buildAll") {
+    group = "build"
+    description = "Собирает и DEX, и Elyx плагин"
+    dependsOn "buildDex", "buildPlugin"
 }
 
 repositories {

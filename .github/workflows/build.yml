@@ -27,16 +27,13 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
 
-    - name: Build with Gradle
-      run: ./gradlew buildDex
+    - name: Build All
+      run: ./gradlew buildAll
 
-    - name: Copy classes.dex to root
-      run: cp build/dex/classes.dex .
-
-    - name: Build loader.plugin
+    - name: Copy artifacts
       run: |
-        python3 loader/build.py
-        cp build/plugin/loader.plugin .
+        cp build/dex/classes.dex .
+        cp build/plugin/loader.elyx .
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
@@ -44,7 +41,7 @@ jobs:
         name: re-extera-dev
         path: |
           classes.dex
-          loader.plugin
+          loader.elyx
 
     - name: Parse tag for release name
       id: parse_tag
@@ -64,5 +61,5 @@ jobs:
         name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
         files: |
           classes.dex
-          loader.plugin
+          loader.elyx
         generate_release_notes: true

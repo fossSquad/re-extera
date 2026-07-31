@@ -1,0 +1,16 @@
+zipFormat: elyx
+source: plugin/src
+buildNameUncompiled: loader
+buildNameCompiled: loader-compiled
+ignoreAll:
+- plugin/.elyxbuilder/cache/*
+compilationIgnore:
+- plugin/src/main.py
+obfuscationConfig:
+  stripDocstrings: true
+  removeLogs: false
+  renameLocals: false
+  encodeStrings: false
+  encodeNumbers: false
+  zlibCompression: true
+  saveMapping: true

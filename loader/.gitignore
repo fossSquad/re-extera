@@ -1,0 +1,9 @@
+builds/
+.elyx/cache/
+.elyxbuilder/cache/
+plugin/.elyxbuilder/cache/
+**/__pycache__/
+*.pyc
+.venv/
+venv/
+**venv**/

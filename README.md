@@ -34,13 +34,16 @@ git clone https://github.com/fossSquad/re-extera.git
 cd re-extera
 
 # build .plugin
-python3 loader/build.py
+./gradlew buildPlugin
 
 # build .dex
 ./gradlew buildDex
+
+# build both
+./gradlew buildAll
 ```
 
-Output DEX will be at `build/dex/classes.dex`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
+Output DEX will be at `build/dex/classes.dex` and plugin will be at `build/plugin/loader.elyx`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
 
 ### Installing
 1. Install the [loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin)

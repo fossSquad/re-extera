@@ -1,0 +1,4 @@
+metainfo: plugin/metainfo.yml
+main: plugin/src/main.py
+strings: plugin/locales
+elyxbuilder: plugin/.elyxbuilder
