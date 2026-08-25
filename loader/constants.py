@@ -1,5 +1,6 @@
+"""Static configuration: class names, GitHub endpoints, cache paths, HTTP headers."""
+
 CLASS_NAME = "ni.shikatu.re_extera.Main"
-METHOD_NAME = "start"
 DEV_ARTIFACT_URL = "https://nightly.link/fossSquad/re-extera/workflows/build/master/re-extera-dev.zip"
 DEV_API_URL = "https://api.github.com/repos/fossSquad/re-extera/actions/workflows/build.yml/runs?branch=master&per_page=1&status=success"
 RELEASE_API_URL = "https://api.github.com/repos/fossSquad/re-extera/releases"

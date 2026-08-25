@@ -1,5 +1,10 @@
+"""Persistent loader configuration (selected channel, cached versions, rate limit)."""
+
+
 class Config:
-    MIN_CHECK_INTERVAL = 60  # seconds between version checks
+    """JSON-backed settings stored under the loader cache directory."""
+
+    MIN_CHECK_INTERVAL = 60  # minimum seconds between remote version checks
 
     def __init__(self, cache_dir):
         self.path = os.path.join(cache_dir, "config.json")
@@ -8,7 +13,7 @@ class Config:
     def _load(self):
         try:
             if os.path.exists(self.path):
-                with open(self.path, "r") as f:
+                with open(self.path) as f:
                     return json.load(f)
         except Exception:
             pass
@@ -16,12 +21,10 @@ class Config:
 
     def _save(self):
         try:
-            d = os.path.dirname(self.path)
-            if not os.path.exists(d):
-                os.makedirs(d)
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
             with open(self.path, "w") as f:
                 json.dump(self.data, f)
-        except Exception as e:
+        except Exception:
             pass
 
     @property
@@ -34,20 +37,19 @@ class Config:
         self._save()
 
     def get_version(self, channel):
-        return self.data.get("versions", {}).get(channel, 0)
+        versions = self.data.get("versions")
+        if not isinstance(versions, dict):
+            return 0
+        return versions.get(channel, 0)
 
     def set_version(self, channel, version):
-        self.data.setdefault("versions", {})[channel] = version
-        self._save()
-
-    def clear_cache_for(self, channel):
-        self.data.setdefault("versions", {})[channel] = 0
+        if not isinstance(self.data.get("versions"), dict):
+            self.data["versions"] = {}
+        self.data["versions"][channel] = version
         self._save()
 
     def can_check(self):
-        now = time.time()
-        last = self.data.get("last_check", 0)
-        return now - last >= self.MIN_CHECK_INTERVAL
+        return time.time() - self.data.get("last_check", 0) >= self.MIN_CHECK_INTERVAL
 
     def mark_checked(self):
         self.data["last_check"] = time.time()
