@@ -1,0 +1,10 @@
+# Dev / build tooling for the Python loader.
+#
+# The loader itself has NO runtime pip dependencies — it runs inside exteraGram's
+# Chaquopy engine and imports host modules (Java classes, exteraGram APIs) that are
+# only available on-device. build.py uses the standard library only.
+#
+#   pip install -r loader/requirements.txt
+
+ruff        # lints the assembled loader.plugin + build.py (see ruff.toml); required by CI
+pyright     # optional CLI type-checker (config: pyrightconfig.json); not run in CI — editors bundle their own

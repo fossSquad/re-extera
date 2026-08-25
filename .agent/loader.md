@@ -27,6 +27,14 @@ python3 loader/build.py --no-lint  # skip lint
 Output: `build/plugin/loader.plugin`. The script prints with `[+]/[-]/[*]` markers and
 `print("-" * 80)` separators, and runs `ruff check` on the assembled artifact.
 
+## Dev tooling (`loader/requirements.txt`)
+The loader has **no runtime pip deps** (it runs in Chaquopy against host modules; `build.py`
+is stdlib-only). `loader/requirements.txt` lists the dev tools: `ruff` (lint — the only thing
+CI runs) and `pyright` (optional CLI type-check, config `pyrightconfig.json`; editors bundle
+their own, and the `pyright` pip wrapper only fetches the Node binary when actually run, so CI
+installing it is cheap). CI does `pip install -r loader/requirements.txt`; install locally the
+same way.
+
 ## Lint / IDE config
 - `ruff.toml` — lints the ASSEMBLED `*.plugin` (via `extend-include`) plus
   `loader/build.py`, and EXCLUDES the raw fragments (they aren't valid standalone

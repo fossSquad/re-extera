@@ -31,7 +31,7 @@ jobs:
 
     - name: Lint Python loader with ruff
       run: |
-        python3 -m pip install --upgrade ruff
+        python3 -m pip install -r loader/requirements.txt
         ruff check .
 
     - name: Grant execute permission for gradlew
