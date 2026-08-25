@@ -8,7 +8,13 @@
 
 <sub>An exteraGram plugin, loaded at runtime via DEX injection</sub>
 
+<br/>
+
+[![Plugin Version](https://img.shields.io/badge/Plugin_Version-2.8.6-8A2BE2?style=for-the-badge)](https://github.com/fossSquad/re-extera/releases/latest) [![exteraGram Version](https://img.shields.io/badge/exteraGram_Version-12.9.0-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://github.com/exteraSquad/exteraGram)
+
 </div>
+
+---
 
 ### Features
 - **Ghost mode** — hide online status, typing, read receipts and story views; immediate offline, read-on-interact, scheduled/silent send, and per-chat exclusions
@@ -22,18 +28,26 @@
 - **Local Premium** — unlock premium-like features locally
 - **Filters** — advanced regex message filtering
 
+---
+
 ### Screenshots
 
 <div align="center">
-
-|  |  |  |
-|:---:|:---:|:---:|
-| <img src="images/1.jpg" width="200"/> | <img src="images/2.jpg" width="200"/> | <img src="images/3.jpg" width="200"/> |
-| **Home & credits** | **Spy** | **Deleted messages** |
-| <img src="images/4.jpg" width="200"/> | <img src="images/5.jpg" width="200"/> | <img src="images/6.jpg" width="200"/> |
-| **General** | **Liquid glass & translate** | **Ghost mode** |
-
+<table>
+  <tr>
+    <td align="center"><img src="images/1.jpg" width="200"/><br/><b>Home &amp; credits</b></td>
+    <td align="center"><img src="images/2.jpg" width="200"/><br/><b>Spy</b></td>
+    <td align="center"><img src="images/3.jpg" width="200"/><br/><b>Deleted messages</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="images/4.jpg" width="200"/><br/><b>General</b></td>
+    <td align="center"><img src="images/5.jpg" width="200"/><br/><b>Liquid glass &amp; translate</b></td>
+    <td align="center"><img src="images/6.jpg" width="200"/><br/><b>Ghost mode</b></td>
+  </tr>
+</table>
 </div>
+
+---
 
 ### Building
 
@@ -55,13 +69,19 @@ python3 loader/build.py
 
 Output DEX will be at `build/dex/classes.dex`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
 
+---
+
 ### Installing
 1. Install the [loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin)
 2. The plugin will download and load the DEX automatically
 3. Switch between dev (nightly) and release (stable) channels in plugin settings
 
+---
+
 ### Dev builds
 Latest dev builds are available as CI artifacts. Set the plugin channel to **Dev** to auto-update from the latest commit — no manual download needed.
+
+---
 
 ### Credits
 - **Original author** — [@bleizix](https://t.me/bleizix)
@@ -71,6 +91,8 @@ Latest dev builds are available as CI artifacts. Set the plugin channel to **Dev
   - [@migor1103](https://t.me/migor1103) · [GitHub](https://github.com/fossSquad)
 
 Built on [exteraGram](https://github.com/exteraSquad/exteraGram) — the plugin runtime.
+
+---
 
 ### License
 re:extera is free software, released under the [GNU General Public License v3.0](LICENSE).
