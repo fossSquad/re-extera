@@ -4,7 +4,11 @@ The loader ships as a single `loader.plugin` file, assembled by `loader/build.py
 from the fragments in `loader/__init__.py:BUILD_ORDER`, concatenated in order. The
 fragments share ONE namespace (all imports live in `loader/imports.py`); a fragment
 may only use names defined by earlier ones. `metadata.py` sets the plugin manifest
-dunders (`__id__`, `__name__`, `__version__` = 2.8.5, `__author__` includes @SHAJON).
+dunders: `__id__`, `__name__`, `__version__`, `__min_version__`, a feature-listing
+`__description__`, and a multi-line `__author__` (Maintained by / Original author /
+FOSS Recovery / **Plugin Channel: @shikaatuxplugins**) — keep it in sync with the
+in-app Credits card (`Localization.THANKS`, see settings-ui.md). Editing metadata only
+takes effect after rebuilding + reinstalling `loader.plugin` (not a bare `classes.dex` push).
 
 ## Build
 ```bash

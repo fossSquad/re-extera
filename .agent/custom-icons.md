@@ -22,11 +22,16 @@ new PathIconDrawable(24f, 24f, false, 20, 2f, "M...Z");
 - `getIntrinsicWidth/Height` = `dp(intrinsicDp)` (used by `UItem.asButton`).
 
 ## Where used
-- **Ghost mode + Spy** settings buttons (`settings/newui/SettingsFragmentNew.java`):
-  `GHOST_ICON_PATH` (viewBox 16, evenOdd — the eyes are holes) and
-  `SPY_ICON_PATH_1/2` (viewBox 507.965, winding), tinted `key_windowBackgroundWhiteBlueIcon`.
+- **Ghost mode + Spy + General** settings buttons (`settings/newui/SettingsFragmentNew.java`):
+  `GHOST_ICON_PATH` (viewBox 16, evenOdd — the eyes are holes),
+  `SPY_ICON_PATH_1/2` (viewBox 507.965, winding), and `GENERAL_ICON_PATH_1/2/3`
+  (viewBox 24, three rounded bars — the user-supplied `general.svg`), all tinted
+  `key_windowBackgroundWhiteBlueIcon`.
 - **Quick save button** (`hooks/chatmessagecell/QuickButtons.java`):
   `CLOUD_ICON_PATH` (viewBox 24, stroke width 2) — the user-supplied `cloud.svg`.
+
+Note: a small hand-drawn `GlowUnderline` `View` (not a `PathIconDrawable`) draws the neon bar
+under the Credits header — see settings-ui.md.
 
 ## Adding a new user icon
 1. User supplies an SVG (fill or stroke).

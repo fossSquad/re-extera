@@ -19,6 +19,11 @@
   build.gradle). `VERSION_CODE` = hardcoded int (13).
 
 ## Registering a hook (`hooks/HookInit.java`)
+> Runtime method hooking uses **Aliuhook** (`com.aliucord:Aliuhook`, a `compileOnly`
+> dep), which exposes the `de.robv.android.xposed.*` API (`XC_MethodHook`,
+> `XposedBridge.hookMethod`, `Unhook`) in-process. This is an exteraGram **plugin**,
+> NOT an Xposed/LSPosed module — there is no Xposed framework at runtime.
+
 - `startIntercepting()` is the single registry. Add:
   ```java
   tryHook("Class.method", Clazz.class, "method", new MyHook(), ArgType.class, Integer.TYPE);

@@ -21,8 +21,10 @@ Android plugin for exteraGram (Telegram fork) loaded at runtime via DEX injectio
 | Quick side buttons (edit / cloud-save) | [.agent/quick-buttons.md](.agent/quick-buttons.md) |
 | Show message id / profile-menu id | [.agent/id-display.md](.agent/id-display.md) |
 | Hide pinned, disable swipes, save stories, hide TL error, promo | [.agent/gap-features.md](.agent/gap-features.md) |
+| Liquid glass tab bar (LiteMode flags + shader amplify + sliders) | [.agent/liquid-glass.md](.agent/liquid-glass.md) |
+| Fix translate button not showing (non-Premium) | [.agent/translate-button.md](.agent/translate-button.md) |
 | Custom SVG icons (`PathIconDrawable`) | [.agent/custom-icons.md](.agent/custom-icons.md) |
-| Settings screen tree, master switch | [.agent/settings-ui.md](.agent/settings-ui.md) |
+| Settings screen tree, credits card, master switch | [.agent/settings-ui.md](.agent/settings-ui.md) |
 | DB + `Download/ReExtera/` paths | [.agent/storage-and-paths.md](.agent/storage-and-paths.md) |
 | Python loader, ruff/pyright, build | [.agent/loader.md](.agent/loader.md) |
 
@@ -63,14 +65,16 @@ re-extera/
     ├── db/                       # Custom SQLite implementation (re_extera.db)
     │   ├── ReExteraDb.java       # Database helper and CRUD operations (HandlerThread)
     │   └── (Entities: DialogExclusion, ShadowbanEntry)
-    ├── hooks/                    # ~50+ Xposed hooks across Telegram classes
-    │   ├── HookInit.java         # Central hook registry via XposedBridge
+    ├── hooks/                    # ~50+ runtime method hooks across Telegram classes
+    │   ├── HookInit.java         # Central hook registry (Aliuhook)
     │   ├── chatactivity/         # Chat UI hooks (menus, message processing)
     │   ├── chatmessagecell/      # Message cell hooks (deleted message transparency)
     │   ├── connectionsmanager/   # Network hooks (Ghost mode sendRequestInternal interception)
     │   ├── dialogsactivity/      # Dialog list hooks
     │   ├── messagescontroller/   # Core logic hooks (filtering, shadowbans, update loop)
     │   ├── messagesstorage/      # SQLite hooks (intercepting markMessagesAsDeleted)
+    │   ├── maintabs/             # Liquid glass tab bar (ForceLiquidGlass, LiquidGlassAmplify)
+    │   ├── translate/            # Fix translate button (dialog-translatable/feature/premium-scope)
     │   └── (other hook subpackages: notificationmanager, profileactivity, sendmessageshelper, etc.)
     ├── localization/
     │   └── Localization.java     # Translations for DEX settings
@@ -88,14 +92,29 @@ re-extera/
         └── (AccountUtils, DrawableUtils, ExclusionUtils, ShadowbanCache, etc.)
 ```
 
-## Architecture
+## Core concepts (one-liners — details in `.agent/`)
 
-- **Entry point**: `ni.shikatu.re_extera.Main.initAndStart()` — called by the Python loader after DEX injection
-- **Hooking**: Uses `de.robv.android.xposed.XposedBridge` to hook ~50+ exteraGram/Telegram methods at runtime
-- **Settings**: `SharedPreferences("re_extera")` — boolean/int/float/string key-value store
-- **Database**: Custom SQLite (`re_extera.db`, version 11) with 7 tables: `deleted_keys`, `message_edits`, `exception_users`, `regex_filters`, `shadowban_users`, `read_events`, `last_online_users`. All writes go through a dedicated HandlerThread.
-- **Ghost mode**: Intercepts `ConnectionsManager.sendRequestInternal` to block typing/reading/online/stories requests. Request types defined in `Defaults.java`.
-- **Versioning**: Auto-generated from git tags. Tag format `v<plugin_ver>-<tg_ver>` (e.g. `v2.8.3-12.9.0`). Dev builds use `{yyyyMMddHHmmss}-{commit}`.
+- **Entry point**: `Main.initAndStart()`, called by the loader after DEX injection; has a
+  process-wide guard against double-registration → [.agent/architecture.md](.agent/architecture.md).
+- **Hooking**: this is an exteraGram plugin, **not an Xposed/LSPosed module** —
+  runtime method hooking is done with **Aliuhook** (`com.aliucord:Aliuhook`), which
+  provides the `de.robv.android.xposed.*` API (`XC_MethodHook`, `XposedBridge`)
+  in-process. All registration goes through the single registry `hooks/HookInit.java`
+  (`tryHook(...)`); each hook is an `XC_MethodHook` gated on a `Settings.getX()`. How
+  to add one, resolve signatures, and handle decompiled fragments →
+  [.agent/architecture.md](.agent/architecture.md).
+- **Settings**: `SharedPreferences("re_extera")` via `settings/Settings.java`; the UI
+  fragment tree and the "Save deleted messages" master switch →
+  [.agent/settings-ui.md](.agent/settings-ui.md).
+- **Database**: custom SQLite `re_extera.db` with an in-memory `deleted_keys` cache →
+  [.agent/storage-and-paths.md](.agent/storage-and-paths.md).
+- **Ghost mode**: intercepts `ConnectionsManager.sendRequestInternal` to drop
+  typing/reading/online/stories requests (types in `Defaults.java`).
+- **Versioning**: from git tag `v<plugin_ver>-<tg_ver>`; no tag → `Main.VERSION`
+  falls back to `"1.9.0"` (build.gradle). `VERSION_CODE` = 13.
+
+Everything a feature touches is documented per-area under [`.agent/`](.agent/README.md);
+this file stays a lean map + the practical build/push/debug steps below.
 
 ## CI & releasing
 
@@ -104,21 +123,20 @@ re-extera/
 - Release tags: `v<plugin_ver>-<tg_ver>` → release named `v<plugin_ver> for <tg_ver>`
 - Loader channels: "Release" (stable GitHub releases) and "Dev" (latest CI artifact)
 
-## Loader behavior
+## Loader (Python)
 
-- The Python loader (`loader.plugin`) runs inside exteraGram's plugin engine
-- On load: checks local path → cache → downloads fresh DEX
-- DEX loading: tries `InMemoryDexClassLoader` first, falls back to `DexClassLoader` from file
-- Update checks rate-limited (60s cooldown)
-- Min exteraGram version: `12.8.1` (from `loader/metadata.py`)
-- Plugin metadata: `__id__ = "re_extera_loader"`, `__version__ = "2.8.3"`
+The `loader.plugin` runs inside exteraGram's plugin engine; on load it resolves the
+DEX from local path → cache → GitHub download (`InMemoryDexClassLoader`, then
+`DexClassLoader`), rate-limits update checks (60s), and calls `Main.initAndStart()`.
+Min exteraGram `12.8.1`; `__id__ = "re_extera_loader"`, `__version__ = "2.8.5"`. Build,
+concatenation model, ruff/pyright setup → [.agent/loader.md](.agent/loader.md).
 
 ## Hooks troubleshooting
 
-- `HookInit` wraps every hook registration in try/catch with per-hook name logging
-- If `SettingsRegistry.initiateFragment` reflection fails, `ReflectionUtils.hookError()` shows a crash dialog and unloads
-- Multiple hook overloads exist for compatibility across Telegram versions (e.g., `markMessagesAsDeleted` has 3 signature variants)
-- After `initAndStart()`, further calls are no-ops (static `hooks` field guard)
+`HookInit` wraps every registration in try/catch with per-hook logging, so a missing
+signature logs and continues. Add multiple `tryHook` lines with different signatures
+for version drift; use `Class.forName` for classes absent from the stub jar. Full
+recipe and the decompiled-fragment gotchas → [.agent/architecture.md](.agent/architecture.md).
 
 ## Commit style
 
@@ -137,9 +155,9 @@ Types observed: `fix`, `feat`, `refactor`, `ci`, `chore`, `build`, `docs`. Scope
 
 ## Testing
 
-- Tests are minimal: JUnit 4, AndroidX Test, Espresso 3.7.0
-- `DummyTest.java` in `settings/newui/` is a placeholder
-- Don't expect meaningful test coverage
+There is no test suite — the placeholder `src/test` and `src/androidTest` (and their
+JUnit/Espresso deps) were removed. Verify changes by building the DEX and testing on a
+device (see Debugging below).
 
 ## Gotchas
 
@@ -200,4 +218,4 @@ print('Plugin pushed and reloaded successfully!')
 
 ### Debug errors
 - View logs via ADB: `adb logcat -d | grep -iE 're_extera|re:extera|chaquopy'`
-- Fallback: ask user copy logs and send to you: plugin settings -> `Copy logs`/`Скопировать логи`/`Скопіювати логи` (button will copy logs to phone's clipboard)
+- Fallback: ask the user to export logs: plugin settings -> `Export logs`/`Экспортировать логи`/`Експортувати логи` (writes a file to `Download/ReExtera/logs/re_extera_logs_<timestamp>.txt`)

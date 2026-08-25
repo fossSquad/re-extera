@@ -15,8 +15,10 @@ then open the file below for the area you're touching.
 | [quick-buttons.md](quick-buttons.md) | Telegraph-style per-message side buttons (edit pencil / cloud save) drawn on `ChatMessageCell` |
 | [id-display.md](id-display.md) | Show message id in the time area + "ID" row in the profile/channel/group menu |
 | [gap-features.md](gap-features.md) | Hide pinned, disable chat/profile swipe, save protected stories, hide TL error, hide promo sponsor |
+| [liquid-glass.md](liquid-glass.md) | iOS-26 liquid glass tab bar — `LiteMode` flag forcing + `LiquidGlassEffect` amplify, opacity/strength sliders |
+| [translate-button.md](translate-button.md) | Fix the in-chat translate bar hidden for non-Premium (`TranslateController` gate bypass + scoped premium) |
 | [custom-icons.md](custom-icons.md) | `PathIconDrawable` — rendering SVG-path icons from code (no resources in a DEX) |
-| [settings-ui.md](settings-ui.md) | Settings screen tree (Ghost / Spy / Other), Deleted-Message sub-screen, master switch, gating |
+| [settings-ui.md](settings-ui.md) | Settings screen tree (Spy / General / Ghost), credits card, Deleted-Message sub-screen, master switch, gating |
 | [storage-and-paths.md](storage-and-paths.md) | `ReExteraDb` (deleted_keys cache), attachments/logs under `Download/ReExtera/` |
 | [loader.md](loader.md) | Python `loader/` (concatenated `loader.plugin`), ruff/pyright setup, build script |
 
