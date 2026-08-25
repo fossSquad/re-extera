@@ -15,17 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v6
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.x'
 
@@ -49,7 +49,7 @@ jobs:
         cp build/plugin/loader.plugin .
 
     - name: Upload Dev artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: re-extera-dev
         path: |
@@ -69,7 +69,7 @@ jobs:
 
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
         files: |

@@ -2,10 +2,23 @@ plugins {
     id 'com.android.library' version '8.2.2'
 }
 
+// Single source of truth for the plugin version: loader/metadata.py __version__.
+// The DEX (Main.VERSION) reads the SAME value so the loader and the DEX never drift.
+def getLoaderVersion(Project project) {
+    def metaFile = new File(project.rootDir, "loader/metadata.py")
+    if (metaFile.exists()) {
+        def m = (metaFile.text =~ /__version__\s*=\s*["']([^"']+)["']/)
+        if (m.find()) {
+            return m.group(1)
+        }
+    }
+    return "0.0.0"
+}
+
 def getVersionName(Project project) {
     def envTag = System.getenv("GITHUB_REF_TYPE") == "tag" ? System.getenv("GITHUB_REF_NAME") : null
     def tag = null
-    
+
     if (envTag != null && !envTag.isEmpty()) {
         tag = envTag
     } else {
@@ -17,7 +30,7 @@ def getVersionName(Project project) {
             }
         } catch (Exception e) {}
     }
-    
+
     if (tag != null && !tag.isEmpty()) {
         if (tag.startsWith("v")) {
             tag = tag.substring(1)
@@ -25,8 +38,8 @@ def getVersionName(Project project) {
         return tag
     }
 
-    // No release tag: report the current base version for local/dev builds.
-    return "1.9.0"
+    // No release tag: use the loader's declared version so DEX == loader/metadata.py.
+    return getLoaderVersion(project)
 }
 
 android {
