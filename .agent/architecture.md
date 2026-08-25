@@ -15,8 +15,9 @@
 - `start()` initializes: `ReExteraDb`, shadowban cache, the deleted-mark icon,
   localization (`Localization.updateStrings()`), then `hooks = new HookInit()` /
   `hooks.init()` / `initFragments()`.
-- `VERSION` = `BuildConfig.RE_EXTERA_VERSION` (git tag, else `"1.9.0"` fallback in
-  build.gradle). `VERSION_CODE` = hardcoded int (13).
+- `VERSION` = `BuildConfig.RE_EXTERA_VERSION` (git tag, else `loader/metadata.py __version__`
+  via build.gradle `getLoaderVersion` — single source of truth for loader + DEX; ultimate
+  fallback `"0.0.0"`). `VERSION_CODE` = hardcoded int (13).
 
 ## Registering a hook (`hooks/HookInit.java`)
 > Runtime method hooking uses **Aliuhook** (`com.aliucord:Aliuhook`, a `compileOnly`

@@ -110,8 +110,11 @@ re-extera/
   [.agent/storage-and-paths.md](.agent/storage-and-paths.md).
 - **Ghost mode**: intercepts `ConnectionsManager.sendRequestInternal` to drop
   typing/reading/online/stories requests (types in `Defaults.java`).
-- **Versioning**: from git tag `v<plugin_ver>-<tg_ver>`; no tag → `Main.VERSION`
-  falls back to `"1.9.0"` (build.gradle). `VERSION_CODE` = 13.
+- **Versioning**: from git tag `v<plugin_ver>-<tg_ver>`; no tag → `Main.VERSION` reads
+  `loader/metadata.py __version__` (the **single source of truth** shared by the loader and
+  the DEX, via build.gradle `getLoaderVersion`; ultimate fallback `"0.0.0"` if unreadable).
+  Bump the version in `metadata.py` only — see [.agent/loader.md](.agent/loader.md).
+  `VERSION_CODE` = 13.
 
 Everything a feature touches is documented per-area under [`.agent/`](.agent/README.md);
 this file stays a lean map + the practical build/push/debug steps below.
@@ -162,7 +165,7 @@ device (see Debugging below).
 ## Gotchas
 
 - `Main.VERSION` comes from `BuildConfig.RE_EXTERA_VERSION` (buildConfig enabled)
-- `Main.VERSION_CODE` is a hardcoded integer (currently 13) — bump on significant releases. `Main.VERSION` fallback is `"1.9.0"` when there's no git tag (build.gradle)
+- `Main.VERSION_CODE` is a hardcoded integer (currently 13) — bump on significant releases. With no git tag, `Main.VERSION` is read from `loader/metadata.py __version__` (build.gradle `getLoaderVersion`), so the loader and DEX versions stay in sync — bump `metadata.py` only
 - `Main.initAndStart()` has a process-wide guard (`re_extera_hooked` system property) so the DEX loading under two classloaders can't double-register hooks — see [.agent/architecture.md](.agent/architecture.md)
 - `anyAccountIsPremium()` in HookInit disables Local Premium if any account has real premium
 - ProGuard keeps `ni.shikatu.re_extera.Main` entirely (`-keep class` in `proguard-rules.pro`)

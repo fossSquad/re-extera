@@ -5,10 +5,19 @@ from the fragments in `loader/__init__.py:BUILD_ORDER`, concatenated in order. T
 fragments share ONE namespace (all imports live in `loader/imports.py`); a fragment
 may only use names defined by earlier ones. `metadata.py` sets the plugin manifest
 dunders: `__id__`, `__name__`, `__version__`, `__min_version__`, a feature-listing
-`__description__`, and a multi-line `__author__` (Maintained by / Original author /
-FOSS Recovery / **Plugin Channel: @shikaatuxplugins**) — keep it in sync with the
-in-app Credits card (`Localization.THANKS`, see settings-ui.md). Editing metadata only
-takes effect after rebuilding + reinstalling `loader.plugin` (not a bare `classes.dex` push).
+`__description__`, and a multi-line `__author__` (fork lineage: Original author /
+First fork maintainer / Current fork maintainer) — keep it in sync with the in-app
+Credits card (`Localization.THANKS`, see settings-ui.md) and the README Credits section. Editing metadata only takes effect after
+rebuilding + reinstalling `loader.plugin` (not a bare `classes.dex` push).
+
+## Version = single source of truth
+`metadata.py __version__` is the ONE place the version lives. The **DEX reads it too**:
+`build.gradle getLoaderVersion(project)` regex-parses `__version__` out of
+`loader/metadata.py`, and `getVersionName` returns it whenever there is no release git tag,
+so `Main.VERSION` (the in-app "Version:" line) always equals the loader's version. Bump the
+version by editing `metadata.py __version__` only — never hardcode it in build.gradle. A
+release git tag (`v<ver>-<tgver>`) still overrides for CI naming, so keep the tag's base in
+sync with `metadata.py`.
 
 ## Build
 ```bash

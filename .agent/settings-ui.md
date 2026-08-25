@@ -37,8 +37,9 @@ top-level button; it became **Deleted Message** inside Spy. Its title = `Localiz
 A dedicated rounded card (`GradientDrawable`, `key_windowBackgroundWhite`, dp16 radius) holding a
 centered **"Credits"** header (`Localization.CREDITS`) with a neon `GlowUnderline` (a `View` that
 draws a rounded bar with a `BlurMaskFilter` glow — needs `LAYER_TYPE_SOFTWARE`), then the linked
-credit lines (`Localization.THANKS`, multi-line: Maintained by / Original author / FOSS Recovery /
-Plugin Channel). The credit handles mirror `loader/metadata.py __author__`.
+credit lines (`Localization.THANKS`, a multi-line fork lineage: Original author / First fork
+maintainer / Current fork maintainer). The credit text mirrors `loader/metadata.py __author__`
+and the README Credits section — update all three together.
 
 ## Master switch (`CustomizationFragment` = Deleted Message)
 "Save deleted messages" is the master. In `fillItems`, after adding it, `if
