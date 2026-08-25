@@ -1,0 +1,41 @@
+# Ruff configuration for the re:extera Python loader.
+#
+# The loader ships as a single file assembled from loader/*.py (see
+# loader/build.py). Those fragments share one namespace and are NOT valid
+# standalone modules, so they are excluded here; ruff instead lints the
+# assembled artifact (build/plugin/loader.plugin) plus the standalone
+# build script. Run `python3 loader/build.py` to assemble and lint.
+
+target-version = "py38"
+line-length = 120
+
+# Treat the assembled loader artifact as a Python file.
+extend-include = ["*.plugin"]
+
+# Only lint the build script and the assembled plugin, never the raw fragments.
+extend-exclude = [
+    "loader/__init__.py",
+    "loader/metadata.py",
+    "loader/imports.py",
+    "loader/constants.py",
+    "loader/utils.py",
+    "loader/config.py",
+    "loader/dex.py",
+    "loader/plugin.py",
+]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "E741",   # ambiguous name `id` — matches the exteraGram NotificationCenter API
+    "SIM105", # suppressible try/except/pass — broad guards are intentional here
+]
+
+[lint.isort]
+# Fragments are joined with two blank lines; keep that after the import block.
+lines-after-imports = 2
+
+[lint.per-file-ignores]
+# The assembled plugin declares its manifest via module-level dunders and
+# relies on names supplied by the exteraGram runtime import block.
+"*.plugin" = ["E402"]

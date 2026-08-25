@@ -1,0 +1,17 @@
+{
+    "include": [
+        "loader"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "build"
+    ],
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
+    "reportUndefinedVariable": "none",
+    "reportAttributeAccessIssue": "none",
+    "reportRedeclaration": "none",
+    "reportOptionalMemberAccess": "none",
+    "reportOptionalCall": "none",
+    "reportOptionalSubscript": "none"
+}
