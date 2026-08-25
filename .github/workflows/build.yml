@@ -1,4 +1,4 @@
-name: Build Dex
+name: Build Dex & loader Plugin
 
 on:
   push:
