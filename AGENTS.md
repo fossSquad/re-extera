@@ -1,8 +1,34 @@
 # re:extera — Agent Guide
 
+> **This file is the entry point.** For any hook/patch you're touching, open the
+> matching detailed file under [`.agent/`](.agent/README.md) — one file per feature
+> area, fully documented. Read [`.agent/architecture.md`](.agent/architecture.md)
+> first (how hooks register, the settings API, the fragment UI, the double-injection
+> guard), then the area file.
+
 ## What this is
 
 Android plugin for exteraGram (Telegram fork) loaded at runtime via DEX injection. Two deliverable artifacts: `classes.dex` (the plugin) and `loader.plugin` (the Python loader that downloads/loads the DEX).
+
+## Hook & patch reference — `.agent/`
+
+| Area | File |
+|---|---|
+| Hook system, settings, UI, lifecycle, **double-injection guard** | [.agent/architecture.md](.agent/architecture.md) |
+| Save/show deleted messages | [.agent/deleted-messages.md](.agent/deleted-messages.md) |
+| View-once photo + video | [.agent/view-once.md](.agent/view-once.md) |
+| Long-press menu (Edit / Save to Saved / Details) | [.agent/message-menu.md](.agent/message-menu.md) |
+| Quick side buttons (edit / cloud-save) | [.agent/quick-buttons.md](.agent/quick-buttons.md) |
+| Show message id / profile-menu id | [.agent/id-display.md](.agent/id-display.md) |
+| Hide pinned, disable swipes, save stories, hide TL error, promo | [.agent/gap-features.md](.agent/gap-features.md) |
+| Custom SVG icons (`PathIconDrawable`) | [.agent/custom-icons.md](.agent/custom-icons.md) |
+| Settings screen tree, master switch | [.agent/settings-ui.md](.agent/settings-ui.md) |
+| DB + `Download/ReExtera/` paths | [.agent/storage-and-paths.md](.agent/storage-and-paths.md) |
+| Python loader, ruff/pyright, build | [.agent/loader.md](.agent/loader.md) |
+
+Before adding a Telegram-mod feature, check `com.exteragram.messenger.ExteraConfig` —
+the host already has many toggles natively (Hide Phone, Number Rounding, Download
+Boost, Disable Stories, Show ID/DC, ad block…). Don't duplicate them.
 
 ## Build commands (exact)
 
@@ -14,7 +40,7 @@ Android plugin for exteraGram (Telegram fork) loaded at runtime via DEX injectio
 python3 loader/build.py
 ```
 
-**Requirements**: JDK 17, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x.
+**Requirements**: JDK 17 (JDK 21 also builds fine; source/target is Java 11), Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x. `python3 loader/build.py` also runs `ruff` on the assembled plugin (see [.agent/loader.md](.agent/loader.md)).
 
 **Output**: `build/dex/classes.dex` and `build/plugin/loader.plugin`.
 
@@ -118,7 +144,8 @@ Types observed: `fix`, `feat`, `refactor`, `ci`, `chore`, `build`, `docs`. Scope
 ## Gotchas
 
 - `Main.VERSION` comes from `BuildConfig.RE_EXTERA_VERSION` (buildConfig enabled)
-- `Main.VERSION_CODE` is a hardcoded integer (currently 12) — bump on significant releases
+- `Main.VERSION_CODE` is a hardcoded integer (currently 13) — bump on significant releases. `Main.VERSION` fallback is `"1.9.0"` when there's no git tag (build.gradle)
+- `Main.initAndStart()` has a process-wide guard (`re_extera_hooked` system property) so the DEX loading under two classloaders can't double-register hooks — see [.agent/architecture.md](.agent/architecture.md)
 - `anyAccountIsPremium()` in HookInit disables Local Premium if any account has real premium
 - ProGuard keeps `ni.shikatu.re_extera.Main` entirely (`-keep class` in `proguard-rules.pro`)
 - Local DEX path (for sideloading): `/storage/emulated/0/Android/media/com.exteragram.messenger/classes.dex`
