@@ -15,6 +15,13 @@ public class DeleteMessages extends XC_MethodHook {
     private final ReExteraDb redb = ReExteraDb.get();
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
+        // A user-initiated delete should really disappear only when we are NOT
+        // keeping manually-deleted messages. When we keep them (or the feature is
+        // saving deleted messages generally), the messagesDeleted broadcast is
+        // swallowed so the message stays visible. See DeletionState / PostNotificationName.
+        if (!Settings.getSaveManuallyDeleted()) {
+            DeletionState.markUserDelete();
+        }
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         ArrayList<Integer> ids = (ArrayList) param.args[0];
         long did = ((Long) param.args[3]).longValue();

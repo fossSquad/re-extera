@@ -89,7 +89,11 @@ public final class MessageUtils {
                     return;
                 }
                 ChatActivity activity = (ChatActivity) lastFragment;
-                if (activity.getCurrentAccount() != currentAccount || activity.getDialogId() != did) {
+                // Match by account only: the recorded `did` for server deletes doesn't always
+                // equal the open chat's dialog id (channels/groups, peer-less deletes), and cells
+                // are already targeted by message id below — so relying on `did` here would skip
+                // the live refresh and the mark would only appear after an app restart.
+                if (activity.getCurrentAccount() != currentAccount) {
                     return;
                 }
                 RecyclerView.Adapter<?> adapter;

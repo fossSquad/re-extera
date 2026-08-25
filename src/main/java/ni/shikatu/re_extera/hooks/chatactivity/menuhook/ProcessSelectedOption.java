@@ -18,6 +18,9 @@ public class ProcessSelectedOption extends XC_MethodHook {
     public static final int OPT_MESSAGE_HISTORY = 6363;
     public static final int OPT_READ_MESSAGE = 6565;
     public static final int OPT_READ_AT = 6767;
+    public static final int OPT_MESSAGE_DETAILS = 6868;
+    public static final int OPT_SAVE_TO_SAVED = 6969;
+    public static final int OPT_EDIT = 7070;
     private static final Field SELECTED_OBJECT_FIELD;
     public static MessageObject selectedObject;
 
@@ -49,6 +52,41 @@ public class ProcessSelectedOption extends XC_MethodHook {
         }
         if (option == 6565) {
             InternalUtils.sendReadMessage(messageObject, true);
+            return;
+        }
+        if (option == OPT_MESSAGE_DETAILS) {
+            MessageObject target = messageObject != null ? messageObject : selectedObject;
+            if (target != null) {
+                ni.shikatu.re_extera.ui.MessageDetailsDialog.show(thisObj, target);
+            }
+            return;
+        }
+        if (option == OPT_EDIT) {
+            MessageObject target = messageObject != null ? messageObject : selectedObject;
+            if (target != null) {
+                try {
+                    java.lang.reflect.Method m = ChatActivity.class.getDeclaredMethod("startEditingMessageObject", MessageObject.class, Boolean.TYPE);
+                    m.setAccessible(true);
+                    m.invoke(thisObj, target, Boolean.FALSE);
+                } catch (Throwable e) {
+                    Main.log("startEditingMessageObject failed: %s", e.getMessage());
+                }
+            }
+            return;
+        }
+        if (option == OPT_SAVE_TO_SAVED) {
+            MessageObject target = messageObject != null ? messageObject : selectedObject;
+            if (target != null) {
+                int account = target.currentAccount;
+                long ownId = org.telegram.messenger.UserConfig.getInstance(account).getClientUserId();
+                ArrayList<MessageObject> list = new ArrayList<>();
+                list.add(target);
+                try {
+                    SendMessagesHelper.getInstance(account).sendMessage(list, ownId, false, false, true, 0, 0L);
+                } catch (Throwable e) {
+                    Main.log("Save to Saved Messages failed: %s", e.getMessage());
+                }
+            }
             return;
         }
         if (option == 24 && messageObject != null && ReExteraDb.get().messageIsDeleted(messageObject)) {

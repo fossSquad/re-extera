@@ -17,6 +17,12 @@ public class FillMessageMenu extends XC_MethodHook {
         ArrayList<Integer> icons = (ArrayList) param.args[1];
         ArrayList<CharSequence> items = (ArrayList) param.args[2];
         ArrayList<Integer> options = (ArrayList) param.args[3];
+        // Quick "Edit" at the top of the menu for own editable messages.
+        if (msgObj.isOut() && !msgObj.isSponsored() && canEdit(msgObj)) {
+            icons.add(0, Integer.valueOf(R.drawable.msg_edit));
+            items.add(0, LocaleController.getString(R.string.Edit));
+            options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_EDIT));
+        }
         boolean oneTime = msgObj.isSecret() || msgObj.isSecretMedia() || msgObj.isVoiceOnce() || msgObj.isRoundOnce();
         if (Settings.getSaveEditedMessages() && ReExteraDb.get().messageHasSavedEdits(msgObj)) {
             icons.add(0, Integer.valueOf(R.drawable.menu_premium_clock));
@@ -42,6 +48,18 @@ public class FillMessageMenu extends XC_MethodHook {
         if ((Settings.getSaveOneTimeMessages() || Settings.noForward()) && oneTime) {
             appendSaveOptions(msgObj, icons, items, options);
         }
+        // Save incoming (opponent) messages to Saved Messages — default feature.
+        if (!msgObj.isOut() && !msgObj.isSponsored() && msgObj.messageOwner != null) {
+            icons.add(Integer.valueOf(R.drawable.msg_saved));
+            items.add(Localization.SAVE_TO_SAVED_MESSAGES);
+            options.add(Integer.valueOf(ProcessSelectedOption.OPT_SAVE_TO_SAVED));
+        }
+        // Message Details — always available for real messages (default feature).
+        if (!msgObj.isSponsored() && msgObj.messageOwner != null) {
+            icons.add(Integer.valueOf(R.drawable.msg_info));
+            items.add(Localization.MESSAGE_DETAILS);
+            options.add(Integer.valueOf(ProcessSelectedOption.OPT_MESSAGE_DETAILS));
+        }
     }
 
     private static void appendSaveOptions(MessageObject msgObj, ArrayList<Integer> icons, ArrayList<CharSequence> items, ArrayList<Integer> options) {
@@ -66,6 +84,14 @@ public class FillMessageMenu extends XC_MethodHook {
                 return;
             }
             addSaveEntry(items, options, icons, R.string.SaveToGallery, 4, R.drawable.msg_gallery);
+        }
+    }
+
+    private static boolean canEdit(MessageObject msgObj) {
+        try {
+            return msgObj.canEditMessage(null);
+        } catch (Throwable e) {
+            return false;
         }
     }
 

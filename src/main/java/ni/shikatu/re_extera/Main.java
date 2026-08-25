@@ -31,7 +31,7 @@ import org.telegram.ui.LaunchActivity;
 public final class Main {
     private static final String LOG_TAG = "re:extera";
     public static final String VERSION = ni.shikatu.re_extera.BuildConfig.RE_EXTERA_VERSION;
-    public static final int VERSION_CODE = 12;
+    public static final int VERSION_CODE = 13;
     public static HookInit hooks;
     private static final Method initiateFragmentMethod;
     private static volatile Main instance;
@@ -102,6 +102,7 @@ public final class Main {
             hooks.onUnload();
             hooks = null;
         }
+        System.clearProperty(HOOK_GUARD_PROPERTY);
     }
 
     public void showSettings() {
@@ -114,11 +115,24 @@ public final class Main {
         }
     }
 
+    private static final String HOOK_GUARD_PROPERTY = "re_extera_hooked";
+
     public static void initAndStart() {
         if (hooks != null) {
             Main.log("Already initialized, skipping", new Object[0]);
             return;
         }
+        // Process-wide guard: if the DEX is loaded under a second classloader
+        // (e.g. in-memory load + a later "Install from file"), that copy has its
+        // OWN static `hooks`, so the check above can't see it and every hook would
+        // register twice (doubled menu items, doubled quick buttons, etc.). A
+        // JVM-global system property is shared across all classloaders in the
+        // process and resets on app restart, so it blocks the duplicate load.
+        if ("1".equals(System.getProperty(HOOK_GUARD_PROPERTY))) {
+            Main.log("Already hooked in this process (other classloader), skipping", new Object[0]);
+            return;
+        }
+        System.setProperty(HOOK_GUARD_PROPERTY, "1");
         Main.log("initAndStart", new Object[0]);
         getInstance().start();
     }

@@ -1,6 +1,8 @@
 package ni.shikatu.re_extera.hooks;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -63,6 +65,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
@@ -77,6 +80,7 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Cells.DialogCell;
 import org.telegram.ui.ChatActivity;
+import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
@@ -164,10 +168,11 @@ public final class HookInit {
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         // Fallbacks for older Telegram versions
-        tryHook("MessagesStorage.updateDialogsWithDeletedMessages_old", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class, Boolean.TYPE);
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
+        tryHook("ChatMessageCell.onDraw(quickButtons)", ChatMessageCell.class, "onDraw", new ni.shikatu.re_extera.hooks.chatmessagecell.QuickButtons.Draw(), Canvas.class);
+        tryHook("ChatMessageCell.onTouchEvent(quickButtons)", ChatMessageCell.class, "onTouchEvent", new ni.shikatu.re_extera.hooks.chatmessagecell.QuickButtons.Touch(), MotionEvent.class);
         if (anyAccountIsPremium()) {
             Settings.setLocalPremium(false);
         }
@@ -183,6 +188,7 @@ public final class HookInit {
         tryHook("SendMessagesHelper.sendMessage(params)", SendMessagesHelper.class, "sendMessage", new SendMessage(), SendMessagesHelper.SendMessageParams.class);
         tryHook("SendMessagesHelper.sendMessage(forwards)", SendMessagesHelper.class, "sendMessage", new SendMessageForwardHook(), ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE, MessageObject.class, Integer.TYPE, Long.TYPE, Long.TYPE, MessageSuggestionParams.class);
         tryHook("NotificationsController.removeDeletedMessagesFromNotifications", NotificationsController.class, "removeDeletedMessagesFromNotifications", new RemoveDeletedMessagesFromNotification(), LongSparseArray.class, Boolean.TYPE);
+        tryHook("NotificationCenter.postNotificationName", NotificationCenter.class, "postNotificationName", new ni.shikatu.re_extera.hooks.notificationmanager.PostNotificationName(), Integer.TYPE, Object[].class);
         tryHook("NotificationsController.processNewMessages", NotificationsController.class, "processNewMessages", new FilterShadowbannedNotifications(), ArrayList.class, Boolean.TYPE, Boolean.TYPE, CountDownLatch.class);
         tryHook("MessageObject.canDeleteMessage", MessageObject.class, "canDeleteMessage", new CanDeleteMessage(), Boolean.TYPE, TLRPC.Chat.class);
         tryHook("MessageObject.canForwardMessage", MessageObject.class, "canForwardMessage", new CanForwardMessage(), new Class[0]);
@@ -194,14 +200,39 @@ public final class HookInit {
         tryHook("ChatActivity.hasSelectedNoforwardsMessage", ChatActivity.class, "hasSelectedNoforwardsMessage", new HasSelectedNoForwardsMessage(), new Class[0]);
         tryHook("ChatActivity.sendSecretMediaDelete", ChatActivity.class, "sendSecretMediaDelete", new SendSecretMediaDelete(), MessageObject.class);
         tryHook("ChatActivity.sendSecretMessageRead", ChatActivity.class, "sendSecretMessageRead", new SendSecretMessageRead(), MessageObject.class, Boolean.TYPE);
+        try {
+            Class<?> secretMediaViewer = Class.forName("org.telegram.ui.SecretMediaViewer");
+            Class<?> photoViewerProvider = Class.forName("org.telegram.ui.PhotoViewer$PhotoViewerProvider");
+            tryHook("SecretMediaViewer.openMedia", secretMediaViewer, "openMedia", new ni.shikatu.re_extera.hooks.secretmediaviewer.OpenMedia(), MessageObject.class, photoViewerProvider, Runnable.class, Runnable.class);
+        } catch (Throwable e) {
+            Main.log("SecretMediaViewer.openMedia not found: %s", e.getMessage());
+        }
         tryHook("MessagesController.markMentionMessageAsRead", MessagesController.class, "markMentionMessageAsRead", new ni.shikatu.re_extera.hooks.messagescontroller.MarkMentionMessageAsReadHook(), Integer.TYPE, Long.TYPE, Long.TYPE);
         tryHook("ChatActivity.processDeletedMessages", ChatActivity.class, "processDeletedMessages", new ProcessDeletedMessages(), ArrayList.class, Long.TYPE, Boolean.TYPE, Boolean.TYPE);
+        // --- Ported feature hooks (TeleVip parity for gaps not covered natively) ---
+        tryHook("ChatActivity.updatePinnedMessageView", ChatActivity.class, "updatePinnedMessageView", new ni.shikatu.re_extera.hooks.chatactivity.HidePinnedMessages(), Boolean.TYPE, Integer.TYPE);
+        tryHook("ChatActivity.canBeginSlide", ChatActivity.class, "canBeginSlide", new ni.shikatu.re_extera.hooks.chatactivity.CanBeginSlide(), new Class[0]);
+        tryHook("LaunchActivity.didReceivedNotification", LaunchActivity.class, "didReceivedNotification", new ni.shikatu.re_extera.hooks.launchactivity.HideTlError(), Integer.TYPE, Integer.TYPE, Object[].class);
+        tryHook("MessagesController.isPromoDialog", MessagesController.class, "isPromoDialog", new ni.shikatu.re_extera.hooks.messagescontroller.IsPromoDialog(), Long.TYPE, Boolean.TYPE);
+        tryHook("ProfileActivity.createActionBarMenu(showId)", ProfileActivity.class, "createActionBarMenu", new ni.shikatu.re_extera.hooks.profileactivity.ProfileMenuShowId(), Boolean.TYPE);
+        try {
+            Class<?> profileGalleryView = Class.forName("org.telegram.ui.Components.ProfileGalleryView");
+            tryHook("ProfileGalleryView.onInterceptTouchEvent", profileGalleryView, "onInterceptTouchEvent", new ni.shikatu.re_extera.hooks.profileactivity.DisableProfileSwipe(), MotionEvent.class);
+        } catch (Throwable e) {
+            Main.log("ProfileGalleryView not found: %s", e.getMessage());
+        }
+        try {
+            Class<?> storyItemHolder = Class.forName("org.telegram.ui.Stories.PeerStoriesView$StoryItemHolder");
+            tryHook("PeerStoriesView$StoryItemHolder.allowScreenshots", storyItemHolder, "allowScreenshots", new ni.shikatu.re_extera.hooks.stories.AllowScreenshots(), new Class[0]);
+        } catch (Throwable e) {
+            Main.log("PeerStoriesView$StoryItemHolder not found: %s", e.getMessage());
+        }
         tryHook("ChatActivity.processNewMessages", ChatActivity.class, "processNewMessages", new ProcessNewMessages(), ArrayList.class, Boolean.TYPE);
         tryHook("ChatActivity.didReceivedNotification", ChatActivity.class, "didReceivedNotification", new NotificationCenterDidLoad(), Integer.TYPE, Integer.TYPE, Object[].class);
         tryHook("DialogCell.update", DialogCell.class, "update", new FilterDialogCellPreview(), Integer.TYPE, Boolean.TYPE);
         tryHook("DialogsActivity.getDialogsArray", DialogsActivity.class, "getDialogsArray", new GetDialogsArray(), Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE);
-        tryHook("DialogsActivity.addMainMenuConfiguredItems", DialogsActivity.class, "addMainMenuConfiguredItems", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class);
-        tryHook("DialogsActivity.addMainMenuConfiguredItem", DialogsActivity.class, "addMainMenuConfiguredItem", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, Integer.TYPE);
+        // Legacy DialogsActivity.addMainMenuConfiguredItem(s) removed — those methods
+        // no longer exist (current exteraGram routes through MainMenuHelper below).
         
         try {
             Class<?> mainMenuHelperClass = Class.forName("com.exteragram.messenger.utils.chats.MainMenuHelper");

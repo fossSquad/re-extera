@@ -41,7 +41,12 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
         DELETED_MARK_COLOR_ID,
         DISABLE_COLORED_REPLIES_ID,
         TRANSPARENT_DELETED_MESSAGES_ID,
-        TRANSPARENT_DELETED_MESSAGES_SLIDER_ID;
+        TRANSPARENT_DELETED_MESSAGES_SLIDER_ID,
+        SAVE_DELETED_MESSAGES_ID,
+        SAVE_BOT_CHATS_ID,
+        SAVE_MESSAGE_HISTORY_ID,
+        SAVE_MANUALLY_DELETED_ID,
+        USE_COLLAPSED_BLOCKQUOTE_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -50,7 +55,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
 
     @Override
     public String getTitle() {
-        return Localization.CUSTOMIZATION;
+        return Localization.DELETED_MESSAGE;
     }
 
     private ChatMessageCell previewCell;
@@ -353,8 +358,23 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
 
     @Override
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        // Master switch: when off, everything below is hidden.
+        items.add(UItem.asCheck(CustomizationIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
+        items.add(UItem.asShadow());
+        if (!Settings.getSaveDeletedMessages()) {
+            return;
+        }
+
+        items.add(UItem.asCheck(CustomizationIds.SAVE_BOT_CHATS_ID.getId(), Localization.SAVE_BOT_CHATS).setChecked(Settings.getSaveBotChats()).setLinkAlias("reExteraSaveBotChats", this));
+        items.add(UItem.asCheck(CustomizationIds.SAVE_MESSAGE_HISTORY_ID.getId(), Localization.MESSAGE_HISTORY_TOGGLE).setChecked(Settings.getSaveEditedMessages()).setLinkAlias("reExteraSaveMessageHistory", this));
+        items.add(UItem.asCheck(CustomizationIds.SAVE_MANUALLY_DELETED_ID.getId(), Localization.SAVE_SELF_DELETED_MESSAGES).setChecked(Settings.getSaveManuallyDeleted()).setLinkAlias("reExteraSaveManuallyDeleted", this));
+        items.add(UItem.asShadow(Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES));
+
+        items.add(UItem.asCheck(CustomizationIds.USE_COLLAPSED_BLOCKQUOTE_ID.getId(), Localization.USE_COLLAPSED_BLOCKQUOTE).setChecked(Settings.getUseExpandableBlockQuote()).setLinkAlias("reExteraUseCollapsedBlockquote", this));
+        items.add(UItem.asShadow(Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION));
+
         items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView()));
-        
+
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
         items.add(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
         items.add(UItem.asShadow());
@@ -406,6 +426,27 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
                         previewCell.setAlpha(1.0f);
                     }
                 }
+                break;
+            case SAVE_DELETED_MESSAGES_ID:
+                Settings.setSaveDeletedMessages(!Settings.getSaveDeletedMessages());
+                // Full reload so the dependent rows appear/disappear.
+                refreshCheckBox(item, position, Settings.getSaveDeletedMessages(), true);
+                break;
+            case SAVE_BOT_CHATS_ID:
+                Settings.setSaveBotChats(!Settings.getSaveBotChats());
+                refreshCheckBox(item, position, Settings.getSaveBotChats());
+                break;
+            case SAVE_MESSAGE_HISTORY_ID:
+                Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
+                refreshCheckBox(item, position, Settings.getSaveEditedMessages());
+                break;
+            case SAVE_MANUALLY_DELETED_ID:
+                Settings.setSaveManuallyDeleted(!Settings.getSaveManuallyDeleted());
+                refreshCheckBox(item, position, Settings.getSaveManuallyDeleted());
+                break;
+            case USE_COLLAPSED_BLOCKQUOTE_ID:
+                Settings.setUseExpandableBlockQuote(!Settings.getUseExpandableBlockQuote());
+                refreshCheckBox(item, position, Settings.getUseExpandableBlockQuote());
                 break;
         }
     }

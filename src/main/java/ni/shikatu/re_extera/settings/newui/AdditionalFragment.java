@@ -37,7 +37,15 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         DISABLE_ADS_ID,
         DISABLE_COLORED_REPLIES_ID,
         WORK_IN_BACKGROUND_ID,
-        UNLOAD_HOOKS;
+        UNLOAD_HOOKS,
+        HIDE_PINNED_ID,
+        DISABLE_CHAT_SWIPE_ID,
+        DISABLE_PROFILE_SWIPE_ID,
+        SAVE_PROTECTED_STORIES_ID,
+        HIDE_TL_ERROR_ID,
+        SHOW_MESSAGE_ID_ID,
+        SHOW_ID_IN_MENU_ID,
+        MESSAGE_QUICK_BUTTONS_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -57,6 +65,16 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()).setLinkAlias("reExteraIgnoreFlagSecure", this));
         items.add(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()).setLinkAlias("reExteraNoForward", this));
         items.add(UItem.asShadow(Localization.NO_FORWARD_ABOUT));
+
+        items.add(UItem.asCheck(AdditionalIds.HIDE_PINNED_ID.getId(), Localization.HIDE_PINNED_MESSAGES).setChecked(Settings.getHidePinnedMessages()).setLinkAlias("reExteraHidePinned", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_CHAT_SWIPE_ID.getId(), Localization.DISABLE_CHAT_SWIPE_BACK).setChecked(Settings.getDisableChatSwipeBack()).setLinkAlias("reExteraDisableChatSwipe", this));
+        items.add(UItem.asCheck(AdditionalIds.DISABLE_PROFILE_SWIPE_ID.getId(), Localization.DISABLE_PROFILE_SWIPE).setChecked(Settings.getDisableProfileSwipe()).setLinkAlias("reExteraDisableProfileSwipe", this));
+        items.add(UItem.asCheck(AdditionalIds.SAVE_PROTECTED_STORIES_ID.getId(), Localization.SAVE_PROTECTED_STORIES).setChecked(Settings.getSaveProtectedStories()).setLinkAlias("reExteraSaveProtectedStories", this));
+        items.add(UItem.asCheck(AdditionalIds.HIDE_TL_ERROR_ID.getId(), Localization.HIDE_TL_ERROR).setChecked(Settings.getHideTlError()).setLinkAlias("reExteraHideTlError", this));
+        items.add(UItem.asCheck(AdditionalIds.SHOW_MESSAGE_ID_ID.getId(), Localization.SHOW_MESSAGE_ID).setChecked(Settings.getShowMessageId()).setLinkAlias("reExteraShowMessageId", this));
+        items.add(UItem.asCheck(AdditionalIds.SHOW_ID_IN_MENU_ID.getId(), Localization.SHOW_ID_IN_MENU).setChecked(Settings.getShowIdInMenu()).setLinkAlias("reExteraShowIdInMenu", this));
+        items.add(UItem.asCheck(AdditionalIds.MESSAGE_QUICK_BUTTONS_ID.getId(), Localization.MESSAGE_QUICK_BUTTONS).setChecked(Settings.getMessageQuickButtons()).setLinkAlias("reExteraMessageQuickButtons", this));
+        items.add(UItem.asShadow());
 
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
         items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
@@ -128,6 +146,43 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     public void onClick(UItem item, View view, int position, float x, float y) {
         if (item.id <= 0 || item.id > AdditionalIds.values().length) {
             return;
+        }
+        // Ported feature toggles — handled directly (kept out of the decompiled switch-map above).
+        switch (AdditionalIds.values()[item.id - 1]) {
+            case HIDE_PINNED_ID:
+                Settings.setHidePinnedMessages(!Settings.getHidePinnedMessages());
+                refreshCheckBox(item, position, Settings.getHidePinnedMessages());
+                return;
+            case DISABLE_CHAT_SWIPE_ID:
+                Settings.setDisableChatSwipeBack(!Settings.getDisableChatSwipeBack());
+                refreshCheckBox(item, position, Settings.getDisableChatSwipeBack());
+                return;
+            case DISABLE_PROFILE_SWIPE_ID:
+                Settings.setDisableProfileSwipe(!Settings.getDisableProfileSwipe());
+                refreshCheckBox(item, position, Settings.getDisableProfileSwipe());
+                return;
+            case SAVE_PROTECTED_STORIES_ID:
+                Settings.setSaveProtectedStories(!Settings.getSaveProtectedStories());
+                refreshCheckBox(item, position, Settings.getSaveProtectedStories());
+                return;
+            case HIDE_TL_ERROR_ID:
+                Settings.setHideTlError(!Settings.getHideTlError());
+                refreshCheckBox(item, position, Settings.getHideTlError());
+                return;
+            case SHOW_MESSAGE_ID_ID:
+                Settings.setShowMessageId(!Settings.getShowMessageId());
+                refreshCheckBox(item, position, Settings.getShowMessageId());
+                return;
+            case SHOW_ID_IN_MENU_ID:
+                Settings.setShowIdInMenu(!Settings.getShowIdInMenu());
+                refreshCheckBox(item, position, Settings.getShowIdInMenu());
+                return;
+            case MESSAGE_QUICK_BUTTONS_ID:
+                Settings.setMessageQuickButtons(!Settings.getMessageQuickButtons());
+                refreshCheckBox(item, position, Settings.getMessageQuickButtons());
+                return;
+            default:
+                break;
         }
         switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$settings$newui$AdditionalFragment$AdditionalIds[AdditionalIds.values()[item.id - 1].ordinal()]) {
             case Defaults.ALWAYS /* 1 */:

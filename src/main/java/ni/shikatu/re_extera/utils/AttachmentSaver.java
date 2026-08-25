@@ -17,7 +17,7 @@ public class AttachmentSaver {
 
     private static File getAttachmentsDir() {
         File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File dir = new File(downloads, "ReExteraAttachments");
+        File dir = new File(new File(downloads, "ReExtera"), "ReExteraAttachments");
         if (!dir.exists()) {
             dir.mkdirs();
         }

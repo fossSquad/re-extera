@@ -34,7 +34,9 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         SAVE_MESSAGE_HISTORY_ID,
         SAVE_ATTACHMENTS_ID,
         SAVE_ATTACHMENTS_SIZE_ID,
-        TRANSPARENT_DELETED_MESSAGES_ID;
+        TRANSPARENT_DELETED_MESSAGES_ID,
+        DELETED_MESSAGE_CUSTOMIZATION_ID,
+        VIEW_ONCE_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -46,9 +48,6 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
-        items.add(UItem.asShadow());
-
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
         items.add(UItem.asHeader(Localization.SAVE_ATTACHMENTS_SIZE));
         final long[] sizes = new long[]{
@@ -86,6 +85,12 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()).setLinkAlias("reExteraSaveReadDate", this));
         items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
         items.add(UItem.asShadow());
+
+        items.add(UItem.asCheck(DeletedAndEditedIds.VIEW_ONCE_ID.getId(), Localization.VIEW_ONCE).setChecked(Settings.getSaveOneTimeMessages()).setLinkAlias("reExteraViewOnce", this));
+        items.add(UItem.asShadow(Localization.VIEW_ONCE_ABOUT));
+
+        items.add(UItem.asButton(DeletedAndEditedIds.DELETED_MESSAGE_CUSTOMIZATION_ID.getId(), Localization.DELETED_MESSAGE).setLinkAlias("reExteraDeletedMessageCustomization", this));
+        items.add(UItem.asShadow());
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {
@@ -93,6 +98,15 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             return;
         }
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
+        if (clicked == DeletedAndEditedIds.DELETED_MESSAGE_CUSTOMIZATION_ID) {
+            presentFragment(new CustomizationFragment());
+            return;
+        }
+        if (clicked == DeletedAndEditedIds.VIEW_ONCE_ID) {
+            Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
+            refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
+            return;
+        }
         switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
                 Settings.setSaveDeletedMessages(!Settings.getSaveDeletedMessages());
@@ -177,127 +191,18 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         if (item.id <= 0 || item.id > DeletedAndEditedIds.values().length) {
             return false;
         }
-        DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
-        switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
-            case Defaults.ALWAYS /* 1 */:
-                final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
-                if (!TextUtils.isEmpty(settingLink)) {
-                    view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            AndroidUtilities.addToClipboard(settingLink);
-                        }
-                    }).add(R.drawable.msg_settings, Localization.ADDITIONAL_SETTINGS, new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            showAdditionalDeleted();
-                        }
-                    }).show();
-                    break;
+        final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+        if (!TextUtils.isEmpty(settingLink)) {
+            view.performHapticFeedback(VibratorUtils.getType(3), 1);
+            ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    AndroidUtilities.addToClipboard(settingLink);
                 }
-                break;
-            default:
-                final String settingLink2 = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
-                if (!TextUtils.isEmpty(settingLink2)) {
-                    view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            AndroidUtilities.addToClipboard(settingLink2);
-                        }
-                    }).show();
-                    break;
-                }
-                break;
+            }).show();
         }
         return false;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void showAdditionalDeleted() {
-        LinearLayout layout = new LinearLayout(getContext());
-        layout.setOrientation(1);
-
-        final TextCheckCell saveMessageHistory = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(saveMessageHistory, Localization.MESSAGE_HISTORY_TOGGLE, "", Settings.getSaveEditedMessages(), false, true);
-        saveMessageHistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
-                saveMessageHistory.setChecked(Settings.getSaveEditedMessages());
-            }
-        });
-        layout.addView(saveMessageHistory);
-
-        final TextCheckCell saveOneTimeMessages = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(saveOneTimeMessages, Localization.SAVE_ONE_TIME_MESSAGES, "", Settings.getSaveOneTimeMessages(), false, true);
-        saveOneTimeMessages.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
-                saveOneTimeMessages.setChecked(Settings.getSaveOneTimeMessages());
-            }
-        });
-        layout.addView(saveOneTimeMessages);
-
-        final TextCheckCell saveBotChats = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(saveBotChats, Localization.SAVE_BOT_CHATS, "", Settings.getSaveBotChats(), false, true);
-        saveBotChats.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Settings.setSaveBotChats(!Settings.getSaveBotChats());
-                saveBotChats.setChecked(Settings.getSaveBotChats());
-            }
-        });
-        layout.addView(saveBotChats);
-
-        final TextCheckCell saveManuallyDeletedMessages = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(saveManuallyDeletedMessages, Localization.SAVE_SELF_DELETED_MESSAGES, Localization.ABOUT_SAVE_SELF_DELETED_MESSAGES, Settings.getSaveManuallyDeleted(), true, true);
-        saveManuallyDeletedMessages.setOnClickListener(new View.OnClickListener() { 
-            @Override // android.view.View.OnClickListener
-            public final void onClick(View view) {
-                DeletedAndEditedMessagesFragment.lambda$showAdditionalDeleted$2(saveManuallyDeletedMessages, view);
-            }
-        });
-        layout.addView(saveManuallyDeletedMessages);
-        final TextCheckCell useExpandableBlockQuote = new TextCheckCell(getContext());
-        setTextAndValueAndCheck(useExpandableBlockQuote, Localization.USE_COLLAPSED_BLOCKQUOTE, Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION, Settings.getUseExpandableBlockQuote(), true, false);
-        useExpandableBlockQuote.setOnClickListener(new View.OnClickListener() { 
-            @Override // android.view.View.OnClickListener
-            public final void onClick(View view) {
-                DeletedAndEditedMessagesFragment.lambda$showAdditionalDeleted$3(useExpandableBlockQuote, view);
-            }
-        });
-        layout.addView(useExpandableBlockQuote);
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle(Localization.ADDITIONAL_SETTINGS);
-        builder.setView(layout);
-        builder.show();
-    }
-
-    private void setTextAndValueAndCheck(TextCheckCell cell, String text, String value, boolean checked, boolean multiline, boolean divider) {
-        try {
-            java.lang.reflect.Method m = TextCheckCell.class.getMethod("setTextAndValueAndCheck", CharSequence.class, CharSequence.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
-            m.invoke(cell, text, value, checked, multiline, divider);
-        } catch (Throwable e) {
-            try {
-                java.lang.reflect.Method m = TextCheckCell.class.getMethod("setTextAndValueAndCheck", String.class, String.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
-                m.invoke(cell, text, value, checked, multiline, divider);
-            } catch (Throwable e2) {
-                cell.setTextAndCheck(text, checked, divider);
-            }
-        }
-    }
-
-    static /* synthetic */ void lambda$showAdditionalDeleted$2(TextCheckCell saveManuallyDeletedMessages, View v1) {
-        Settings.setSaveManuallyDeleted(!Settings.getSaveManuallyDeleted());
-        saveManuallyDeletedMessages.setChecked(Settings.getSaveManuallyDeleted());
-    }
-
-    static /* synthetic */ void lambda$showAdditionalDeleted$3(TextCheckCell useExpandableBlockQuote, View v1) {
-        Settings.setUseExpandableBlockQuote(!Settings.getUseExpandableBlockQuote());
-        useExpandableBlockQuote.setChecked(Settings.getUseExpandableBlockQuote());
-    }
 
 }

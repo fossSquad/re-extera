@@ -255,6 +255,26 @@ public final class ReExteraDb {
         return messageIsDeleted(msg.getDialogId(), msg.getId());
     }
 
+    /**
+     * Did-independent check: is {@code mid} recorded as deleted in ANY dialog?
+     *
+     * <p>Server delete updates (notably {@code TL_updateDeleteMessages} and channel
+     * deletes) do not always give the same dialog id that the message reports at
+     * render time, so the strict (did, mid) lookup can miss. This mid-only fallback
+     * keeps the deleted mark reliable across sessions. Message ids are large and
+     * effectively unique in practice, so cross-dialog collisions are negligible.
+     */
+    public boolean isMidDeletedAnyDialog(int mid) {
+        // Cache-only: deletedKeysCache is fully loaded at startup and kept in sync
+        // on every write, so a memory scan is authoritative and avoids per-render DB I/O.
+        for (java.util.Set<Integer> set : deletedKeysCache.values()) {
+            if (set != null && set.contains(mid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<Long> getDialogIdWithSavedMessages() {
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<Long> result = new ArrayList<>();

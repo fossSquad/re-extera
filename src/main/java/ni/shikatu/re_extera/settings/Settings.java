@@ -246,7 +246,8 @@ public final class Settings {
     }
 
     public static boolean getSaveBotChats() {
-        return getBool("save_bot_chats", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("save_bot_chats", false);
     }
 
     public static void setSaveBotChats(boolean v) {
@@ -270,7 +271,8 @@ public final class Settings {
     }
 
     public static boolean getSaveEditedMessages() {
-        return getBool("save_edited_messages", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("save_edited_messages", false);
     }
 
     public static void setSaveEditedMessages(boolean v) {
@@ -278,7 +280,8 @@ public final class Settings {
     }
 
     public static boolean getSaveManuallyDeleted() {
-        return getBool("save_manually_deleted", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("save_manually_deleted", false);
     }
 
     public static void setSaveManuallyDeleted(boolean v) {
@@ -318,7 +321,8 @@ public final class Settings {
     }
 
     public static boolean getUseExpandableBlockQuote() {
-        return getBool("use_expandable_blockquote", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("use_expandable_blockquote", false);
     }
 
     public static void setUseExpandableBlockQuote(boolean v) {
@@ -390,7 +394,8 @@ public final class Settings {
     }
 
     public static boolean getDisableColoredReplies() {
-        return getBool("disable_colored_replies", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("disable_colored_replies", false);
     }
 
     public static void setDisableColoredReplies(boolean z) {
@@ -398,7 +403,8 @@ public final class Settings {
     }
 
     public static boolean getTransparentDeletedMessages() {
-        return getBool("re_extera_transparent_deleted_messages", false);
+        // Gated on the master "Save deleted messages" switch.
+        return getSaveDeletedMessages() && getBool("re_extera_transparent_deleted_messages", false);
     }
 
     public static void setTransparentDeletedMessages(boolean z) {
@@ -459,5 +465,69 @@ public final class Settings {
 
     public static void setGhostPositionInitialized(boolean v) {
         putBool("ghost_position_initialized", v);
+    }
+
+    public static boolean getHidePinnedMessages() {
+        return getBool("hide_pinned_messages", false);
+    }
+
+    public static void setHidePinnedMessages(boolean v) {
+        putBool("hide_pinned_messages", v);
+    }
+
+    public static boolean getDisableChatSwipeBack() {
+        return getBool("disable_chat_swipe_back", false);
+    }
+
+    public static void setDisableChatSwipeBack(boolean v) {
+        putBool("disable_chat_swipe_back", v);
+    }
+
+    public static boolean getDisableProfileSwipe() {
+        return getBool("disable_profile_swipe", false);
+    }
+
+    public static void setDisableProfileSwipe(boolean v) {
+        putBool("disable_profile_swipe", v);
+    }
+
+    public static boolean getSaveProtectedStories() {
+        return getBool("save_protected_stories", false);
+    }
+
+    public static void setSaveProtectedStories(boolean v) {
+        putBool("save_protected_stories", v);
+    }
+
+    public static boolean getHideTlError() {
+        return getBool("hide_tl_error", false);
+    }
+
+    public static void setHideTlError(boolean v) {
+        putBool("hide_tl_error", v);
+    }
+
+    public static boolean getShowMessageId() {
+        return getBool("show_message_id", false);
+    }
+
+    public static void setShowMessageId(boolean v) {
+        putBool("show_message_id", v);
+    }
+
+    public static boolean getShowIdInMenu() {
+        return getBool("show_id_in_menu", false);
+    }
+
+    public static void setShowIdInMenu(boolean v) {
+        putBool("show_id_in_menu", v);
+    }
+
+    public static boolean getMessageQuickButtons() {
+        return getBool("message_quick_buttons", true);
+    }
+
+    public static void setMessageQuickButtons(boolean v) {
+        putBool("message_quick_buttons", v);
     }
 }

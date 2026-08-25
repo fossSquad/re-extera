@@ -11,7 +11,7 @@ public class SendSecretMediaDelete extends XC_MethodHook {
             if (obj != null) {
                 obj.forceExpired = false;
             }
-            param.setResult(new Runnable() { 
+            param.setResult(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     SendSecretMediaDelete.lambda$beforeHookedMethod$0();
