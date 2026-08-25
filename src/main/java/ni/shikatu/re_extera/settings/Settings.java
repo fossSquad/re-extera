@@ -393,6 +393,40 @@ public final class Settings {
         putBool("disable_ads", v);
     }
 
+    // Force the iOS-26 "liquid glass" effect on the bottom navigation bar.
+    // Only takes visual effect on Android 13+ (AGSL shader); Android 12+ gives blur.
+    public static boolean getLiquidGlassTabs() {
+        return getBool("liquid_glass_tabs", true);
+    }
+
+    public static void setLiquidGlassTabs(boolean v) {
+        putBool("liquid_glass_tabs", v);
+    }
+
+    // Liquid glass opacity 0..100 (higher = more opaque / less see-through). Default 40.
+    public static int getLiquidGlassOpacity() {
+        return getInt("liquid_glass_opacity", 40);
+    }
+    public static void setLiquidGlassOpacity(int v) {
+        putInt("liquid_glass_opacity", v);
+    }
+
+    // Liquid glass refraction strength 0..100 (higher = more warp/distortion). Default 20.
+    public static int getLiquidGlassIntensity() {
+        return getInt("liquid_glass_intensity", 20);
+    }
+    public static void setLiquidGlassIntensity(int v) {
+        putInt("liquid_glass_intensity", v);
+    }
+
+    // Force the in-chat translate button to show even when exteraGram hides it.
+    public static boolean getFixTranslateButton() {
+        return getBool("fix_translate_button", true);
+    }
+    public static void setFixTranslateButton(boolean v) {
+        putBool("fix_translate_button", v);
+    }
+
     public static boolean getDisableColoredReplies() {
         // Gated on the master "Save deleted messages" switch.
         return getSaveDeletedMessages() && getBool("disable_colored_replies", false);

@@ -1,6 +1,10 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.content.Context;
+import android.graphics.BlurMaskFilter;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +46,13 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
             + "c-36.2,0-66.8-21.4-66.8-46.7c0-25.3,30.6-46.8,66.8-46.8s66.8,21.4,66.8,46.8C217.983,438.766,187.383,460.066,151.183,460.066z"
             + "M356.783,460.066c-36.2,0-66.8-21.4-66.8-46.7c0-25.3,30.6-46.8,66.8-46.8c36.2,0,66.8,21.4,66.8,46.8"
             + "C423.583,438.766,392.983,460.066,356.783,460.066z";
+    // General (was "Other") — user-supplied SVG (viewBox 24), three rounded bars.
+    private static final String GENERAL_ICON_PATH_1 =
+            "M2 5.5C2 4.94772 2.44772 4.5 3 4.5H21C21.5523 4.5 22 4.94772 22 5.5V6.5C22 7.05228 21.5523 7.5 21 7.5H3C2.44772 7.5 2 7.05228 2 6.5V5.5Z";
+    private static final String GENERAL_ICON_PATH_2 =
+            "M2 11.5C2 10.9477 2.44772 10.5 3 10.5H21C21.5523 10.5 22 10.9477 22 11.5V12.5C22 13.0523 21.5523 13.5 21 13.5H3C2.44772 13.5 2 13.0523 2 12.5V11.5Z";
+    private static final String GENERAL_ICON_PATH_3 =
+            "M3 16.5C2.44772 16.5 2 16.9477 2 17.5V18.5C2 19.0523 2.44772 19.5 3 19.5H21C21.5523 19.5 22 19.0523 22 18.5V17.5C22 16.9477 21.5523 16.5 21 16.5H3Z";
     private Drawable additionalIcon;
     private Drawable deletedIcon;
     private Drawable ghostIcon;
@@ -50,6 +61,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
     public enum IDs {
         STICKER_ID,
         THANKS_ID,
+        CREDITS_ID,
         GHOST_MODE_BTN_ID,
         DELETED_AND_EDITED_MESSAGES_BTN_ID,
         CUSTOMIZATION_BTN_ID,
@@ -67,7 +79,7 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         this.ghostIcon = new ni.shikatu.re_extera.utils.PathIconDrawable(16f, 16f, true, 28, GHOST_ICON_PATH).withTint(accent);
         this.deletedIcon = new ni.shikatu.re_extera.utils.PathIconDrawable(507.965f, 507.965f, false, 28, SPY_ICON_PATH_1, SPY_ICON_PATH_2).withTint(accent);
         this.customizationIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_theme), sizeDp, sizeDp);
-        this.additionalIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_list), sizeDp, sizeDp);
+        this.additionalIcon = new ni.shikatu.re_extera.utils.PathIconDrawable(24f, 24f, false, 28, GENERAL_ICON_PATH_1, GENERAL_ICON_PATH_2, GENERAL_ICON_PATH_3).withTint(accent);
         return super.createView(context);
     }
 
@@ -97,16 +109,94 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         title.setText("re:extera");
         title.setTextSize(18.0f);
         textLayout.addView(title);
-        EffectsTextView thanks = new EffectsTextView(getContext());
-        thanks.setGravity(17);
-        thanks.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
-        thanks.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-        thanks.setText(LocaleUtils.fullyFormatText(Localization.THANKS));
-        thanks.setTextSize(12.0f);
-        textLayout.addView(thanks);
+        // Version shown as a subtle line right under the title (muted gray).
+        EffectsTextView version = new EffectsTextView(getContext());
+        version.setGravity(17);
+        version.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+        version.setText(LocaleUtils.fullyFormatText("Version: " + Main.VERSION));
+        version.setTextSize(12.0f);
+        LinearLayout.LayoutParams versionLp = new LinearLayout.LayoutParams(-2, -2);
+        versionLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        versionLp.topMargin = AndroidUtilities.dp(2.0f);
+        textLayout.addView(version, versionLp);
         frameLayout.addView(textLayout);
         frameLayout.setPadding(-1, -1, -1, AndroidUtilities.dp(8.0f));
         return frameLayout;
+    }
+
+    /** A short rounded bar with a soft neon glow, used to underline the Credits title. */
+    private static final class GlowUnderline extends View {
+        private final Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+
+        GlowUnderline(Context context, int color) {
+            super(context);
+            // BlurMaskFilter needs a software layer to render.
+            setLayerType(LAYER_TYPE_SOFTWARE, null);
+            linePaint.setColor(color);
+            linePaint.setStyle(Paint.Style.FILL);
+            glowPaint.setColor(color);
+            glowPaint.setStyle(Paint.Style.FILL);
+            glowPaint.setMaskFilter(new BlurMaskFilter(AndroidUtilities.dp(5.0f), BlurMaskFilter.Blur.NORMAL));
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            float lineH = AndroidUtilities.dp(2.5f);
+            float sidePad = AndroidUtilities.dp(3.0f);
+            float top = (getHeight() - lineH) / 2f;
+            rect.set(sidePad, top, getWidth() - sidePad, top + lineH);
+            float r = lineH / 2f;
+            canvas.drawRoundRect(rect, r, r, glowPaint);
+            canvas.drawRoundRect(rect, r, r, linePaint);
+        }
+    }
+
+    /** Dedicated, card-styled credits block (title header + linked handles). */
+    private View createCreditsCard() {
+        Context ctx = getContext();
+        LinearLayout card = new LinearLayout(ctx);
+        card.setOrientation(LinearLayout.VERTICAL);
+        android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+        cardBg.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        cardBg.setCornerRadius(AndroidUtilities.dp(16.0f));
+        card.setBackground(cardBg);
+        card.setPadding(AndroidUtilities.dp(18.0f), AndroidUtilities.dp(14.0f), AndroidUtilities.dp(18.0f), AndroidUtilities.dp(14.0f));
+
+        int accent = Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
+        EffectsTextView header = new EffectsTextView(ctx);
+        header.setTextColor(accent);
+        header.setText(Localization.CREDITS);
+        header.setTextSize(15.0f);
+        header.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        header.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        card.addView(header, new LinearLayout.LayoutParams(-1, -2));
+
+        // Glowing underline centered under "Credits".
+        GlowUnderline underline = new GlowUnderline(ctx, accent);
+        LinearLayout.LayoutParams underlineLp = new LinearLayout.LayoutParams(AndroidUtilities.dp(72.0f), AndroidUtilities.dp(12.0f));
+        underlineLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        underlineLp.topMargin = AndroidUtilities.dp(5.0f);
+        card.addView(underline, underlineLp);
+
+        EffectsTextView body = new EffectsTextView(ctx);
+        body.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        body.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteLinkText));
+        body.setText(LocaleUtils.fullyFormatText(Localization.THANKS));
+        body.setTextSize(13.0f);
+        body.setLineSpacing(AndroidUtilities.dp(5.0f), 1.0f);
+        LinearLayout.LayoutParams bodyLp = new LinearLayout.LayoutParams(-2, -2);
+        bodyLp.topMargin = AndroidUtilities.dp(8.0f);
+        card.addView(body, bodyLp);
+
+        FrameLayout wrap = new FrameLayout(ctx);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(-1, -2);
+        lp.leftMargin = AndroidUtilities.dp(12.0f);
+        lp.rightMargin = AndroidUtilities.dp(12.0f);
+        lp.bottomMargin = AndroidUtilities.dp(4.0f);
+        wrap.addView(card, lp);
+        return wrap;
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
@@ -114,14 +204,17 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         items.add(UItem.asCustom(IDs.STICKER_ID.getId(), createStickerView()).setTransparent(true));
         items.add(UItem.asCustom(IDs.THANKS_ID.getId(), createThanksView()).setTransparent(true));
         items.add(UItem.asShadow());
-        items.add(UItem.asButton(IDs.GHOST_MODE_BTN_ID.getId(), this.ghostIcon, Localization.GHOST_MODE));
+        // Dedicated credits card.
+        items.add(UItem.asCustom(IDs.CREDITS_ID.getId(), createCreditsCard()).setTransparent(true));
         items.add(UItem.asShadow());
+        // Order: Spy → General → Ghost mode.
         items.add(UItem.asButton(IDs.DELETED_AND_EDITED_MESSAGES_BTN_ID.getId(), this.deletedIcon, Localization.SPY));
         items.add(UItem.asShadow());
-        // Customization moved into Spy → "Deleted Message" (it only holds deleted-message settings).
-        items.add(UItem.asButton(IDs.ADDITIONAL_BTN_ID.getId(), this.additionalIcon, Localization.OTHER));
+        // "General" (formerly "Other").
+        items.add(UItem.asButton(IDs.ADDITIONAL_BTN_ID.getId(), this.additionalIcon, Localization.GENERAL));
         items.add(UItem.asShadow());
-        items.add(UItem.asShadow(LocaleUtils.fullyFormatText(String.format("**Version: %s**", Main.VERSION))));
+        items.add(UItem.asButton(IDs.GHOST_MODE_BTN_ID.getId(), this.ghostIcon, Localization.GHOST_MODE));
+        items.add(UItem.asShadow());
     }
 
     /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.SettingsFragmentNew$1, reason: invalid class name */

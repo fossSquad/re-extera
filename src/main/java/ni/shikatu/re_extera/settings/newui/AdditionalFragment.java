@@ -45,15 +45,33 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         HIDE_TL_ERROR_ID,
         SHOW_MESSAGE_ID_ID,
         SHOW_ID_IN_MENU_ID,
-        MESSAGE_QUICK_BUTTONS_ID;
+        MESSAGE_QUICK_BUTTONS_ID,
+        LIQUID_GLASS_TABS_ID,
+        LIQUID_GLASS_OPACITY_ID,
+        LIQUID_GLASS_INTENSITY_ID,
+        FIX_TRANSLATE_BUTTON_ID;
 
         public int getId() {
             return ordinal() + 1;
         }
     }
 
+    // 6 evenly-spaced steps so the labels never overlap on a phone-width track.
+    private static final String[] GLASS_PERCENT_LABELS = {
+        "0%", "20%", "40%", "60%", "80%", "100%"
+    };
+
+    private static int opacityToIndex(int percent) {
+        int idx = Math.round(percent / 20f);
+        return idx < 0 ? 0 : (idx > 5 ? 5 : idx);
+    }
+
+    private static int indexToPercent(int index) {
+        return index * 20;
+    }
+
     public String getTitle() {
-        return Localization.OTHER;
+        return Localization.GENERAL;
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
@@ -75,6 +93,28 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCheck(AdditionalIds.SHOW_ID_IN_MENU_ID.getId(), Localization.SHOW_ID_IN_MENU).setChecked(Settings.getShowIdInMenu()).setLinkAlias("reExteraShowIdInMenu", this));
         items.add(UItem.asCheck(AdditionalIds.MESSAGE_QUICK_BUTTONS_ID.getId(), Localization.MESSAGE_QUICK_BUTTONS).setChecked(Settings.getMessageQuickButtons()).setLinkAlias("reExteraMessageQuickButtons", this));
         items.add(UItem.asShadow());
+
+        items.add(UItem.asCheck(AdditionalIds.LIQUID_GLASS_TABS_ID.getId(), Localization.LIQUID_GLASS_TABS).setChecked(Settings.getLiquidGlassTabs()).setLinkAlias("reExteraLiquidGlassTabs", this));
+        items.add(UItem.asShadow(Localization.LIQUID_GLASS_TABS_ABOUT));
+        if (Settings.getLiquidGlassTabs()) {
+            items.add(UItem.asHeader(Localization.LIQUID_GLASS_OPACITY));
+            items.add(UItem.asSlideView(AdditionalIds.LIQUID_GLASS_OPACITY_ID.getId(), GLASS_PERCENT_LABELS, opacityToIndex(Settings.getLiquidGlassOpacity()), new org.telegram.messenger.Utilities.Callback<Integer>() {
+                @Override
+                public void run(Integer index) {
+                    Settings.setLiquidGlassOpacity(indexToPercent(index));
+                }
+            }));
+            items.add(UItem.asHeader(Localization.LIQUID_GLASS_INTENSITY));
+            items.add(UItem.asSlideView(AdditionalIds.LIQUID_GLASS_INTENSITY_ID.getId(), GLASS_PERCENT_LABELS, opacityToIndex(Settings.getLiquidGlassIntensity()), new org.telegram.messenger.Utilities.Callback<Integer>() {
+                @Override
+                public void run(Integer index) {
+                    Settings.setLiquidGlassIntensity(indexToPercent(index));
+                }
+            }));
+            items.add(UItem.asShadow(Localization.LIQUID_GLASS_SLIDERS_ABOUT));
+        }
+        items.add(UItem.asCheck(AdditionalIds.FIX_TRANSLATE_BUTTON_ID.getId(), Localization.FIX_TRANSLATE_BUTTON).setChecked(Settings.getFixTranslateButton()).setLinkAlias("reExteraFixTranslateButton", this));
+        items.add(UItem.asShadow(Localization.FIX_TRANSLATE_BUTTON_ABOUT));
 
         items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
         items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
@@ -180,6 +220,15 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             case MESSAGE_QUICK_BUTTONS_ID:
                 Settings.setMessageQuickButtons(!Settings.getMessageQuickButtons());
                 refreshCheckBox(item, position, Settings.getMessageQuickButtons());
+                return;
+            case LIQUID_GLASS_TABS_ID:
+                Settings.setLiquidGlassTabs(!Settings.getLiquidGlassTabs());
+                // Full reload so the opacity/strength sliders appear or disappear.
+                refreshCheckBox(item, position, Settings.getLiquidGlassTabs(), true);
+                return;
+            case FIX_TRANSLATE_BUTTON_ID:
+                Settings.setFixTranslateButton(!Settings.getFixTranslateButton());
+                refreshCheckBox(item, position, Settings.getFixTranslateButton());
                 return;
             default:
                 break;

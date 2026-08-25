@@ -249,6 +249,23 @@ public final class HookInit {
         }
         tryHook("ProfileActivity.updateProfileData", ProfileActivity.class, "updateProfileData", new UpdateProfileData(), Boolean.TYPE);
         tryHook("MessagesController.getSponsoredMessages", MessagesController.class, "getSponsoredMessages", new ni.shikatu.re_extera.hooks.messagescontroller.DisableAds(), Long.TYPE);
+
+        // Force iOS-26 "liquid glass" on the bottom navigation bar: MainTabsActivity
+        // gates the glass via LiteMode.isEnabled(FLAG_CHAT_BLUR / FLAG_LIQUID_GLASS).
+        // Overriding those flags flips the tab bar from a solid pill to the glass effect.
+        tryHook("LiteMode.isEnabled(liquidGlass)", org.telegram.messenger.LiteMode.class, "isEnabled", new ni.shikatu.re_extera.hooks.maintabs.ForceLiquidGlass(), Integer.TYPE);
+        // Amplify the glass refraction/thickness so the effect reads as thick iOS-26 glass.
+        tryHook("LiquidGlassEffect.update", org.telegram.ui.Components.blur3.LiquidGlassEffect.class, "update", new ni.shikatu.re_extera.hooks.maintabs.LiquidGlassAmplify(), Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE, Integer.TYPE);
+
+        // Fix the in-chat translate bar that exteraGram hides for non-Premium users.
+        // isFeatureAvailable(long) drops the premium + translate_chat_button pref gate;
+        // wrapping updateTopPanel scopes an isPremium() spoof to just that method so the
+        // bar's outer premium gate passes without faking premium app-wide.
+        tryHook("TranslateController.isChatTranslateEnabled", org.telegram.messenger.TranslateController.class, "isChatTranslateEnabled", new ni.shikatu.re_extera.hooks.translate.ForceChatTranslateEnabled(), new Class[0]);
+        tryHook("TranslateController.isFeatureAvailable()", org.telegram.messenger.TranslateController.class, "isFeatureAvailable", new ni.shikatu.re_extera.hooks.translate.TranslateFeatureAvailable(), new Class[0]);
+        tryHook("TranslateController.isFeatureAvailable(long)", org.telegram.messenger.TranslateController.class, "isFeatureAvailable", new ni.shikatu.re_extera.hooks.translate.TranslateFeatureAvailable(), Long.TYPE);
+        tryHook("ChatActivity.updateTopPanel", ChatActivity.class, "updateTopPanel", new ni.shikatu.re_extera.hooks.translate.UpdateTopPanelScope(), Boolean.TYPE);
+        tryHook("TranslateController.isDialogTranslatable", org.telegram.messenger.TranslateController.class, "isDialogTranslatable", new ni.shikatu.re_extera.hooks.translate.ForceDialogTranslatable(), Long.TYPE);
         
         tryHook("UserObject.getColorId", org.telegram.messenger.UserObject.class, "getColorId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.UserColorId(), TLRPC.User.class);
         tryHook("UserObject.getEmojiId", org.telegram.messenger.UserObject.class, "getEmojiId", new ni.shikatu.re_extera.hooks.peercolor.DisableColoredReplies.UserEmojiId(), TLRPC.User.class);
