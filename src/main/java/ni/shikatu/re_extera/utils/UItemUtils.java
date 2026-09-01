@@ -74,7 +74,12 @@ public final class UItemUtils {
         if (setLinkAliasMethod != null) {
             try {
                 setLinkAliasMethod.invoke(item, alias, activity);
+                return item;
             } catch (Throwable ignored) {}
+        }
+
+        if (activity instanceof org.telegram.ui.ActionBar.BaseFragment) {
+            SettingsRegistryHelper.addLinkAliasForOption(alias, (org.telegram.ui.ActionBar.BaseFragment) activity, item);
         }
         return item;
     }

@@ -7,6 +7,7 @@ import org.telegram.ui.Components.UItem;
 public final class SettingsRegistryHelper {
     private static Object registryInstance;
     private static Method getFirstSettingLinkMethod;
+    private static Method addLinkAliasForOptionMethod;
     private static boolean checked;
 
     private SettingsRegistryHelper() {
@@ -29,6 +30,16 @@ public final class SettingsRegistryHelper {
                 Method getInstanceMethod = clazz.getMethod("getInstance");
                 registryInstance = getInstanceMethod.invoke(null);
                 getFirstSettingLinkMethod = clazz.getMethod("getFirstSettingLink", Class.class, UItem.class);
+                addLinkAliasForOptionMethod = clazz.getMethod("addLinkAliasForOption", String.class, BaseFragment.class, UItem.class);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    public static void addLinkAliasForOption(String alias, BaseFragment fragment, UItem item) {
+        init();
+        if (registryInstance != null && addLinkAliasForOptionMethod != null) {
+            try {
+                addLinkAliasForOptionMethod.invoke(registryInstance, alias, fragment, item);
             } catch (Throwable ignored) {}
         }
     }
@@ -43,4 +54,5 @@ public final class SettingsRegistryHelper {
         return null;
     }
 }
+
 
