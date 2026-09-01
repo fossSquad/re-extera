@@ -227,8 +227,6 @@ public final class HookInit {
         tryHook("ConnectionsManager.setAppPaused", org.telegram.tgnet.ConnectionsManager.class, "setAppPaused", new ni.shikatu.re_extera.hooks.connectionsmanager.WorkInBackground(), Boolean.TYPE, Boolean.TYPE);
         
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
-        tryHook("PythonPluginsEngine.openPluginSettings", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class);
-        tryHook("PythonPluginsEngine.openPluginSettings3", PythonPluginsEngine.class, "openPluginSettings", new OpenSettingsHook(), Plugin.class, BaseFragment.class, String.class);
         GhostMenuHelper.registerPluginMenuItem();
         tryHook("DrawerMenuView.rebuildMenu", DrawerMenuView.class, "rebuildMenu", new DrawerMenuGhostHook(), Integer.TYPE, BaseFragment.class);
         tryHook("AppNavigationPreferencesActivity.initItemDetails", AppNavigationPreferencesActivity.class, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);

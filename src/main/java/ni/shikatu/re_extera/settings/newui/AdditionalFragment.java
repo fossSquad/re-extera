@@ -17,6 +17,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.ItemOptions;
@@ -49,23 +50,23 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()).setLinkAlias("reExteraLocalPremium", this));
-        items.add(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()).setLinkAlias("reExteraDisableAds", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()), "reExteraLocalPremium", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()), "reExteraDisableAds", this));
         items.add(UItem.asShadow());
 
-        items.add(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), Localization.WORK_IN_BACKGROUND).setChecked(Settings.getWorkInBackground()).setLinkAlias("reExteraWorkInBackground", this));
-        items.add(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()).setLinkAlias("reExteraIgnoreFlagSecure", this));
-        items.add(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()).setLinkAlias("reExteraNoForward", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), Localization.WORK_IN_BACKGROUND).setChecked(Settings.getWorkInBackground()), "reExteraWorkInBackground", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()), "reExteraIgnoreFlagSecure", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.NO_FORWARD_ID.getId(), Localization.NO_FORWARD).setChecked(Settings.noForward()), "reExteraNoForward", this));
         items.add(UItem.asShadow(Localization.NO_FORWARD_ABOUT));
 
-        items.add(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS).setLinkAlias("reExteraFiltersEnter", this));
-        items.add(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN).setLinkAlias("reExteraShadowban", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.FILTERS_ID.getId(), Localization.FILTERS), "reExteraFiltersEnter", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.SHADOWBAN_ID.getId(), Localization.SHADOWBAN), "reExteraShadowban", this));
         items.add(UItem.asShadow(Localization.SHADOWBAN_ABOUT));
 
-        items.add(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB).setLinkAlias("reExteraClearDb", this));
-        items.add(UItem.asButton(AdditionalIds.EXPORT_DB_ID.getId(), Localization.EXPORT_DB).setLinkAlias("reExteraExportDb", this));
-        items.add(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB).setLinkAlias("reExteraImportDb", this));
-        items.add(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA).setLinkAlias("reExteraUnloadHooks", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.CLEAR_DB_ID.getId(), Localization.CLEAR_DB), "reExteraClearDb", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.EXPORT_DB_ID.getId(), Localization.EXPORT_DB), "reExteraExportDb", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB), "reExteraImportDb", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA), "reExteraUnloadHooks", this));
         items.add(UItem.asShadow());
     }
 

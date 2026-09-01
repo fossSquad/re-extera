@@ -13,6 +13,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.ExclusionUtils;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
@@ -76,7 +77,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         items.add(UItem.asCheck(102, Localization.GHOST_EXCLUDE_CHANNELS).setChecked(Settings.getGhostExcludeChannels()));
         items.add(UItem.asCheck(103, Localization.GHOST_EXCLUDE_PMS).setChecked(Settings.getGhostExcludePMs()));
         items.add(UItem.asShadow((CharSequence) null));
-        items.add(UItem.asButton(100, Localization.ADD).setLinkAlias("addException", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(100, Localization.ADD), "addException", this));
         items.add(UItem.asShadow((CharSequence) null));
         if (this.exceptions.isEmpty()) {
             items.add(UItem.asCustom(createEmptyView(getContext())));

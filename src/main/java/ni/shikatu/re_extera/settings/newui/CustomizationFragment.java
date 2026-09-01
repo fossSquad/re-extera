@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.UserConfig;
@@ -356,16 +357,16 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
         items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView()));
         
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
-        items.add(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()), "reExteraCustomDeletedMark", this));
         items.add(UItem.asShadow());
         
         items.add(UItem.asHeader("Deleted Mark Color"));
         items.add(UItem.asCustom(CustomizationIds.DELETED_MARK_COLOR_ID.getId(), colorSelectorView()));
         items.add(UItem.asShadow());
 
-        items.add(UItem.asCheck(CustomizationIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(CustomizationIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()), "reExteraDisableColoredReplies", this));
 
-        items.add(UItem.asCheck(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()), "reExteraTransparentDeletedMessages", this));
         
         if (Settings.getTransparentDeletedMessages()) {
             items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_SLIDER_ID.getId(), alphaSliderView()));

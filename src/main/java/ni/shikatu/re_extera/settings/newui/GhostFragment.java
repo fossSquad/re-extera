@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.LinearLayout;
 import ni.shikatu.re_extera.utils.SettingsRegistryHelper;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
@@ -101,7 +102,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(ghostUItem().setLinkAlias("reExteraGhostMode", this));
+        items.add(UItemUtils.setLinkAlias(ghostUItem(), "reExteraGhostMode", this));
         if (this.isGhostExpanded) {
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_ONLINE_ID.getId(), Localization.HIDE_ONLINE_STATUS).setChecked(Settings.getHideOnline()).pad());
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_IMMEDIATE_OFFLINE_ID.getId(), Localization.IMMEDIATE_OFFLINE).setChecked(Settings.getImmediateOffline()).pad());
@@ -110,11 +111,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asRoundCheckbox(GhostIds.GHOST_NO_READ_STORIES_ID.getId(), Localization.NO_READ_STORIES).setChecked(Settings.getNoReadStories()).pad());
         }
         items.add(UItem.asShadow());
-        items.add(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()).setLinkAlias("reExteraReadOnInteract", this));
-        items.add(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()).setLinkAlias("reExteraUseSchedule", this));
-        items.add(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()).setLinkAlias("reExteraSendSilence", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()), "reExteraUseSchedule", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()), "reExteraSendSilence", this));
         items.add(UItem.asShadow());
-        items.add(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS).setLinkAlias("reExteraExclusions", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS), "reExteraExclusions", this));
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {
