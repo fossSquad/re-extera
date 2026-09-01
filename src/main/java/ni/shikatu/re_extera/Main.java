@@ -44,9 +44,13 @@ public final class Main {
         Method m = null;
         try {
             m = SettingsRegistry.class.getDeclaredMethod("initiateFragment", Class.class);
-        } catch (NoSuchMethodException e) {
-            ReflectionUtils.hookError();
-            log("initiateFragment method not found.", new Object[0]);
+        } catch (Throwable t1) {
+            try {
+                Class<?> exteralessRegistry = Class.forName("app.exteraless.settings.utils.SettingsRegistry");
+                m = exteralessRegistry.getDeclaredMethod("initiateFragment", Class.class);
+            } catch (Throwable t2) {
+                log("initiateFragment method not found.", new Object[0]);
+            }
         }
         initiateFragmentMethod = m;
     }
@@ -150,9 +154,23 @@ public final class Main {
         if (initiateFragmentMethod == null) {
             return;
         }
-        SettingsRegistry registry = SettingsRegistry.getInstance();
-        for (Class<? extends BaseFragment> fragment : fragments) {
-            ReflectionUtils.invoke(initiateFragmentMethod, registry, fragment);
+        try {
+            Object registry = null;
+            try {
+                registry = SettingsRegistry.getInstance();
+            } catch (Throwable t) {
+                try {
+                    Class<?> exteralessRegistry = Class.forName("app.exteraless.settings.utils.SettingsRegistry");
+                    registry = exteralessRegistry.getMethod("getInstance").invoke(null);
+                } catch (Throwable ignored) {}
+            }
+            if (registry != null) {
+                for (Class<? extends BaseFragment> fragment : fragments) {
+                    ReflectionUtils.invoke(initiateFragmentMethod, registry, fragment);
+                }
+            }
+        } catch (Throwable t) {
+            log("initFragments failed: %s", t.getMessage());
         }
     }
 }

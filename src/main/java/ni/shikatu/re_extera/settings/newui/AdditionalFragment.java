@@ -2,7 +2,7 @@ package ni.shikatu.re_extera.settings.newui;
 
 import android.text.TextUtils;
 import android.view.View;
-import com.exteragram.messenger.preferences.utils.SettingsRegistry;
+import ni.shikatu.re_extera.utils.SettingsRegistryHelper;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
@@ -182,7 +182,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     }
 
     public boolean onLongClick(UItem item, View view, int position, float x, float y) {
-        final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+        final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
         if (TextUtils.isEmpty(settingLink)) {
             return false;
         }

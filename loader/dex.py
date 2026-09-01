@@ -280,12 +280,13 @@ class Loader:
         with open(self.cache_file, 'wb') as f:
             f.write(dex_bytes)
             
-        if os.path.exists(LOCAL_DEX_PATH):
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
             try:
-                os.remove(LOCAL_DEX_PATH)
-                self.plugin.log("Removed LOCAL_DEX_PATH because a new version was explicitly downloaded")
+                os.remove(local_dex_path)
+                self.plugin.log("Removed local DEX because a new version was explicitly downloaded")
             except Exception as e:
-                self.plugin.log(f"Failed to remove LOCAL_DEX_PATH: {e}")
+                self.plugin.log(f"Failed to remove local DEX: {e}")
 
         if plugin_bytes:
             self._update_plugin_file(plugin_bytes)
@@ -319,9 +320,10 @@ class Loader:
             self.plugin.log(f"Failed to update plugin: {e}")
 
     def _load_from_local_path(self):
-        if os.path.exists(LOCAL_DEX_PATH):
-            self.plugin.log(f"Local DEX found at {LOCAL_DEX_PATH}")
-            with open(LOCAL_DEX_PATH, 'rb') as f:
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
+            self.plugin.log(f"Local DEX found at {local_dex_path}")
+            with open(local_dex_path, 'rb') as f:
                 return f.read()
         return None
 
@@ -345,9 +347,10 @@ class Loader:
                     self.plugin.log(f"Update check failed: {e}")
                 return
             except Exception as e:
+                local_dex_path = get_local_dex_path()
                 self.plugin.log(f"Local DEX failed ({e}), falling through to cache/download")
                 try:
-                    os.remove(LOCAL_DEX_PATH)
+                    os.remove(local_dex_path)
                     self.plugin.log("Removed stale local DEX")
                 except Exception:
                     pass

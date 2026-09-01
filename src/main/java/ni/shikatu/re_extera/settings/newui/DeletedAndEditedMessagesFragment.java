@@ -6,7 +6,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import com.exteragram.messenger.preferences.utils.SettingsRegistry;
+import ni.shikatu.re_extera.utils.SettingsRegistryHelper;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
@@ -180,7 +180,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
         switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
-                final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+                final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
                     ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
@@ -198,7 +198,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 }
                 break;
             default:
-                final String settingLink2 = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+                final String settingLink2 = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink2)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
                     ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 

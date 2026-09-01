@@ -105,13 +105,14 @@ class Plugin(BasePlugin):
     def _on_install_file(self):
         if self.loader is None:
             return
-        if os.path.exists(LOCAL_DEX_PATH):
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
             try:
-                with open(LOCAL_DEX_PATH, 'rb') as f:
+                with open(local_dex_path, 'rb') as f:
                     dex_bytes = f.read()
                 self.loader.start_from_bytes(dex_bytes)
                 BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
-                self.log("Reloaded from local file")
+                self.log(f"Reloaded from local file {local_dex_path}")
             except Exception as e:
                 self.log(f"Install from file failed: {e}")
                 BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
