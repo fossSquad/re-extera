@@ -76,7 +76,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 break;
             }
         }
-        items.add(UItemUtils.setLinkAlias(UItem.asSlideView(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), sizeStrings, selectedIndex, new org.telegram.messenger.Utilities.Callback<Integer>() {
+        items.add(UItemUtils.setLinkAlias(UItemUtils.asSlideView(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), sizeStrings, selectedIndex, new org.telegram.messenger.Utilities.Callback<Integer>() {
             @Override
             public void run(Integer index) {
                 Settings.setAttachmentsMaxSize(sizes[index]);
