@@ -300,6 +300,7 @@ class Plugin(BasePlugin):
         try:
             if self.loader is None or self.loader.dex_main_class is None:
                 self.log("DEX not loaded")
+                BulletinHelper.show_info("DEX is not loaded", get_last_fragment())
                 return
             try:
                 show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
@@ -312,6 +313,7 @@ class Plugin(BasePlugin):
                 show_method.invoke(instance)
         except Exception as e:
             self.log(f"Error opening DEX settings: {e}")
+            BulletinHelper.show_info(f"Error opening settings: {e}", get_last_fragment())
 
     def on_plugin_load(self) -> None:
         try:

@@ -3,7 +3,6 @@ package ni.shikatu.re_extera;
 import android.content.Context;
 import android.util.Log;
 import androidx.core.content.ContextCompat;
-import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
@@ -43,14 +42,20 @@ public final class Main {
     static {
         Method m = null;
         try {
-            m = SettingsRegistry.class.getDeclaredMethod("initiateFragment", Class.class);
-        } catch (Throwable t1) {
+            Class<?> registryClass = null;
             try {
-                Class<?> exteralessRegistry = Class.forName("app.exteraless.settings.utils.SettingsRegistry");
-                m = exteralessRegistry.getDeclaredMethod("initiateFragment", Class.class);
-            } catch (Throwable t2) {
-                log("initiateFragment method not found.", new Object[0]);
+                registryClass = Class.forName("com.exteragram.messenger.preferences.utils.SettingsRegistry");
+            } catch (Throwable ignored) {}
+            if (registryClass == null) {
+                try {
+                    registryClass = Class.forName("app.exteraless.settings.utils.SettingsRegistry");
+                } catch (Throwable ignored) {}
             }
+            if (registryClass != null) {
+                m = registryClass.getDeclaredMethod("initiateFragment", Class.class);
+            }
+        } catch (Throwable t) {
+            log("initiateFragment method not found: %s", t.getMessage());
         }
         initiateFragmentMethod = m;
     }
@@ -109,13 +114,13 @@ public final class Main {
     }
 
     public void showSettings() {
-        LaunchActivity.instance.presentFragment(new SettingsFragmentNew());
+        if (LaunchActivity.instance != null) {
+            LaunchActivity.instance.presentFragment(new SettingsFragmentNew());
+        }
     }
 
     public static void showSettingsExternal() {
-        if (instance != null) {
-            instance.showSettings();
-        }
+        getInstance().showSettings();
     }
 
     public static void initAndStart() {
@@ -157,7 +162,8 @@ public final class Main {
         try {
             Object registry = null;
             try {
-                registry = SettingsRegistry.getInstance();
+                Class<?> exteraRegistry = Class.forName("com.exteragram.messenger.preferences.utils.SettingsRegistry");
+                registry = exteraRegistry.getMethod("getInstance").invoke(null);
             } catch (Throwable t) {
                 try {
                     Class<?> exteralessRegistry = Class.forName("app.exteraless.settings.utils.SettingsRegistry");
