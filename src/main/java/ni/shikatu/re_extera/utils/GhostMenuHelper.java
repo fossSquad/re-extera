@@ -6,7 +6,6 @@ import android.widget.LinearLayout;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.MainMenuItem;
 import com.exteragram.messenger.drawer.DrawerMenuItemView;
-import com.exteragram.messenger.drawer.DrawerMenuView;
 import com.exteragram.messenger.plugins.Plugin;
 import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
@@ -182,7 +181,11 @@ public final class GhostMenuHelper {
         return id != null && id.intValue() == 910001;
     }
 
-    public static void injectIntoDrawer(DrawerMenuView drawerMenuView, int currentAccount, final BaseFragment fragment) {
+    public static void injectIntoDrawer(Object drawerMenuView, int currentAccount, final BaseFragment fragment) {
+        if (drawerMenuView == null || !(drawerMenuView instanceof View)) {
+            return;
+        }
+        View drawerView = (View) drawerMenuView;
         LinearLayout container;
         ensureInitialized();
         if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
@@ -195,10 +198,10 @@ public final class GhostMenuHelper {
         }
         int childIndex = Math.min(insertionInfo.childIndex, container.getChildCount());
         if (insertionInfo.addDivider) {
-            container.addView(createDividerView(drawerMenuView.getContext()), childIndex);
+            container.addView(createDividerView(drawerView.getContext()), childIndex);
             childIndex++;
         }
-        DrawerMenuItemView itemView = new DrawerMenuItemView(drawerMenuView.getContext());
+        DrawerMenuItemView itemView = new DrawerMenuItemView(drawerView.getContext());
         itemView.setMenuItem(GHOST_MENU_ITEM_ID, currentAccount, R.drawable.ghost, getDrawerTitle());
         final Runnable onItemClick = getDrawerOnItemClick(drawerMenuView);
         itemView.setOnClickListener(new View.OnClickListener() { 
@@ -447,10 +450,10 @@ public final class GhostMenuHelper {
         return Settings.getGhostModeEnabledGlobal() ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE;
     }
 
-    private static LinearLayout getDrawerContainer(DrawerMenuView drawerMenuView) {
+    private static LinearLayout getDrawerContainer(Object drawerMenuView) {
         try {
             if (drawerContainerField == null) {
-                drawerContainerField = DrawerMenuView.class.getDeclaredField("container");
+                drawerContainerField = drawerMenuView.getClass().getDeclaredField("container");
                 drawerContainerField.setAccessible(true);
             }
             return (LinearLayout) drawerContainerField.get(drawerMenuView);
@@ -460,10 +463,10 @@ public final class GhostMenuHelper {
         }
     }
 
-    private static Runnable getDrawerOnItemClick(DrawerMenuView drawerMenuView) {
+    private static Runnable getDrawerOnItemClick(Object drawerMenuView) {
         try {
             if (drawerOnItemClickField == null) {
-                drawerOnItemClickField = DrawerMenuView.class.getDeclaredField("onItemClick");
+                drawerOnItemClickField = drawerMenuView.getClass().getDeclaredField("onItemClick");
                 drawerOnItemClickField.setAccessible(true);
             }
             return (Runnable) drawerOnItemClickField.get(drawerMenuView);

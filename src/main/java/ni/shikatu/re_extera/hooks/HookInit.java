@@ -5,10 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import androidx.collection.LongSparseArray;
-import com.exteragram.messenger.drawer.DrawerMenuView;
 import com.exteragram.messenger.plugins.Plugin;
 import com.exteragram.messenger.plugins.PythonPluginsEngine;
-import com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import java.util.ArrayList;
@@ -228,13 +226,23 @@ public final class HookInit {
         
         tryHook("ProfileActivity.createActionBarMenu", ProfileActivity.class, "createActionBarMenu", new ProfileMenuShadowban(), Boolean.TYPE);
         GhostMenuHelper.registerPluginMenuItem();
-        tryHook("DrawerMenuView.rebuildMenu", DrawerMenuView.class, "rebuildMenu", new DrawerMenuGhostHook(), Integer.TYPE, BaseFragment.class);
-        tryHook("AppNavigationPreferencesActivity.initItemDetails", AppNavigationPreferencesActivity.class, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);
-        tryHook("AppNavigationPreferencesActivity.addMenuSection", AppNavigationPreferencesActivity.class, "addMenuSection", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION), ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE);
-        tryHook("AppNavigationPreferencesActivity.fillItems", AppNavigationPreferencesActivity.class, "fillItems", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.FILL_ITEMS), ArrayList.class, UniversalAdapter.class);
-        tryHook("AppNavigationPreferencesActivity.onClick", AppNavigationPreferencesActivity.class, "onClick", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ON_CLICK), UItem.class, View.class, Integer.TYPE, Float.TYPE, Float.TYPE);
-        tryHook("AppNavigationPreferencesActivity.updateConfigFromReorder", AppNavigationPreferencesActivity.class, "updateConfigFromReorder", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.UPDATE_REORDER), Integer.TYPE, ArrayList.class);
-        tryHook("AppNavigationPreferencesActivity.resetToDefault", AppNavigationPreferencesActivity.class, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
+
+        try {
+            Class<?> drawerMenuViewClass = Class.forName("com.exteragram.messenger.drawer.DrawerMenuView");
+            tryHook("DrawerMenuView.rebuildMenu", drawerMenuViewClass, "rebuildMenu", new DrawerMenuGhostHook(), Integer.TYPE, BaseFragment.class);
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        try {
+            Class<?> appNavClass = Class.forName("com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity");
+            tryHook("AppNavigationPreferencesActivity.initItemDetails", appNavClass, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);
+            tryHook("AppNavigationPreferencesActivity.addMenuSection", appNavClass, "addMenuSection", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION), ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE);
+            tryHook("AppNavigationPreferencesActivity.fillItems", appNavClass, "fillItems", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.FILL_ITEMS), ArrayList.class, UniversalAdapter.class);
+            tryHook("AppNavigationPreferencesActivity.onClick", appNavClass, "onClick", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ON_CLICK), UItem.class, View.class, Integer.TYPE, Float.TYPE, Float.TYPE);
+            tryHook("AppNavigationPreferencesActivity.updateConfigFromReorder", appNavClass, "updateConfigFromReorder", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.UPDATE_REORDER), Integer.TYPE, ArrayList.class);
+            tryHook("AppNavigationPreferencesActivity.resetToDefault", appNavClass, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
+        } catch (ClassNotFoundException ignored) {
+        }
     }
 
     private static boolean anyAccountIsPremium() {

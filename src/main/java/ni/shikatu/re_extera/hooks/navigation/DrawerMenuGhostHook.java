@@ -1,6 +1,5 @@
 package ni.shikatu.re_extera.hooks.navigation;
 
-import com.exteragram.messenger.drawer.DrawerMenuView;
 import de.robv.android.xposed.XC_MethodHook;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -8,12 +7,11 @@ import org.telegram.ui.ActionBar.BaseFragment;
 public class DrawerMenuGhostHook extends XC_MethodHook {
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         Object obj = param.thisObject;
-        if (!(obj instanceof DrawerMenuView)) {
+        if (obj == null) {
             return;
         }
-        DrawerMenuView drawerMenuView = (DrawerMenuView) obj;
         int currentAccount = ((Integer) param.args[0]).intValue();
         BaseFragment fragment = (BaseFragment) param.args[1];
-        GhostMenuHelper.injectIntoDrawer(drawerMenuView, currentAccount, fragment);
+        GhostMenuHelper.injectIntoDrawer(obj, currentAccount, fragment);
     }
 }
