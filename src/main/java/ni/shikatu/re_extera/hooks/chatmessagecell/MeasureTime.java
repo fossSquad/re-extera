@@ -82,6 +82,16 @@ public class MeasureTime extends XC_MethodHook {
             if (currentTimeString == null) {
                 return;
             }
+            if (currentTimeString instanceof SpannableStringBuilder) {
+                SpannableStringBuilder ssb = (SpannableStringBuilder) currentTimeString;
+                ColoredImageSpan[] spans = ssb.getSpans(0, ssb.length(), ColoredImageSpan.class);
+                if (spans != null && spans.length > 0) {
+                    return;
+                }
+            }
+            if (mark != null && !mark.isEmpty() && currentTimeString.toString().startsWith(LocaleUtils.fullyFormatText(mark).toString())) {
+                return;
+            }
             SpannableStringBuilder builderTime;
             if (currentTimeString instanceof SpannableStringBuilder) {
                 builderTime = (SpannableStringBuilder) currentTimeString;
