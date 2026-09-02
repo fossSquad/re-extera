@@ -31,7 +31,7 @@ import org.telegram.ui.Components.ColorPicker;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import com.exteragram.messenger.preferences.components.AltSeekbar;
+import ni.shikatu.re_extera.settings.components.AltSeekbar;
 
 public class CustomizationFragment extends BasePreferencesActivityExtended {
 
@@ -354,7 +354,9 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
 
     @Override
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView()));
+        UItem previewItem = UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView());
+        previewItem.intValue = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+        items.add(previewItem);
         
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
         items.add(UItemUtils.setLinkAlias(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()), "reExteraCustomDeletedMark", this));
