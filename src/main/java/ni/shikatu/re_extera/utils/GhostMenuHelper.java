@@ -241,7 +241,7 @@ public final class GhostMenuHelper {
     }
 
     public static void unregisterPluginMenuItem() {
-        if (!PluginsController.isPluginEngineSupported()) {
+        if (!isPluginEngineSupportedSafe()) {
             return;
         }
         try {
@@ -378,8 +378,21 @@ public final class GhostMenuHelper {
         return isEditorVisibleItem(id.intValue());
     }
 
+    public static boolean isPluginEngineSupportedSafe() {
+        try {
+            Method m = PluginsController.class.getMethod("isPluginEngineSupported");
+            if (java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                return (boolean) m.invoke(null);
+            } else {
+                return (boolean) m.invoke(PluginsController.getInstance());
+            }
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private static boolean isEditorVisibleItem(int id) {
-        return (id != MainMenuItem.PLUGINS.getId() || PluginsController.isPluginEngineSupported()) && MainMenuItem.getById(id) != null;
+        return (id != MainMenuItem.PLUGINS.getId() || isPluginEngineSupportedSafe()) && MainMenuItem.getById(id) != null;
     }
 
     private static DrawerInsertionInfo resolveDrawerInsertionInfo(int currentAccount, BaseFragment fragment) {
