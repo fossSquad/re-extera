@@ -28,6 +28,9 @@ import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
+import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
+import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternalRange;
+import ni.shikatu.re_extera.hooks.messagesstorage.UpdateDialogsWithDeletedMessages;
 import ni.shikatu.re_extera.hooks.flagsecure.FlagSecureReasonAttach;
 import ni.shikatu.re_extera.hooks.flagsecure.WindowManagerImpl;
 import ni.shikatu.re_extera.hooks.flagsecure.WindowSetFlags;
@@ -156,6 +159,9 @@ public final class HookInit {
         tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
         // Fallbacks for older Telegram versions
         tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
+        // Range deletions: markMessagesAsDeleted(long did, int maxMid, boolean isChannel, boolean isTopic)
+        tryHook("MessagesStorage.markMessagesAsDeleted(range)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
+        tryHook("MessagesStorage.markMessagesAsDeletedInternal(range)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
 
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
