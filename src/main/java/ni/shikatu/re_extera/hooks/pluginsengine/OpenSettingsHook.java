@@ -8,7 +8,7 @@ import ni.shikatu.re_extera.settings.newui.SettingsFragmentNew;
 import org.telegram.ui.ActionBar.BaseFragment;
 
 public class OpenSettingsHook extends XC_MethodHook {
-    private static final Set<String> RE_EXTERA_PLUGIN_IDS = new java.util.HashSet<>(java.util.Arrays.asList("re_extera_dex", "re_extera_dex_local_debug", "re_extera_dex_unstable"));
+    private static final Set<String> RE_EXTERA_PLUGIN_IDS = new java.util.HashSet<>(java.util.Arrays.asList("re_extera_dex", "re_extera_dex_local_debug", "re_extera_dex_unstable", "re_extera_loader"));
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         final Plugin plugin = (Plugin) param.args[0];

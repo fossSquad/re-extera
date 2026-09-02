@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.UserConfig;
@@ -30,7 +32,7 @@ import org.telegram.ui.Components.ColorPicker;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import com.exteragram.messenger.preferences.components.AltSeekbar;
+import ni.shikatu.re_extera.settings.components.AltSeekbar;
 
 public class CustomizationFragment extends BasePreferencesActivityExtended {
 
@@ -320,6 +322,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
         chatMessageCell.setFullyDraw(true);
         chatMessageCell.setMessageObject(messageObject, null, false, false, false);
         
+        frameLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         frameLayout.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8));
         frameLayout.addView(chatMessageCell, LayoutHelper.createFrame(-1, -2));
         
@@ -353,19 +356,22 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
 
     @Override
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView()));
+        UItem previewItem = UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView());
+        previewItem.intValue = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+        previewItem.transparent = true;
+        items.add(previewItem);
         
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
-        items.add(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()).setLinkAlias("reExteraCustomDeletedMark", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()), "reExteraCustomDeletedMark", this));
         items.add(UItem.asShadow());
         
         items.add(UItem.asHeader("Deleted Mark Color"));
         items.add(UItem.asCustom(CustomizationIds.DELETED_MARK_COLOR_ID.getId(), colorSelectorView()));
         items.add(UItem.asShadow());
 
-        items.add(UItem.asCheck(CustomizationIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()).setLinkAlias("reExteraDisableColoredReplies", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(CustomizationIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()), "reExteraDisableColoredReplies", this));
 
-        items.add(UItem.asCheck(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()).setLinkAlias("reExteraTransparentDeletedMessages", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_ID.getId(), Localization.ENABLE_ALPHA).setChecked(Settings.getTransparentDeletedMessages()), "reExteraTransparentDeletedMessages", this));
         
         if (Settings.getTransparentDeletedMessages()) {
             items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_SLIDER_ID.getId(), alphaSliderView()));

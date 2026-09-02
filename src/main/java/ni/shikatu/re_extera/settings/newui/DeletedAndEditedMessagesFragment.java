@@ -6,13 +6,14 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import com.exteragram.messenger.preferences.utils.SettingsRegistry;
+import ni.shikatu.re_extera.utils.SettingsRegistryHelper;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -46,10 +47,10 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()).setLinkAlias("reExteraSaveDeletedMessages", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()), "reExteraSaveDeletedMessages", this));
         items.add(UItem.asShadow());
 
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()).setLinkAlias("reExteraSaveAttachments", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()), "reExteraSaveAttachments", this));
         items.add(UItem.asHeader(Localization.SAVE_ATTACHMENTS_SIZE));
         final long[] sizes = new long[]{
             100L * 1024 * 1024,
@@ -75,16 +76,16 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 break;
             }
         }
-        items.add(UItem.asSlideView(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), sizeStrings, selectedIndex, new org.telegram.messenger.Utilities.Callback<Integer>() {
+        items.add(UItemUtils.setLinkAlias(UItemUtils.asSlideView(DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.getId(), sizeStrings, selectedIndex, new org.telegram.messenger.Utilities.Callback<Integer>() {
             @Override
             public void run(Integer index) {
                 Settings.setAttachmentsMaxSize(sizes[index]);
             }
-        }).setLinkAlias("reExteraSaveAttachmentsSize", this));
+        }), "reExteraSaveAttachmentsSize", this));
         items.add(UItem.asShadow(Localization.SAVE_ATTACHMENTS_DESC));
 
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()).setLinkAlias("reExteraSaveReadDate", this));
-        items.add(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()).setLinkAlias("reExteraSaveLastOnline", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()), "reExteraSaveReadDate", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()), "reExteraSaveLastOnline", this));
         items.add(UItem.asShadow());
     }
 
@@ -180,7 +181,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
         switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
-                final String settingLink = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+                final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
                     ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
@@ -198,7 +199,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
                 }
                 break;
             default:
-                final String settingLink2 = SettingsRegistry.getInstance().getFirstSettingLink(getClass(), item);
+                final String settingLink2 = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink2)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
                     ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 

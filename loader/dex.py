@@ -66,15 +66,22 @@ class Loader:
             self.plugin.log("Called initAndStart")
         except Exception as e:
             self.plugin.log(f"initAndStart failed: {e}")
+            has_init = False
             try:
-                # Fallback for older DEX versions
-                get_instance = clazz.getMethod("getInstance")
-                instance = get_instance.invoke(None)
-                start_method = clazz.getMethod("start")
-                start_method.invoke(instance)
-                self.plugin.log("Called start() via getInstance() fallback")
-            except Exception as e2:
-                self.plugin.log(f"Fallback start failed: {e2}")
+                clazz.getMethod("initAndStart")
+                has_init = True
+            except Exception:
+                has_init = False
+            if not has_init:
+                try:
+                    # Fallback for older DEX versions
+                    get_instance = clazz.getMethod("getInstance")
+                    instance = get_instance.invoke(None)
+                    start_method = clazz.getMethod("start")
+                    start_method.invoke(instance)
+                    self.plugin.log("Called start() via getInstance() fallback")
+                except Exception as e2:
+                    self.plugin.log(f"Fallback start failed: {e2}")
 
     def start_from_bytes(self, bytesdex):
         cache_dir = self.cache_dir
@@ -280,12 +287,13 @@ class Loader:
         with open(self.cache_file, 'wb') as f:
             f.write(dex_bytes)
             
-        if os.path.exists(LOCAL_DEX_PATH):
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
             try:
-                os.remove(LOCAL_DEX_PATH)
-                self.plugin.log("Removed LOCAL_DEX_PATH because a new version was explicitly downloaded")
+                os.remove(local_dex_path)
+                self.plugin.log("Removed local DEX because a new version was explicitly downloaded")
             except Exception as e:
-                self.plugin.log(f"Failed to remove LOCAL_DEX_PATH: {e}")
+                self.plugin.log(f"Failed to remove local DEX: {e}")
 
         if plugin_bytes:
             self._update_plugin_file(plugin_bytes)
@@ -296,7 +304,6 @@ class Loader:
     def _update_plugin_file(self, plugin_bytes):
         try:
             if getattr(self.plugin, "_is_elyx_update", False):
-                import os
                 dl_path = os.path.join("/sdcard/Download", "re_extera_loader.elyx")
                 with open(dl_path, "wb") as f:
                     f.write(plugin_bytes)
@@ -319,9 +326,10 @@ class Loader:
             self.plugin.log(f"Failed to update plugin: {e}")
 
     def _load_from_local_path(self):
-        if os.path.exists(LOCAL_DEX_PATH):
-            self.plugin.log(f"Local DEX found at {LOCAL_DEX_PATH}")
-            with open(LOCAL_DEX_PATH, 'rb') as f:
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
+            self.plugin.log(f"Local DEX found at {local_dex_path}")
+            with open(local_dex_path, 'rb') as f:
                 return f.read()
         return None
 
@@ -339,15 +347,13 @@ class Loader:
             try:
                 self.start_from_bytes(local_bytes)
                 self.plugin.log("Loaded from local storage")
-                try:
-                    self._check_async_update()
-                except Exception as e:
-                    self.plugin.log(f"Update check failed: {e}")
+                # Do not trigger auto-update checks when loaded from local file to prevent overriding local builds
                 return
             except Exception as e:
+                local_dex_path = get_local_dex_path()
                 self.plugin.log(f"Local DEX failed ({e}), falling through to cache/download")
                 try:
-                    os.remove(LOCAL_DEX_PATH)
+                    os.remove(local_dex_path)
                     self.plugin.log("Removed stale local DEX")
                 except Exception:
                     pass
@@ -523,12 +529,20 @@ class Loader:
 
     def get_version_display(self):
         try:
-            if self.dex_main_class is not None:
-                v = self.dex_main_class.getDeclaredField(VERSION_FIELD_NAME)
+            target_class = getattr(self, "dex_main_class", None)
+            if target_class is None:
+                inst = self.getInstance()
+                if inst is not None:
+                    target_class = inst.getClass()
+            if target_class is not None:
+                v = target_class.getDeclaredField(VERSION_FIELD_NAME)
                 v.setAccessible(True)
                 ver = str(v.get(None))
                 return f"v{ver}"
-            return "not loaded"
-        except Exception:
-            cached = self.config.get_version(self.channel)
-            return f"cached:{cached}" if cached else "?"
+        except Exception as e:
+            self.plugin.log(f"get_version_display error: {e}")
+        
+        cached = self.config.get_version(self.channel)
+        if cached and str(cached) != "0":
+            return f"cached:{cached}"
+        return "not loaded"

@@ -105,13 +105,14 @@ class Plugin(BasePlugin):
     def _on_install_file(self):
         if self.loader is None:
             return
-        if os.path.exists(LOCAL_DEX_PATH):
+        local_dex_path = get_local_dex_path()
+        if os.path.exists(local_dex_path):
             try:
-                with open(LOCAL_DEX_PATH, 'rb') as f:
+                with open(local_dex_path, 'rb') as f:
                     dex_bytes = f.read()
                 self.loader.start_from_bytes(dex_bytes)
                 BulletinHelper.show_info(_localize("updated_cache"), get_last_fragment())
-                self.log("Reloaded from local file")
+                self.log(f"Reloaded from local file {local_dex_path}")
             except Exception as e:
                 self.log(f"Install from file failed: {e}")
                 BulletinHelper.show_info(f"Error: {e}", get_last_fragment())
@@ -299,6 +300,7 @@ class Plugin(BasePlugin):
         try:
             if self.loader is None or self.loader.dex_main_class is None:
                 self.log("DEX not loaded")
+                BulletinHelper.show_info("DEX is not loaded", get_last_fragment())
                 return
             try:
                 show_method = self.loader.dex_main_class.getMethod("showSettingsExternal")
@@ -311,6 +313,7 @@ class Plugin(BasePlugin):
                 show_method.invoke(instance)
         except Exception as e:
             self.log(f"Error opening DEX settings: {e}")
+            BulletinHelper.show_info(f"Error opening settings: {e}", get_last_fragment())
 
     def on_plugin_load(self) -> None:
         try:

@@ -6,6 +6,12 @@ class UIRunnable(dynamic_proxy(Runnable)):
         self.func()
 
 
+def get_local_dex_path():
+    pkg = ApplicationLoader.applicationContext.getPackageName()
+    return f"/storage/emulated/0/Android/media/{pkg}/classes.dex"
+
+
+
 # localization
 def _localize(key):
     lang = LocaleController.getInstance().getCurrentLocale().getLanguage()

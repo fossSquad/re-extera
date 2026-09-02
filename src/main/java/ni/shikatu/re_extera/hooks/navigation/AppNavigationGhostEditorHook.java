@@ -1,7 +1,6 @@
 package ni.shikatu.re_extera.hooks.navigation;
 
 import com.exteragram.messenger.ExteraConfig;
-import com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -75,7 +74,7 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
             if (itemDetails.containsKey(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID))) {
                 return;
             }
-            itemDetails.put(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID), getItemInfoConstructor().newInstance(Localization.GHOST_MODE, Integer.valueOf(R.drawable.ghost)));
+            itemDetails.put(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID), getItemInfoConstructor(param.thisObject.getClass()).newInstance(Localization.GHOST_MODE, Integer.valueOf(R.drawable.ghost)));
         } catch (Exception e) {
             Main.log("Failed to inject ghost menu item into editor: %s", e.getMessage());
         }
@@ -165,10 +164,10 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
         return stableDividerIdsField;
     }
 
-    private static Constructor<?> getItemInfoConstructor() throws Exception {
+    private static Constructor<?> getItemInfoConstructor(Class<?> clazz) throws Exception {
         if (itemInfoConstructor == null) {
             Class<?> itemInfoClass = null;
-            for (Class<?> declaredClass : AppNavigationPreferencesActivity.class.getDeclaredClasses()) {
+            for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
                 if ("ItemInfo".equals(declaredClass.getSimpleName())) {
                     itemInfoClass = declaredClass;
                     break;

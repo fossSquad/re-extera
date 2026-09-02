@@ -550,7 +550,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         return false;
     }
 
-    public void didPressExtendedMediaPreview(ChatMessageCell cell, TLRPC.KeyboardButton button) {
+    public void didPressExtendedMediaPreview(ChatMessageCell cell, org.telegram.tgnet.tl.TL_keyboard.KeyboardInlineButton button) {
     }
 
     public void didPressUserStatus(ChatMessageCell cell, TLRPC.User user, TLRPC.Document document, String giftSlug) {
@@ -686,10 +686,10 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
     public void didPressTime(ChatMessageCell cell) {
     }
 
-    public void didPressBotButton(ChatMessageCell cell, TLRPC.KeyboardButton button) {
+    public void didPressBotButton(ChatMessageCell cell, org.telegram.tgnet.tl.TL_keyboard.KeyboardButtonProto button) {
     }
 
-    public void didLongPressBotButton(ChatMessageCell cell, TLRPC.KeyboardButton button) {
+    public void didLongPressBotButton(ChatMessageCell cell, org.telegram.tgnet.tl.TL_keyboard.KeyboardButtonProto button) {
     }
 
     public void didPressCustomBotButton(ChatMessageCell cell, BotInlineKeyboard.ButtonCustom button) {
