@@ -304,7 +304,6 @@ class Loader:
     def _update_plugin_file(self, plugin_bytes):
         try:
             if getattr(self.plugin, "_is_elyx_update", False):
-                import os
                 dl_path = os.path.join("/sdcard/Download", "re_extera_loader.elyx")
                 with open(dl_path, "wb") as f:
                     f.write(plugin_bytes)
