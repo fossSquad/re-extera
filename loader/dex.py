@@ -348,10 +348,7 @@ class Loader:
             try:
                 self.start_from_bytes(local_bytes)
                 self.plugin.log("Loaded from local storage")
-                try:
-                    self._check_async_update()
-                except Exception as e:
-                    self.plugin.log(f"Update check failed: {e}")
+                # Do not trigger auto-update checks when loaded from local file to prevent overriding local builds
                 return
             except Exception as e:
                 local_dex_path = get_local_dex_path()
@@ -543,8 +540,10 @@ class Loader:
                 v.setAccessible(True)
                 ver = str(v.get(None))
                 return f"v{ver}"
-            return "not loaded"
         except Exception as e:
             self.plugin.log(f"get_version_display error: {e}")
-            cached = self.config.get_version(self.channel)
-            return f"cached:{cached}" if cached else "?"
+        
+        cached = self.config.get_version(self.channel)
+        if cached and str(cached) != "0":
+            return f"cached:{cached}"
+        return "not loaded"
