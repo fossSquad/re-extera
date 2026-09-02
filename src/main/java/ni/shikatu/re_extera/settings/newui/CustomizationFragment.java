@@ -321,6 +321,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
         chatMessageCell.setFullyDraw(true);
         chatMessageCell.setMessageObject(messageObject, null, false, false, false);
         
+        frameLayout.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         frameLayout.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8));
         frameLayout.addView(chatMessageCell, LayoutHelper.createFrame(-1, -2));
         
@@ -356,6 +357,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         UItem previewItem = UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_PREVIEW_ID.getId(), previewView());
         previewItem.intValue = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+        previewItem.transparent = true;
         items.add(previewItem);
         
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
