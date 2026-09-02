@@ -51,31 +51,44 @@ public final class MessageUtils {
         }
         ArrayList<MessageObject> list = (ArrayList) controller.dialogMessage.get(did);
         if (list != null) {
-            for (MessageObject obj2 : list) {
-                if (obj2 != null && obj2.getId() == mid) {
-                    return obj2;
+            try {
+                int size = list.size();
+                for (int i = 0; i < size && i < list.size(); i++) {
+                    MessageObject obj2 = list.get(i);
+                    if (obj2 != null && obj2.getId() == mid) {
+                        return obj2;
+                    }
                 }
+            } catch (Exception ignored) {
             }
         }
         TLRPC.Message stored = MessagesStorage.getInstance(currentAccount).getMessage(did, mid);
         if (stored != null) {
             return new MessageObject(currentAccount, stored, false, false);
         }
-        org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
-        if (lastFragment instanceof ChatActivity) {
-            ChatActivity chatActivity = (ChatActivity) lastFragment;
-            if (chatActivity.getCurrentAccount() != currentAccount) {
-                return null;
-            }
-            if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
-                for (MessageObject msg : chatActivity.messages) {
-                    if (msg != null && msg.getId() == mid) {
-                        return msg;
+        try {
+            org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
+            if (lastFragment instanceof ChatActivity) {
+                ChatActivity chatActivity = (ChatActivity) lastFragment;
+                if (chatActivity.getCurrentAccount() != currentAccount) {
+                    return null;
+                }
+                if (chatActivity.getDialogId() == did || (did == 0 && chatActivity.getCurrentUser() != null)) {
+                    ArrayList<MessageObject> chatMessages = chatActivity.messages;
+                    if (chatMessages != null) {
+                        int size = chatMessages.size();
+                        for (int i = 0; i < size && i < chatMessages.size(); i++) {
+                            MessageObject msg = chatMessages.get(i);
+                            if (msg != null && msg.getId() == mid) {
+                                return msg;
+                            }
+                        }
                     }
+                    return null;
                 }
                 return null;
             }
-            return null;
+        } catch (Exception ignored) {
         }
         return null;
     }
