@@ -1,13 +1,21 @@
 package ni.shikatu.re_extera.ui;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.utils.text.LocaleUtils;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -19,6 +27,7 @@ import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
@@ -96,7 +105,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()), "reExteraFiltersEnable", this));
-        items.add(UItem.asButton(2, Localization.TEST_FILTERS, Localization.TEST_FILTERS_DESC));
+        items.add(UItem.asButton(2, Localization.TEST_FILTERS));
         items.add(UItem.asButton(3, Localization.FILTERED_LOG));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         for (int i = 0; i < this.filters.size(); i++) {
@@ -284,31 +293,42 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
 
     public static void showFilterTesterDialog(Context context, String initialText) {
         if (context == null) return;
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Localization.TEST_FILTERS);
 
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(12), AndroidUtilities.dp(20), AndroidUtilities.dp(12));
+        FrameLayout container = new FrameLayout(context);
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
 
-        android.widget.EditText input = new android.widget.EditText(context);
-        input.setHint(Localization.TEST_FILTERS_HINT);
-        input.setText(initialText != null ? initialText : "");
+        final EditTextBoldCursor input = new EditTextBoldCursor(context);
+        input.setBackground(Theme.createEditTextDrawable(context, false));
         input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        input.setTextSize(16.0f);
+        input.setHint(Localization.TEST_FILTERS_HINT);
+        input.setInputType(1);
         input.setMaxLines(6);
-        layout.addView(input);
+        input.setPadding(AndroidUtilities.dp(16.0f), AndroidUtilities.dp(8.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(8.0f));
+        if (initialText != null && !initialText.isEmpty()) {
+            input.setText(initialText);
+            input.setSelection(initialText.length());
+        }
+        layout.addView(input, LayoutHelper.createLinear(-1, -2, 0, 0, 0, 0));
 
-        android.widget.TextView resultView = new android.widget.TextView(context);
-        resultView.setTextSize(14);
-        resultView.setPadding(0, AndroidUtilities.dp(10), 0, 0);
+        final TextView resultView = new TextView(context);
+        resultView.setTextSize(14.0f);
+        resultView.setPadding(AndroidUtilities.dp(4.0f), AndroidUtilities.dp(12.0f), AndroidUtilities.dp(4.0f), 0);
         resultView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
-        layout.addView(resultView);
+        layout.addView(resultView, LayoutHelper.createLinear(-1, -2, 0, 0, 0, 0));
+
+        container.addView(layout, LayoutHelper.createFrame(-1, -2.0f, 0, 24.0f, 12.0f, 24.0f, 8.0f));
+        builder.setView(container);
 
         Runnable checkAction = () -> {
             String text = input.getText().toString();
             if (text.isEmpty()) {
                 resultView.setText(Localization.TEST_FILTERS_HINT);
+                resultView.setTextColor(Theme.getColor(Theme.key_dialogTextHint));
                 return;
             }
             List<String> matches = MessageUtils.getMatchingFilters(text);
@@ -329,13 +349,17 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
             checkAction.run();
         }
 
-        builder.setView(layout);
-        builder.setPositiveButton(Localization.TEST_FILTERS, null);
-        builder.setNegativeButton(org.telegram.messenger.LocaleController.getString(R.string.Close), (dialog, which) -> dialog.dismiss());
-        android.app.AlertDialog dialog = builder.create();
+        builder.setPositiveButton(Localization.TEST_FILTERS, (dialog, which) -> {
+            checkAction.run();
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
+        AlertDialog dialog = builder.create();
         dialog.show();
 
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> checkAction.run());
+        View positiveBtn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        if (positiveBtn != null) {
+            positiveBtn.setOnClickListener(v -> checkAction.run());
+        }
     }
 
     public void showImportOptions() {
@@ -343,16 +367,55 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         if (context == null) return;
         BottomSheet.Builder builder = new BottomSheet.Builder(context);
         builder.setTitle(Localization.IMPORT_FILTERS);
-        CharSequence[] items = {Localization.FROM_CLIPBOARD, Localization.IMPORT_FILTERS};
-        int[] icons = {R.drawable.msg_copy, R.drawable.msg_edit};
+        CharSequence[] items = {Localization.FROM_FILE, Localization.FROM_CLIPBOARD, Localization.IMPORT_FILTERS};
+        int[] icons = {R.drawable.msg_openin, R.drawable.msg_copy, R.drawable.msg_edit};
         builder.setItems(items, icons, (dialog, which) -> {
             if (which == 0) {
-                importFromClipboard();
+                chooseFileForImport();
             } else if (which == 1) {
+                importFromClipboard();
+            } else if (which == 2) {
                 showPasteImportDialog();
             }
         });
         builder.show();
+    }
+
+    private void chooseFileForImport() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            startActivityForResult(Intent.createChooser(intent, Localization.IMPORT_FILTERS), 1338);
+        } catch (Exception e) {
+            BulletinFactory.of(this).createErrorBulletin(Localization.IMPORT_FAILED + e.getMessage()).show();
+        }
+    }
+
+    @Override
+    public void onActivityResultFragment(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1338 && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            try {
+                Context context = getParentActivity();
+                if (context != null) {
+                    InputStream is = context.getContentResolver().openInputStream(data.getData());
+                    if (is != null) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line).append("\n");
+                        }
+                        reader.close();
+                        is.close();
+                        processImportContent(sb.toString());
+                    }
+                }
+            } catch (Exception e) {
+                BulletinFactory.of(this).createErrorBulletin(Localization.IMPORT_FAILED + e.getMessage()).show();
+            }
+        }
+        super.onActivityResultFragment(requestCode, resultCode, data);
     }
 
     private void importFromClipboard() {
@@ -376,24 +439,27 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     private void showPasteImportDialog() {
         Context context = getParentActivity();
         if (context == null) return;
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(Localization.IMPORT_FILTERS);
 
-        android.widget.FrameLayout container = new android.widget.FrameLayout(context);
-        container.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(10), AndroidUtilities.dp(20), AndroidUtilities.dp(10));
-        android.widget.EditText input = new android.widget.EditText(context);
-        input.setHint(Localization.TEST_FILTERS_HINT);
-        input.setMaxLines(10);
+        FrameLayout container = new FrameLayout(context);
+        final EditTextBoldCursor input = new EditTextBoldCursor(context);
+        input.setBackground(Theme.createEditTextDrawable(context, false));
         input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
-        container.addView(input);
+        input.setTextSize(16.0f);
+        input.setHint(Localization.TEST_FILTERS_HINT);
+        input.setInputType(1);
+        input.setMaxLines(10);
+        input.setPadding(AndroidUtilities.dp(16.0f), AndroidUtilities.dp(8.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(8.0f));
+        container.addView(input, LayoutHelper.createFrame(-1, -2.0f, 0, 24.0f, 12.0f, 24.0f, 0.0f));
 
         builder.setView(container);
         builder.setPositiveButton(Localization.SAVE, (dialog, which) -> {
             String content = input.getText().toString();
             processImportContent(content);
         });
-        builder.setNegativeButton(Localization.CANCEL, (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(Localization.CANCEL, null);
         builder.show();
     }
 
