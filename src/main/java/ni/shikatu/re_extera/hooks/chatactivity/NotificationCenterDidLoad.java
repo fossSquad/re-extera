@@ -38,7 +38,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int id = ((Integer) param.args[0]).intValue();
         Object[] args = (Object[]) param.args[2];
-        if (id == NotificationCenter.messagesDidLoad && args != null && args.length > 3) {
+        if ((id == NotificationCenter.messagesDidLoad || id == NotificationCenter.messagesDidLoadWithoutProcess) && args != null && args.length > 3) {
             ArrayList<MessageObject> messArr = (ArrayList) args[2];
             int originalSize = messArr.size();
             long dialogId = ((Long) args[0]).longValue();
@@ -48,6 +48,15 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
             if (filteredSize != originalSize) {
                 args[1] = Integer.valueOf(filteredSize);
                 Main.log("messagesDidLoad: filtered %d->%d (%d removed)", Integer.valueOf(originalSize), Integer.valueOf(filteredSize), Integer.valueOf(originalSize - filteredSize));
+            }
+        } else if (id == NotificationCenter.messagesRead && args != null && args.length > 0) {
+            int currentAccount = ((Integer) param.args[1]).intValue();
+            org.telegram.messenger.support.LongSparseIntArray inbox = (org.telegram.messenger.support.LongSparseIntArray) args[0];
+            if (inbox != null) {
+                for (int b = 0, size = inbox.size(); b < size; b++) {
+                    long did = inbox.keyAt(b);
+                    MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
+                }
             }
         }
     }

@@ -128,7 +128,15 @@ public class ProcessUpdates extends XC_MethodHook {
             return false;
         }
 
-        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox) {
+            org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox inbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox) update;
+            long did = org.telegram.messenger.DialogObject.getPeerDialogId(inbox.peer);
+            MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox) {
+            org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox inbox2 = (org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox) update;
+            long did = -inbox2.channel_id;
+            MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
             org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;
             long did = org.telegram.messenger.DialogObject.getPeerDialogId(outbox.peer);
             if (ni.shikatu.re_extera.settings.Settings.getSaveReadDate()) {

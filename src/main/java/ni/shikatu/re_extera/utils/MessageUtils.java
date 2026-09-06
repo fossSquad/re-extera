@@ -120,6 +120,36 @@ public final class MessageUtils {
         });
     }
 
+    public static void forceUpdateAllVisibleViews(final int currentAccount, final long did) {
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
+                if (!(lastFragment instanceof ChatActivity)) {
+                    return;
+                }
+                ChatActivity activity = (ChatActivity) lastFragment;
+                if (activity.getCurrentAccount() != currentAccount || activity.getDialogId() != did) {
+                    return;
+                }
+                RecyclerView.Adapter<?> adapter;
+                RecyclerListView chatListView;
+                if ((adapter = (chatListView = activity.getChatListView()).getAdapter()) != null) {
+                    int count = chatListView.getChildCount();
+                    for (int i = 0; i < count; i++) {
+                        View view = chatListView.getChildAt(i);
+                        if (view instanceof ChatMessageCell) {
+                            final ChatMessageCell cell = (ChatMessageCell) view;
+                            if (cell.getMessageObject() != null) {
+                                MessageUtils.lambda$forceUpdateViews$0(cell, adapter, chatListView);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     static /* synthetic */ void lambda$forceUpdateViews$0(ChatMessageCell cell, RecyclerView.Adapter adapter, RecyclerListView chatListView) {
         try {
             cell.forceResetMessageObject();

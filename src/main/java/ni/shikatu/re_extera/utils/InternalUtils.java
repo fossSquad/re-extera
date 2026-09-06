@@ -160,14 +160,25 @@ public final class InternalUtils {
 
     public static void sendReadMessage(int currentAccount, TLRPC.InputPeer peer, int maxId, final boolean vibrate) {
         org.telegram.tgnet.TLObject r;
+        final long did;
         if (peer.channel_id != 0) {
+            did = -peer.channel_id;
             r = new TLRPC.TL_channels_readHistory();
             ((TLRPC.TL_channels_readHistory) r).channel = MessagesController.getInputChannel(peer);
             ((TLRPC.TL_channels_readHistory) r).max_id = maxId;
         } else {
+            did = peer.chat_id != 0 ? -peer.chat_id : peer.user_id;
             r = new TLRPC.TL_messages_readHistory();
             ((TLRPC.TL_messages_readHistory) r).peer = peer;
             ((TLRPC.TL_messages_readHistory) r).max_id = maxId;
+        }
+        if (maxId > 0 && did != 0) {
+            MessagesController mc = MessagesController.getInstance(currentAccount);
+            if (mc != null) {
+                Integer currentMax = mc.dialogs_read_inbox_max.get(did);
+                mc.dialogs_read_inbox_max.put(did, Math.max(currentMax != null ? currentMax : 0, maxId));
+            }
+            MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         }
         Main.addIgnoredRequest(r);
         ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { 
@@ -188,7 +199,9 @@ public final class InternalUtils {
         if (messageObject == null) {
             return;
         }
-        int currentAccount = messageObject.currentAccount;
+        final int currentAccount = messageObject.currentAccount;
+        final long did = messageObject.getDialogId();
+        final int mid = messageObject.getId();
         MessagesController controller = MessagesController.getInstance(currentAccount);
         messageObject.setIsRead();
         messageObject.setContentIsRead();
@@ -200,6 +213,11 @@ public final class InternalUtils {
             r = new TLRPC.TL_messages_readHistory();
             ((TLRPC.TL_messages_readHistory) r).peer = controller.getInputPeer(messageObject.getDialogId());
             ((TLRPC.TL_messages_readHistory) r).max_id = messageObject.getId();
+        }
+        if (mid > 0 && did != 0 && controller != null) {
+            Integer currentMax = controller.dialogs_read_inbox_max.get(did);
+            controller.dialogs_read_inbox_max.put(did, Math.max(currentMax != null ? currentMax : 0, mid));
+            MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         }
         Main.addIgnoredRequest(r);
         ConnectionsManager.getInstance(currentAccount).sendRequest(r, new RequestDelegate() { 
