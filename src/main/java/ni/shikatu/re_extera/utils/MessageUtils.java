@@ -158,6 +158,11 @@ public final class MessageUtils {
         }
         cell.setAlpha(1.0f);
         adapter.notifyItemChanged(chatListView.getChildAdapterPosition(cell));
+        try {
+            cell.relayout();
+        } catch (Throwable e) {
+            Main.log("relayout error: %s", e.getMessage());
+        }
         cell.requestLayout();
         cell.invalidate();
     }
