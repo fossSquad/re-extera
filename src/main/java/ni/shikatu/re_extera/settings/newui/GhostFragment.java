@@ -38,6 +38,8 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         SEND_SILENCE_ID,
         ADD_GHOST_TO_DRAWER_ID,
         USE_SCHEDULE_ID,
+        SERVER_READ_STATUS_ID,
+        SERVER_READ_STATUS_STYLE_ID,
         EXCLUSIONS_BUTTON_ID;
 
         public int getId() {
@@ -101,6 +103,26 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
     }
 
+    public static String getServerReadStatusString() {
+        switch (Settings.getShowServerReadStatus()) {
+            case 1:
+                return Localization.ONLY_WITH_GHOST;
+            case 2:
+                return Localization.ALWAYS;
+            default:
+                return Localization.NEVER;
+        }
+    }
+
+    public static String getServerReadStatusStyleString() {
+        switch (Settings.getServerReadStatusStyle()) {
+            case 1:
+                return Localization.SERVER_READ_STATUS_BOTH;
+            default:
+                return Localization.SERVER_READ_STATUS_UNREAD_ONLY;
+        }
+    }
+
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(ghostUItem(), "reExteraGhostMode", this));
         if (this.isGhostExpanded) {
@@ -129,6 +151,10 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asShadow());
         }
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SERVER_READ_STATUS_ID.getId(), Localization.SERVER_READ_STATUS, getServerReadStatusString()), "reExteraServerReadStatus", this));
+        if (Settings.getShowServerReadStatus() != 0) {
+            items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SERVER_READ_STATUS_STYLE_ID.getId(), Localization.SERVER_READ_STATUS_STYLE, getServerReadStatusStyleString()), "reExteraServerReadStatusStyle", this));
+        }
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()), "reExteraUseSchedule", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()), "reExteraSendSilence", this));
         items.add(UItem.asShadow());
@@ -193,6 +219,22 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setReadOnInteract(!Settings.getReadOnInteract());
                 refreshCheckBox(item, position, Settings.getReadOnInteract());
                 break;
+            case 12:
+                new ServerReadStatusDialog(getParentActivity(), new Runnable() {
+                    @Override
+                    public final void run() {
+                        lambda$onClick$2();
+                    }
+                }).show();
+                break;
+            case 13:
+                new ServerReadStatusStyleDialog(getParentActivity(), new Runnable() {
+                    @Override
+                    public final void run() {
+                        lambda$onClick$2();
+                    }
+                }).show();
+                break;
         }
     }
 
@@ -244,6 +286,14 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             try {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.READ_ON_INTERACT_ID.ordinal()] = 11;
             } catch (NoSuchFieldError e11) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SERVER_READ_STATUS_ID.ordinal()] = 12;
+            } catch (NoSuchFieldError e12) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SERVER_READ_STATUS_STYLE_ID.ordinal()] = 13;
+            } catch (NoSuchFieldError e13) {
             }
         }
     }
@@ -466,6 +516,122 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
             builder.setView(this.layout);
             builder.setTitle(Localization.USE_SCHEDULE);
+            builder.show();
+        }
+    }
+
+    static class ServerReadStatusDialog {
+        private RadioColorCell always;
+        private Context context;
+        private LinearLayout layout;
+        private RadioColorCell never;
+        private Runnable onSelect;
+        private RadioColorCell onlyWithGhost;
+
+        ServerReadStatusDialog(Context context, Runnable onSelect) {
+            this.context = context;
+            this.onSelect = onSelect;
+            prepare();
+        }
+
+        private void prepare() {
+            this.layout = new LinearLayout(this.context);
+            this.layout.setOrientation(1);
+            this.onlyWithGhost = new RadioColorCell(this.context);
+            this.onlyWithGhost.setTextAndValue(Localization.ONLY_WITH_GHOST, Settings.getShowServerReadStatus() == 1);
+            this.onlyWithGhost.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setShowServerReadStatus(1);
+                    onlyWithGhost.setChecked(true, true);
+                    always.setChecked(false, true);
+                    never.setChecked(false, true);
+                    onSelect.run();
+                }
+            });
+            this.always = new RadioColorCell(this.context);
+            this.always.setTextAndValue(Localization.ALWAYS, Settings.getShowServerReadStatus() == 2);
+            this.always.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setShowServerReadStatus(2);
+                    always.setChecked(true, true);
+                    onlyWithGhost.setChecked(false, true);
+                    never.setChecked(false, true);
+                    onSelect.run();
+                }
+            });
+            this.never = new RadioColorCell(this.context);
+            this.never.setTextAndValue(Localization.NEVER, Settings.getShowServerReadStatus() == 0);
+            this.never.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setShowServerReadStatus(0);
+                    never.setChecked(true, true);
+                    onlyWithGhost.setChecked(false, true);
+                    always.setChecked(false, true);
+                    onSelect.run();
+                }
+            });
+            this.layout.addView(this.onlyWithGhost);
+            this.layout.addView(this.always);
+            this.layout.addView(this.never);
+        }
+
+        public void show() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+            builder.setView(this.layout);
+            builder.setTitle(Localization.SERVER_READ_STATUS);
+            builder.show();
+        }
+    }
+
+    static class ServerReadStatusStyleDialog {
+        private Context context;
+        private LinearLayout layout;
+        private Runnable onSelect;
+        private RadioColorCell unreadOnly;
+        private RadioColorCell both;
+
+        ServerReadStatusStyleDialog(Context context, Runnable onSelect) {
+            this.context = context;
+            this.onSelect = onSelect;
+            prepare();
+        }
+
+        private void prepare() {
+            this.layout = new LinearLayout(this.context);
+            this.layout.setOrientation(1);
+            this.unreadOnly = new RadioColorCell(this.context);
+            this.unreadOnly.setTextAndValue(Localization.SERVER_READ_STATUS_UNREAD_ONLY, Settings.getServerReadStatusStyle() == 0);
+            this.unreadOnly.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setServerReadStatusStyle(0);
+                    unreadOnly.setChecked(true, true);
+                    both.setChecked(false, true);
+                    onSelect.run();
+                }
+            });
+            this.both = new RadioColorCell(this.context);
+            this.both.setTextAndValue(Localization.SERVER_READ_STATUS_BOTH, Settings.getServerReadStatusStyle() == 1);
+            this.both.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setServerReadStatusStyle(1);
+                    both.setChecked(true, true);
+                    unreadOnly.setChecked(false, true);
+                    onSelect.run();
+                }
+            });
+            this.layout.addView(this.unreadOnly);
+            this.layout.addView(this.both);
+        }
+
+        public void show() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+            builder.setView(this.layout);
+            builder.setTitle(Localization.SERVER_READ_STATUS_STYLE);
             builder.show();
         }
     }

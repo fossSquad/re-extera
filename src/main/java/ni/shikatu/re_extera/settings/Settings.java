@@ -263,6 +263,22 @@ public final class Settings {
         putBool("ghost_exclude_pms", v);
     }
 
+    public static int getShowServerReadStatus() {
+        return getInt("show_server_read_status", 1); // 0: Disabled, 1: In Ghost Mode, 2: Always
+    }
+
+    public static void setShowServerReadStatus(int v) {
+        putInt("show_server_read_status", v);
+    }
+
+    public static int getServerReadStatusStyle() {
+        return getInt("server_read_status_style", 0); // 0: Only Unread, 1: Unread and Read
+    }
+
+    public static void setServerReadStatusStyle(int v) {
+        putInt("server_read_status_style", v);
+    }
+
     public static int countOfGhost() {
         int c = getHideOnline() ? 0 + 1 : 0;
         if (getHideTyping()) {

@@ -71,6 +71,10 @@ public class Localization {
     public static String GHOST_LONG_PRESS_HINT;
     public static String GHOST_OPTION_PINNED;
     public static String GHOST_OPTION_UNPINNED;
+    public static String SERVER_READ_STATUS;
+    public static String SERVER_READ_STATUS_STYLE;
+    public static String SERVER_READ_STATUS_UNREAD_ONLY;
+    public static String SERVER_READ_STATUS_BOTH;
     public static String GHOST_IN_DRAWER;
     public static String GHOST_MODE;
     public static String GHOST_MODE_DISABLE;
@@ -278,6 +282,10 @@ public class Localization {
             GHOST_LONG_PRESS_HINT = "Зажмите любую опцию, чтобы зафиксировать ее значение.";
             GHOST_OPTION_PINNED = "Опция зафиксирована";
             GHOST_OPTION_UNPINNED = "Опция откреплена";
+            SERVER_READ_STATUS = "Галочки прочитания на сервере";
+            SERVER_READ_STATUS_STYLE = "Стиль галочек сервера";
+            SERVER_READ_STATUS_UNREAD_ONLY = "Только когда не прочитано (✓)";
+            SERVER_READ_STATUS_BOTH = "Не прочитано (✓) и прочитано (✓✓)";
             GHOST_IN_DRAWER = "Кнопка призрака в боковом меню";
             SPY = "Шпион";
             CUSTOMIZATION = "Кастомизация";
@@ -430,6 +438,10 @@ public class Localization {
             GHOST_LONG_PRESS_HINT = "Затисніть будь-яку опцію, щоб зафіксувати її значення.";
             GHOST_OPTION_PINNED = "Опцію зафіксовано";
             GHOST_OPTION_UNPINNED = "Опцію відкріплено";
+            SERVER_READ_STATUS = "Галочки прочитання на сервері";
+            SERVER_READ_STATUS_STYLE = "Стиль галочок сервера";
+            SERVER_READ_STATUS_UNREAD_ONLY = "Тільки коли не прочитано (✓)";
+            SERVER_READ_STATUS_BOTH = "Не прочитано (✓) та прочитано (✓✓)";
             GHOST_IN_DRAWER = "Кнопка привида в бічному меню";
             SPY = "Шпигун";
             CUSTOMIZATION = "Кастомізація";
@@ -582,6 +594,10 @@ public class Localization {
         GHOST_LONG_PRESS_HINT = "Long press any option to pin its value.";
         GHOST_OPTION_PINNED = "Option pinned";
         GHOST_OPTION_UNPINNED = "Option unpinned";
+        SERVER_READ_STATUS = "Server read checkmarks";
+        SERVER_READ_STATUS_STYLE = "Server checkmarks style";
+        SERVER_READ_STATUS_UNREAD_ONLY = "Only when unread (✓)";
+        SERVER_READ_STATUS_BOTH = "Unread (✓) and read (✓✓)";
         GHOST_IN_DRAWER = "Ghost button in side menu";
         SPY = "Spy";
         CUSTOMIZATION = "Customization";

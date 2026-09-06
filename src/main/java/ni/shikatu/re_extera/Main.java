@@ -100,6 +100,30 @@ public final class Main {
             MeasureTime.deletedIcon = MeasureTime.deletedIcon.mutate();
             MeasureTime.deletedIcon.setBounds(0, 0, MeasureTime.deletedIcon.getIntrinsicWidth(), MeasureTime.deletedIcon.getIntrinsicHeight());
         }
+
+        try {
+            int halfCheckId = context.getResources().getIdentifier("msg_halfcheck", "drawable", context.getPackageName());
+            if (halfCheckId != 0) {
+                MeasureTime.halfCheckIcon = androidx.core.content.ContextCompat.getDrawable(context, halfCheckId);
+                if (MeasureTime.halfCheckIcon != null) {
+                    MeasureTime.halfCheckIcon = MeasureTime.halfCheckIcon.mutate();
+                    MeasureTime.halfCheckIcon.setBounds(0, 0, MeasureTime.halfCheckIcon.getIntrinsicWidth(), MeasureTime.halfCheckIcon.getIntrinsicHeight());
+                }
+            }
+            int fullCheckId = context.getResources().getIdentifier("msg_check_s", "drawable", context.getPackageName());
+            if (fullCheckId == 0) {
+                fullCheckId = context.getResources().getIdentifier("msg_check", "drawable", context.getPackageName());
+            }
+            if (fullCheckId != 0) {
+                MeasureTime.fullCheckIcon = androidx.core.content.ContextCompat.getDrawable(context, fullCheckId);
+                if (MeasureTime.fullCheckIcon != null) {
+                    MeasureTime.fullCheckIcon = MeasureTime.fullCheckIcon.mutate();
+                    MeasureTime.fullCheckIcon.setBounds(0, 0, MeasureTime.fullCheckIcon.getIntrinsicWidth(), MeasureTime.fullCheckIcon.getIntrinsicHeight());
+                }
+            }
+        } catch (Throwable t) {
+            // Ignore
+        }
         Localization.updateStrings();
         hooks = new HookInit();
         hooks.init();
