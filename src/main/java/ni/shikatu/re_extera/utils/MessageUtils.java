@@ -159,6 +159,27 @@ public final class MessageUtils {
         compiledPatterns = Collections.unmodifiableList(compiled);
     }
 
+    public static List<String> getMatchingFilters(String text) {
+        if (text == null || text.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Pattern> patterns = compiledPatterns;
+        if (patterns.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> matched = new ArrayList<>();
+        for (Pattern pattern : patterns) {
+            try {
+                if (pattern.matcher(text).find()) {
+                    matched.add(pattern.pattern());
+                }
+            } catch (Exception e) {
+                Main.log("Regex matching error: %s", e.getMessage());
+            }
+        }
+        return matched;
+    }
+
     public static boolean shouldFilterMessage(MessageObject message) {
         if (message == null) {
             return false;
@@ -182,16 +203,20 @@ public final class MessageUtils {
         if (ni.shikatu.re_extera.db.ReExteraDb.get().isFilterExcluded(message.getDialogId())) {
             return false;
         }
+        List<String> matches = new ArrayList<>();
         for (Pattern pattern : patterns) {
             try {
                 if (pattern.matcher(text).find()) {
-                    Main.log("Message filtered by regex", new Object[0]);
-                    return true;
+                    matches.add(pattern.pattern());
                 }
-                continue;
             } catch (Exception e) {
                 Main.log("Regex matching error: %s", e.getMessage());
             }
+        }
+        if (!matches.isEmpty()) {
+            Main.log("Message filtered by regex: %s", matches.toString());
+            FilteredLogManager.add(message.getDialogId(), message.getId(), text, matches);
+            return true;
         }
         return false;
     }
