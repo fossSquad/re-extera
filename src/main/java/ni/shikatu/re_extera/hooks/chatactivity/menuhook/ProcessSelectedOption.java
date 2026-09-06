@@ -18,6 +18,7 @@ public class ProcessSelectedOption extends XC_MethodHook {
     public static final int OPT_MESSAGE_HISTORY = 6363;
     public static final int OPT_READ_MESSAGE = 6565;
     public static final int OPT_READ_AT = 6767;
+    public static final int OPT_CHECK_FILTERS = 6969;
     private static final Field SELECTED_OBJECT_FIELD;
     public static MessageObject selectedObject;
 
@@ -49,6 +50,15 @@ public class ProcessSelectedOption extends XC_MethodHook {
         }
         if (option == 6565) {
             InternalUtils.sendReadMessage(messageObject, true);
+            return;
+        }
+        if (option == OPT_CHECK_FILTERS) {
+            MessageObject target = messageObject != null ? messageObject : selectedObject;
+            if (target != null) {
+                String text = target.messageOwner != null && target.messageOwner.message != null ? target.messageOwner.message : (target.messageText != null ? target.messageText.toString() : "");
+                ni.shikatu.re_extera.ui.RegexFiltersFragment.showFilterTesterDialog(thisObj.getParentActivity(), text);
+                return;
+            }
             return;
         }
         if (option == 24 && messageObject != null && ReExteraDb.get().messageIsDeleted(messageObject)) {

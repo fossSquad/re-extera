@@ -42,6 +42,11 @@ public class FillMessageMenu extends XC_MethodHook {
         if ((Settings.getSaveOneTimeMessages() || Settings.noForward()) && oneTime) {
             appendSaveOptions(msgObj, icons, items, options);
         }
+        if (Settings.getFiltersEnabled() && (msgObj.messageOwner != null && msgObj.messageOwner.message != null || msgObj.messageText != null)) {
+            icons.add(Integer.valueOf(R.drawable.msg_search));
+            items.add(Localization.TEST_FILTERS_MESSAGE_MENU);
+            options.add(Integer.valueOf(ProcessSelectedOption.OPT_CHECK_FILTERS));
+        }
     }
 
     private static void appendSaveOptions(MessageObject msgObj, ArrayList<Integer> icons, ArrayList<CharSequence> items, ArrayList<Integer> options) {

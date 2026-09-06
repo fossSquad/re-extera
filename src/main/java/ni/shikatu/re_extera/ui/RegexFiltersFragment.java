@@ -42,12 +42,26 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
             this.actionBar.setTitle(Localization.FILTERS);
             this.actionBar.createMenu().clearItems();
             this.actionBar.createMenu().addItem(1, R.drawable.msg_add);
+            org.telegram.ui.ActionBar.ActionBarMenuItem otherItem = this.actionBar.createMenu().addItem(2, R.drawable.ic_ab_other);
+            otherItem.addSubItem(10, R.drawable.msg_bot, Localization.TEST_FILTERS);
+            otherItem.addSubItem(11, R.drawable.msg_log, Localization.FILTERED_LOG);
+            otherItem.addSubItem(12, R.drawable.msg_download, Localization.IMPORT_FILTERS);
+            otherItem.addSubItem(13, R.drawable.msg_share, Localization.EXPORT_FILTERS);
+
             this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment.1
                 public void onItemClick(int id) {
                     if (id == -1) {
                         RegexFiltersFragment.this.finishFragment();
                     } else if (id == 1) {
                         RegexFiltersFragment.this.showAddFilterDialog();
+                    } else if (id == 10) {
+                        RegexFiltersFragment.this.showTestFilterDialog();
+                    } else if (id == 11) {
+                        RegexFiltersFragment.this.presentFragment(new FilteredLogFragment());
+                    } else if (id == 12) {
+                        RegexFiltersFragment.this.showImportOptions();
+                    } else if (id == 13) {
+                        RegexFiltersFragment.this.showExportOptions();
                     }
                 }
             });
@@ -82,6 +96,8 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()), "reExteraFiltersEnable", this));
+        items.add(UItem.asButton(2, Localization.TEST_FILTERS, Localization.TEST_FILTERS_DESC));
+        items.add(UItem.asButton(3, Localization.FILTERED_LOG));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         for (int i = 0; i < this.filters.size(); i++) {
             String filter = this.filters.get(i);
@@ -97,8 +113,15 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
             Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
             if (getAdapter() != null) {
                 getAdapter().update(true);
-                return;
             }
+            return;
+        }
+        if (item.id == 2) {
+            showTestFilterDialog();
+            return;
+        }
+        if (item.id == 3) {
+            presentFragment(new FilteredLogFragment());
             return;
         }
         if (item.id >= 100 && (filterIndex = item.id - 100) >= 0 && filterIndex < this.filters.size()) {
@@ -253,5 +276,160 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
 
     private UniversalAdapter getAdapter() {
         return this.listView.adapter;
+    }
+
+    public void showTestFilterDialog() {
+        showFilterTesterDialog(getParentActivity(), "");
+    }
+
+    public static void showFilterTesterDialog(Context context, String initialText) {
+        if (context == null) return;
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setTitle(Localization.TEST_FILTERS);
+
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(12), AndroidUtilities.dp(20), AndroidUtilities.dp(12));
+
+        android.widget.EditText input = new android.widget.EditText(context);
+        input.setHint(Localization.TEST_FILTERS_HINT);
+        input.setText(initialText != null ? initialText : "");
+        input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        input.setMaxLines(6);
+        layout.addView(input);
+
+        android.widget.TextView resultView = new android.widget.TextView(context);
+        resultView.setTextSize(14);
+        resultView.setPadding(0, AndroidUtilities.dp(10), 0, 0);
+        resultView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        layout.addView(resultView);
+
+        Runnable checkAction = () -> {
+            String text = input.getText().toString();
+            if (text.isEmpty()) {
+                resultView.setText(Localization.TEST_FILTERS_HINT);
+                return;
+            }
+            List<String> matches = MessageUtils.getMatchingFilters(text);
+            if (matches.isEmpty()) {
+                resultView.setText(Localization.TEST_FILTERS_NO_MATCH);
+                resultView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGreenText));
+            } else {
+                StringBuilder sb = new StringBuilder();
+                for (String m : matches) {
+                    sb.append("• ").append(m).append("\n");
+                }
+                resultView.setText(String.format(Localization.TEST_FILTERS_MATCHED, matches.size(), sb.toString().trim()));
+                resultView.setTextColor(Theme.getColor(Theme.key_text_RedBold));
+            }
+        };
+
+        if (initialText != null && !initialText.isEmpty()) {
+            checkAction.run();
+        }
+
+        builder.setView(layout);
+        builder.setPositiveButton(Localization.TEST_FILTERS, null);
+        builder.setNegativeButton(org.telegram.messenger.LocaleController.getString(R.string.Close), (dialog, which) -> dialog.dismiss());
+        android.app.AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> checkAction.run());
+    }
+
+    public void showImportOptions() {
+        Context context = getParentActivity();
+        if (context == null) return;
+        BottomSheet.Builder builder = new BottomSheet.Builder(context);
+        builder.setTitle(Localization.IMPORT_FILTERS);
+        CharSequence[] items = {Localization.FROM_CLIPBOARD, Localization.IMPORT_FILTERS};
+        int[] icons = {R.drawable.msg_copy, R.drawable.msg_edit};
+        builder.setItems(items, icons, (dialog, which) -> {
+            if (which == 0) {
+                importFromClipboard();
+            } else if (which == 1) {
+                showPasteImportDialog();
+            }
+        });
+        builder.show();
+    }
+
+    private void importFromClipboard() {
+        try {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getParentActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard == null || !clipboard.hasPrimaryClip() || clipboard.getPrimaryClip().getItemCount() == 0) {
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+                return;
+            }
+            CharSequence clipText = clipboard.getPrimaryClip().getItemAt(0).getText();
+            if (clipText == null || clipText.toString().trim().isEmpty()) {
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+                return;
+            }
+            processImportContent(clipText.toString());
+        } catch (Exception e) {
+            BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, e.getMessage()).show();
+        }
+    }
+
+    private void showPasteImportDialog() {
+        Context context = getParentActivity();
+        if (context == null) return;
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setTitle(Localization.IMPORT_FILTERS);
+
+        android.widget.FrameLayout container = new android.widget.FrameLayout(context);
+        container.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(10), AndroidUtilities.dp(20), AndroidUtilities.dp(10));
+        android.widget.EditText input = new android.widget.EditText(context);
+        input.setHint(Localization.TEST_FILTERS_HINT);
+        input.setMaxLines(10);
+        input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        container.addView(input);
+
+        builder.setView(container);
+        builder.setPositiveButton(Localization.SAVE, (dialog, which) -> {
+            String content = input.getText().toString();
+            processImportContent(content);
+        });
+        builder.setNegativeButton(Localization.CANCEL, (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
+    private void processImportContent(String content) {
+        List<String> parsed = ni.shikatu.re_extera.utils.FilterImportExportUtils.parseFilters(content);
+        if (parsed.isEmpty()) {
+            BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+            return;
+        }
+        int added = ReExteraDb.get().addRegexFiltersBatch(parsed);
+        MessageUtils.updatePatterns();
+        loadFilters();
+        if (getAdapter() != null) {
+            getAdapter().update(true);
+        }
+        BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, String.format(Localization.IMPORT_FILTERS_SUCCESS, added)).show();
+    }
+
+    public void showExportOptions() {
+        Context context = getParentActivity();
+        if (context == null) return;
+        BottomSheet.Builder builder = new BottomSheet.Builder(context);
+        builder.setTitle(Localization.EXPORT_FILTERS);
+        CharSequence[] items = {"JSON", "TXT"};
+        int[] icons = {R.drawable.msg_copy, R.drawable.msg_copy};
+        builder.setItems(items, icons, (dialog, which) -> {
+            if (which == 0) {
+                String json = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToJson(this.filters);
+                AndroidUtilities.addToClipboard(json);
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.COPIED).show();
+            } else if (which == 1) {
+                String txt = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToPlainText(this.filters);
+                AndroidUtilities.addToClipboard(txt);
+                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.COPIED).show();
+            }
+        });
+        builder.show();
     }
 }
