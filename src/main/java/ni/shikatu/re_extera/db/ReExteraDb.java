@@ -753,6 +753,34 @@ public final class ReExteraDb {
         }
     }
 
+    public int addRegexFiltersBatch(List<String> patterns) {
+        if (patterns == null || patterns.isEmpty()) {
+            return 0;
+        }
+        SQLiteDatabase db = this.helper.getWritableDatabase();
+        int added = 0;
+        db.beginTransaction();
+        try {
+            for (String pattern : patterns) {
+                if (pattern == null || pattern.trim().isEmpty()) {
+                    continue;
+                }
+                ContentValues cv = new ContentValues();
+                cv.put("regex", pattern.trim());
+                long rowId = db.insertWithOnConflict("regex_filters", null, cv, SQLiteDatabase.CONFLICT_IGNORE);
+                if (rowId != -1) {
+                    added++;
+                }
+            }
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Main.log("addRegexFiltersBatch error: %s", e.getMessage());
+        } finally {
+            db.endTransaction();
+        }
+        return added;
+    }
+
     public List<String> getAllRegexFilters() {
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<String> result = new ArrayList<>();
