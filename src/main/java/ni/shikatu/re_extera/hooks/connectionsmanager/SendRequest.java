@@ -54,22 +54,43 @@ public class SendRequest extends XC_MethodHook {
         if (Defaults.typingRequests.contains(request.getClass())) {
             applyTypingPolicy(param, currentAccount, request);
         } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
+            RequestDelegate onCompleteOrig = (RequestDelegate) param.args[1];
+            if (onCompleteOrig != null) {
+                try {
+                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                        try {
+                            onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
+                        } catch (Exception ignored) {}
+                    });
+                } catch (Throwable ignored) {}
+            }
             param.setResult((Object) null);
         }
     }
 
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
-        if (Settings.getImmediateOfflineWithGhost() && !(param.args[0] instanceof TL_account.updateStatus)) {
-            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-            ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, new RequestDelegate() { 
-                public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                    SendRequest.lambda$afterHookedMethod$0(tLObject, tL_error);
+        if (Settings.getImmediateOfflineWithGhost()) {
+            TLObject request = (TLObject) param.args[0];
+            if (isMessageSendRequest(request)) {
+                int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+                try {
+                    org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
+                        ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, (tLObject, tL_error) -> {});
+                    }, 1000);
+                } catch (Throwable t) {
+                    ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, (tLObject, tL_error) -> {});
                 }
-            });
+            }
         }
     }
 
-    static /* synthetic */ void lambda$afterHookedMethod$0(TLObject __, TLRPC.TL_error ___) {
+    private static boolean isMessageSendRequest(TLObject object) {
+        return (object instanceof TLRPC.TL_messages_sendMessage) ||
+               (object instanceof TLRPC.TL_messages_sendMedia) ||
+               (object instanceof TLRPC.TL_messages_sendMultiMedia) ||
+               (object instanceof TLRPC.TL_messages_sendInlineBotResult) ||
+               (object instanceof TLRPC.TL_messages_sendReaction) ||
+               (object instanceof TLRPC.TL_messages_editMessage);
     }
 
     private static boolean isInteractionRequest(TLObject update) {
@@ -137,18 +158,36 @@ public class SendRequest extends XC_MethodHook {
     private void applyReadingPolicy(XC_MethodHook.MethodHookParam param, int currentAccount, TLObject request) {
         long dialogId = getDialogIdFromRequest(request);
         int status = dialogId != 0 ? ReExteraDb.get().getDialogReading(dialogId) : currentReadingStatus;
+        boolean shouldBlock = false;
         switch (status) {
             case Defaults.NEVER /* -1 */:
-                param.setResult((Object) null);
+                shouldBlock = true;
                 break;
             case Defaults.GLOBAL_VALUE /* 0 */:
             default:
                 if (!isExcludedGlobally(currentAccount, dialogId) && Settings.getHideReadingWithGhost()) {
-                    param.setResult((Object) null);
+                    shouldBlock = true;
                 }
                 break;
             case Defaults.ALWAYS /* 1 */:
                 break;
+        }
+
+        if (shouldBlock) {
+            RequestDelegate onCompleteOrig = (RequestDelegate) param.args[1];
+            if (onCompleteOrig != null) {
+                TLRPC.TL_messages_affectedMessages fakeRes = new TLRPC.TL_messages_affectedMessages();
+                fakeRes.pts = -1;
+                fakeRes.pts_count = 0;
+                try {
+                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                        try {
+                            onCompleteOrig.run(fakeRes, null);
+                        } catch (Exception ignored) {}
+                    });
+                } catch (Throwable ignored) {}
+            }
+            param.setResult((Object) null);
         }
     }
 

@@ -38,10 +38,7 @@ public class ProcessUpdates extends XC_MethodHook {
                 triggerUIUpdate(currentAccount);
             }
         } else if (updates.update != null) {
-            if (!processSingleUpdate(updates.update, channelDeleted, currentAccount, null)) {
-                param.setResult((Object) null);
-                return;
-            }
+            processSingleUpdate(updates.update, channelDeleted, currentAccount, null);
         } else if (updates.updates != null) {
             android.util.SparseArray<Long> midToDid = new android.util.SparseArray<>();
             for (TLRPC.Update update : updates.updates) {
