@@ -179,24 +179,64 @@ public final class Settings {
         putInt("send_silence", value.getType());
     }
 
+    public static boolean getHideOnlineLocked() {
+        return getBool("hide_online_locked", false);
+    }
+
+    public static void setHideOnlineLocked(boolean v) {
+        putBool("hide_online_locked", v);
+    }
+
+    public static boolean getHideTypingLocked() {
+        return getBool("hide_typing_locked", false);
+    }
+
+    public static void setHideTypingLocked(boolean v) {
+        putBool("hide_typing_locked", v);
+    }
+
+    public static boolean getHideReadingLocked() {
+        return getBool("hide_reading_locked", false);
+    }
+
+    public static void setHideReadingLocked(boolean v) {
+        putBool("hide_reading_locked", v);
+    }
+
+    public static boolean getNoReadStoriesLocked() {
+        return getBool("no_read_stories_locked", false);
+    }
+
+    public static void setNoReadStoriesLocked(boolean v) {
+        putBool("no_read_stories_locked", v);
+    }
+
+    public static boolean getImmediateOfflineLocked() {
+        return getBool("immediate_offline_locked", false);
+    }
+
+    public static void setImmediateOfflineLocked(boolean v) {
+        putBool("immediate_offline_locked", v);
+    }
+
     public static boolean getHideOnlineWithGhost() {
-        return getHideOnline() && getGhostModeEnabledGlobal();
+        return getHideOnline() && (getGhostModeEnabledGlobal() || getHideOnlineLocked());
     }
 
     public static boolean getHideTypingWithGhost() {
-        return getHideTyping() && getGhostModeEnabledGlobal();
+        return getHideTyping() && (getGhostModeEnabledGlobal() || getHideTypingLocked());
     }
 
     public static boolean getHideReadingWithGhost() {
-        return getHideReading() && getGhostModeEnabledGlobal();
+        return getHideReading() && (getGhostModeEnabledGlobal() || getHideReadingLocked());
     }
 
     public static boolean getNoReadStoriesWithGhost() {
-        return getNoReadStories() && getGhostModeEnabledGlobal();
+        return getNoReadStories() && (getGhostModeEnabledGlobal() || getNoReadStoriesLocked());
     }
 
     public static boolean getImmediateOfflineWithGhost() {
-        return getImmediateOffline() && getGhostModeEnabledGlobal();
+        return getImmediateOffline() && (getGhostModeEnabledGlobal() || getImmediateOfflineLocked());
     }
 
     public static boolean getGhostExcludeGroups() {

@@ -104,13 +104,30 @@ public class GhostFragment extends BasePreferencesActivityExtended {
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(ghostUItem(), "reExteraGhostMode", this));
         if (this.isGhostExpanded) {
-            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_ONLINE_ID.getId(), Localization.HIDE_ONLINE_STATUS).setChecked(Settings.getHideOnline()).pad());
-            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_IMMEDIATE_OFFLINE_ID.getId(), Localization.IMMEDIATE_OFFLINE).setChecked(Settings.getImmediateOffline()).pad());
-            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_TYPING_ID.getId(), Localization.HIDE_TYPING_STATUS).setChecked(Settings.getHideTyping()).pad());
-            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_READING_ID.getId(), Localization.HIDE_READING_MESSAGE).setChecked(Settings.getHideReading()).pad());
-            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_NO_READ_STORIES_ID.getId(), Localization.NO_READ_STORIES).setChecked(Settings.getNoReadStories()).pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_ONLINE_ID.getId(), Localization.HIDE_ONLINE_STATUS)
+                    .setChecked(Settings.getHideOnline())
+                    .setLocked(Settings.getHideOnlineLocked())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_IMMEDIATE_OFFLINE_ID.getId(), Localization.IMMEDIATE_OFFLINE)
+                    .setChecked(Settings.getImmediateOffline())
+                    .setLocked(Settings.getImmediateOfflineLocked())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_TYPING_ID.getId(), Localization.HIDE_TYPING_STATUS)
+                    .setChecked(Settings.getHideTyping())
+                    .setLocked(Settings.getHideTypingLocked())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_HIDE_READING_ID.getId(), Localization.HIDE_READING_MESSAGE)
+                    .setChecked(Settings.getHideReading())
+                    .setLocked(Settings.getHideReadingLocked())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(GhostIds.GHOST_NO_READ_STORIES_ID.getId(), Localization.NO_READ_STORIES)
+                    .setChecked(Settings.getNoReadStories())
+                    .setLocked(Settings.getNoReadStoriesLocked())
+                    .pad());
+            items.add(UItem.asShadow(Localization.GHOST_LONG_PRESS_HINT));
+        } else {
+            items.add(UItem.asShadow());
         }
-        items.add(UItem.asShadow());
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()), "reExteraUseSchedule", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()), "reExteraSendSilence", this));
@@ -237,6 +254,48 @@ public class GhostFragment extends BasePreferencesActivityExtended {
     }
 
     public boolean onLongClick(UItem item, View view, int position, float x, float y) {
+        if (item.id > 0 && item.id <= GhostIds.values().length) {
+            GhostIds clicked = GhostIds.values()[item.id - 1];
+            boolean toggled = false;
+            boolean newLocked = false;
+            switch (clicked) {
+                case GHOST_HIDE_ONLINE_ID:
+                    newLocked = !Settings.getHideOnlineLocked();
+                    Settings.setHideOnlineLocked(newLocked);
+                    toggled = true;
+                    break;
+                case GHOST_IMMEDIATE_OFFLINE_ID:
+                    newLocked = !Settings.getImmediateOfflineLocked();
+                    Settings.setImmediateOfflineLocked(newLocked);
+                    toggled = true;
+                    break;
+                case GHOST_HIDE_TYPING_ID:
+                    newLocked = !Settings.getHideTypingLocked();
+                    Settings.setHideTypingLocked(newLocked);
+                    toggled = true;
+                    break;
+                case GHOST_HIDE_READING_ID:
+                    newLocked = !Settings.getHideReadingLocked();
+                    Settings.setHideReadingLocked(newLocked);
+                    toggled = true;
+                    break;
+                case GHOST_NO_READ_STORIES_ID:
+                    newLocked = !Settings.getNoReadStoriesLocked();
+                    Settings.setNoReadStoriesLocked(newLocked);
+                    toggled = true;
+                    break;
+            }
+            if (toggled) {
+                view.performHapticFeedback(VibratorUtils.getType(3), 1);
+                this.listView.adapter.update(true);
+                org.telegram.ui.Components.BulletinFactory.of(this).createSimpleBulletin(
+                        newLocked ? R.drawable.permission_locked : R.drawable.menu_unlock,
+                        newLocked ? Localization.GHOST_OPTION_PINNED : Localization.GHOST_OPTION_UNPINNED
+                ).show();
+                return true;
+            }
+        }
+
         final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
         if (TextUtils.isEmpty(settingLink)) {
             return false;
