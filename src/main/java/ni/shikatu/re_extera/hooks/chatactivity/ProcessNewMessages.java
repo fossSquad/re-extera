@@ -44,13 +44,15 @@ public class ProcessNewMessages extends XC_MethodHook {
             } else {
                 if (isGroup) {
                     long fromId = message2.getFromChatId();
-                    if (fromId <= 0 || !ShadowbanCache.shouldHideInGroups(fromId)) {
+                    if (fromId > 0 && ShadowbanCache.shouldHideInGroups(fromId)) {
+                        continue;
                     }
                 }
                 if (filtersEnabled) {
                     long groupId2 = message2.getGroupId();
                     boolean byGroup = groupId2 != 0 && bannedGroupIds.contains(Long.valueOf(groupId2));
                     if (byGroup || MessageUtils.shouldFilterMessage(message2)) {
+                        continue;
                     }
                 }
                 filtered.add(message2);

@@ -19,6 +19,7 @@ import ni.shikatu.re_extera.settings.newui.GhostFragment;
 import ni.shikatu.re_extera.settings.newui.SettingsFragmentNew;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
 import ni.shikatu.re_extera.ui.ShadowbanFragment;
+import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.FileLog;
@@ -82,6 +83,7 @@ public final class Main {
         Context context = getApplicationContext();
         ReExteraDb.init(context);
         ShadowbanCache.init();
+        MessageUtils.updatePatterns();
         
         int deleteFilledId = context.getResources().getIdentifier("msg_delete_filled", "drawable", context.getPackageName());
         if (deleteFilledId == 0) {

@@ -6,6 +6,7 @@ import java.util.Iterator;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.MessageObject;
 
@@ -29,7 +30,12 @@ public class FilterShadowbannedNotifications extends XC_MethodHook {
                     if (ShadowbanCache.shouldHideInGroups(fromId) || (isDm && ShadowbanCache.shouldHideDialog(fromId))) {
                         Main.log("FilterShadowbannedNotifications: filtered from %d (dm=%b)", Long.valueOf(fromId), Boolean.valueOf(isDm));
                         iterator.remove();
+                        continue;
                     }
+                }
+                if (Settings.getFiltersEnabled() && MessageUtils.shouldFilterMessage(message)) {
+                    Main.log("FilterShadowbannedNotifications: filtered by regex mid=%d did=%d", Integer.valueOf(message.getId()), Long.valueOf(message.getDialogId()));
+                    iterator.remove();
                 }
             }
         }
