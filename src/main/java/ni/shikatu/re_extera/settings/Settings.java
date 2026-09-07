@@ -272,7 +272,7 @@ public final class Settings {
     }
 
     public static int getShowServerReadStatus() {
-        return getInt("show_server_read_status", 1); // 0: Disabled, 1: In Ghost Mode, 2: Always
+        return getInt("show_server_read_status", 0); // 0: Disabled, 1: In Ghost Mode, 2: Always
     }
 
     public static void setShowServerReadStatus(int v) {
