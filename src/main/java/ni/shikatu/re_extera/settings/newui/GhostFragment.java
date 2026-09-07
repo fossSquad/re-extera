@@ -152,7 +152,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asShadow());
         }
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
-        items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.CLIENT_SIDE_READ_ID.getId(), Localization.CLIENT_SIDE_READ).setChecked(Settings.getClientSideRead()), "reExteraClientSideRead", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asSwitch(GhostIds.CLIENT_SIDE_READ_ID.getId(), Localization.CLIENT_SIDE_READ).setChecked(Settings.getClientSideRead()), "reExteraClientSideRead", this));
         items.add(UItem.asShadow(Localization.CLIENT_SIDE_READ_ABOUT));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SERVER_READ_STATUS_ID.getId(), Localization.SERVER_READ_STATUS, getServerReadStatusString()), "reExteraServerReadStatus", this));
         if (Settings.getShowServerReadStatus() != 0) {
