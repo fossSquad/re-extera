@@ -9,6 +9,7 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
+import ni.shikatu.re_extera.utils.ServerReadTracker;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
 import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.MessageObject;
@@ -131,10 +132,12 @@ public class ProcessUpdates extends XC_MethodHook {
         if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox) {
             org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox inbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox) update;
             long did = org.telegram.messenger.DialogObject.getPeerDialogId(inbox.peer);
+            ServerReadTracker.update(currentAccount, did, inbox.max_id);
             MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox) {
             org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox inbox2 = (org.telegram.tgnet.tl.TL_update.TL_updateReadChannelInbox) update;
             long did = -inbox2.channel_id;
+            ServerReadTracker.update(currentAccount, did, inbox2.max_id);
             MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) {
             org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox outbox = (org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryOutbox) update;

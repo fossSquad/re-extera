@@ -7,6 +7,8 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.AccountUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
+import ni.shikatu.re_extera.utils.MessageUtils;
+import ni.shikatu.re_extera.utils.ServerReadTracker;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
@@ -188,6 +190,17 @@ public class SendRequest extends XC_MethodHook {
                 } catch (Throwable ignored) {}
             }
             param.setResult((Object) null);
+        } else if (dialogId != 0 && (request instanceof TLRPC.TL_messages_readHistory || request instanceof TLRPC.TL_channels_readHistory)) {
+            int maxId = 0;
+            if (request instanceof TLRPC.TL_messages_readHistory) {
+                maxId = ((TLRPC.TL_messages_readHistory) request).max_id;
+            } else {
+                maxId = ((TLRPC.TL_channels_readHistory) request).max_id;
+            }
+            if (maxId > 0) {
+                ServerReadTracker.update(currentAccount, dialogId, maxId);
+                MessageUtils.forceUpdateAllVisibleViews(currentAccount, dialogId);
+            }
         }
     }
 

@@ -40,7 +40,8 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         USE_SCHEDULE_ID,
         SERVER_READ_STATUS_ID,
         SERVER_READ_STATUS_STYLE_ID,
-        EXCLUSIONS_BUTTON_ID;
+        EXCLUSIONS_BUTTON_ID,
+        CLIENT_SIDE_READ_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -151,6 +152,8 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asShadow());
         }
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.CLIENT_SIDE_READ_ID.getId(), Localization.CLIENT_SIDE_READ).setChecked(Settings.getClientSideRead()), "reExteraClientSideRead", this));
+        items.add(UItem.asShadow(Localization.CLIENT_SIDE_READ_ABOUT));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SERVER_READ_STATUS_ID.getId(), Localization.SERVER_READ_STATUS, getServerReadStatusString()), "reExteraServerReadStatus", this));
         if (Settings.getShowServerReadStatus() != 0) {
             items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SERVER_READ_STATUS_STYLE_ID.getId(), Localization.SERVER_READ_STATUS_STYLE, getServerReadStatusStyleString()), "reExteraServerReadStatusStyle", this));
@@ -235,6 +238,10 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     }
                 }).show();
                 break;
+            case 14:
+                Settings.setClientSideRead(!Settings.getClientSideRead());
+                refreshCheckBox(item, position, Settings.getClientSideRead());
+                break;
         }
     }
 
@@ -294,6 +301,10 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             try {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.SERVER_READ_STATUS_STYLE_ID.ordinal()] = 13;
             } catch (NoSuchFieldError e13) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.CLIENT_SIDE_READ_ID.ordinal()] = 14;
+            } catch (NoSuchFieldError e14) {
             }
         }
     }

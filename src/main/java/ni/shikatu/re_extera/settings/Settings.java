@@ -171,6 +171,14 @@ public final class Settings {
         putBool("read_on_interact", v);
     }
 
+    public static boolean getClientSideRead() {
+        return getBool("client_side_read", true);
+    }
+
+    public static void setClientSideRead(boolean v) {
+        putBool("client_side_read", v);
+    }
+
     public static int getSendSilence() {
         return getInt("send_silence", SendSilence.NO.getType());
     }

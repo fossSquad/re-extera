@@ -178,6 +178,7 @@ public final class InternalUtils {
                 Integer currentMax = mc.dialogs_read_inbox_max.get(did);
                 mc.dialogs_read_inbox_max.put(did, Math.max(currentMax != null ? currentMax : 0, maxId));
             }
+            ServerReadTracker.update(currentAccount, did, maxId);
             MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         }
         Main.addIgnoredRequest(r);
@@ -217,6 +218,7 @@ public final class InternalUtils {
         if (mid > 0 && did != 0 && controller != null) {
             Integer currentMax = controller.dialogs_read_inbox_max.get(did);
             controller.dialogs_read_inbox_max.put(did, Math.max(currentMax != null ? currentMax : 0, mid));
+            ServerReadTracker.update(currentAccount, did, mid);
             MessageUtils.forceUpdateAllVisibleViews(currentAccount, did);
         }
         Main.addIgnoredRequest(r);

@@ -113,6 +113,8 @@ public class Localization {
     public static String READ;
     public static String READ_MESSAGE;
     public static String READ_ON_INTERACT;
+    public static String CLIENT_SIDE_READ;
+    public static String CLIENT_SIDE_READ_ABOUT;
     public static String READ_TO;
     public static String RED_DELETED_MARK;
     public static String REMOVE_FLAG_SECURE;
@@ -306,6 +308,8 @@ public class Localization {
             CLOSE_APPLICATION = "Закрыть приложение";
             CONTINUE_ANYWAY = "Все равно продолжить";
             READ_ON_INTERACT = "Читать при действиях";
+            CLIENT_SIDE_READ = "Читать локально";
+            CLIENT_SIDE_READ_ABOUT = "Помечать сообщения прочитанными на устройстве. Сервер всё равно видит их как непрочитанные";
             SHADOWBAN = "Теневой бан";
             ADD_TO_SHADOWBAN = "Добавить в теневой бан";
             REMOVE_FROM_SHADOWBAN = "Убрать из теневого бана";
@@ -462,6 +466,8 @@ public class Localization {
             CLOSE_APPLICATION = "Закрити додаток";
             CONTINUE_ANYWAY = "Все одно продовжити";
             READ_ON_INTERACT = "Читати при діях";
+            CLIENT_SIDE_READ = "Читати локально";
+            CLIENT_SIDE_READ_ABOUT = "Позначати повідомлення прочитаними на пристрої. Сервер все одно бачить їх як непрочитані";
             SHADOWBAN = "Тіньовий бан";
             ADD_TO_SHADOWBAN = "Додати до тіньового бану";
             REMOVE_FROM_SHADOWBAN = "Прибрати з тіньового бану";
@@ -618,6 +624,8 @@ public class Localization {
         CLOSE_APPLICATION = "Close Application";
         CONTINUE_ANYWAY = "Continue anyway";
         READ_ON_INTERACT = "Read on interact";
+        CLIENT_SIDE_READ = "Read locally";
+        CLIENT_SIDE_READ_ABOUT = "Mark messages as read on this device. The server still sees them as unread";
         SHADOWBAN = "Shadowban";
         ADD_TO_SHADOWBAN = "Add to shadowban";
         REMOVE_FROM_SHADOWBAN = "Remove from shadowban";

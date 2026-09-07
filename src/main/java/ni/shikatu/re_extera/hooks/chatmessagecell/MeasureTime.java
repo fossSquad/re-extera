@@ -12,6 +12,7 @@ import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
+import ni.shikatu.re_extera.utils.ServerReadTracker;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -231,14 +232,20 @@ public class MeasureTime extends XC_MethodHook {
                 }
             }
 
-            Integer cachedMax = mc.dialogs_read_inbox_max.get(did);
-            if (cachedMax != null && cachedMax > 0) {
-                return cachedMax;
+            int tracked = ServerReadTracker.get(currentAccount, did);
+            if (tracked > 0) {
+                return tracked;
             }
 
             TLRPC.Dialog dialog = mc.getDialog(did);
             if (dialog != null && dialog.read_inbox_max_id > 0) {
+                ServerReadTracker.seed(currentAccount, did, dialog.read_inbox_max_id);
                 return dialog.read_inbox_max_id;
+            }
+
+            Integer cachedMax = mc.dialogs_read_inbox_max.get(did);
+            if (cachedMax != null && cachedMax > 0) {
+                return cachedMax;
             }
         } catch (Throwable t) {
             // Ignore
