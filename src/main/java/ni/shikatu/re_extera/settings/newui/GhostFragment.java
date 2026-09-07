@@ -348,7 +348,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             }
             if (toggled) {
                 view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                this.listView.adapter.update(true);
+                item.setLocked(newLocked);
+                if (view instanceof org.telegram.ui.Cells.CheckBoxCell) {
+                    ((org.telegram.ui.Cells.CheckBoxCell) view).setIcon(newLocked ? R.drawable.permission_locked : 0);
+                }
+                this.listView.adapter.update(false);
                 org.telegram.ui.Components.BulletinFactory.of(this).createSimpleBulletin(
                         newLocked ? R.drawable.permission_locked : R.drawable.menu_unlock,
                         newLocked ? Localization.GHOST_OPTION_PINNED : Localization.GHOST_OPTION_UNPINNED
