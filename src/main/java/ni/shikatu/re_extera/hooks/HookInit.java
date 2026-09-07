@@ -133,6 +133,34 @@ public final class HookInit {
         });
     }
 
+    private void tryHookByArgCount(String name, final Class<?> clazz, final String methodName, final int paramCount, final XC_MethodHook hook) {
+        tryAddHook(name, new HookRegistrar() {
+            @Override
+            public final XC_MethodHook.Unhook register() {
+                java.lang.reflect.Method m = ni.shikatu.re_extera.utils.HookLookup.findByArgCount(clazz, methodName, paramCount);
+                if (m == null) {
+                    ni.shikatu.re_extera.utils.HookLookup.logMiss(name, clazz, methodName);
+                    throw new RuntimeException(new NoSuchMethodException(clazz.getName() + "." + methodName + " with " + paramCount + " args"));
+                }
+                return XposedBridge.hookMethod(m, hook);
+            }
+        });
+    }
+
+    private void tryHookByMinArgCount(String name, final Class<?> clazz, final String methodName, final int minParamCount, final XC_MethodHook hook) {
+        tryAddHook(name, new HookRegistrar() {
+            @Override
+            public final XC_MethodHook.Unhook register() {
+                java.lang.reflect.Method m = ni.shikatu.re_extera.utils.HookLookup.findByMinArgCount(clazz, methodName, minParamCount);
+                if (m == null) {
+                    ni.shikatu.re_extera.utils.HookLookup.logMiss(name, clazz, methodName);
+                    throw new RuntimeException(new NoSuchMethodException(clazz.getName() + "." + methodName + " with >= " + minParamCount + " args"));
+                }
+                return XposedBridge.hookMethod(m, hook);
+            }
+        });
+    }
+
     public void startSendRequestHook() {
         try {
             this.sendRequestHook = XposedBridge.hookMethod(ConnectionsManager.class.getDeclaredMethod("sendRequestInternal", TLObject.class, RequestDelegate.class, RequestDelegateTimestamp.class, QuickAckDelegate.class, WriteToSocketDelegate.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE), new SendRequest());
@@ -149,7 +177,7 @@ public final class HookInit {
         tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);
         tryHook("MessagesController.isUserNoForwards", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), TLRPC.UserFull.class);
         tryHook("MessagesController.checkDeletingTask", MessagesController.class, "checkDeletingTask", new CheckDeletingTask(), Boolean.TYPE);
-        tryHook("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", new DeleteMessages(), ArrayList.class, ArrayList.class, TLRPC.EncryptedChat.class, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
+        tryHookByMinArgCount("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", 7, new DeleteMessages());
         tryHook("MessagesController.getDialogs", MessagesController.class, "getDialogs", new FilterShadowbannedDialogs(), Integer.TYPE);
         tryHook("MessagesController.sortDialogs", MessagesController.class, "sortDialogs", new SortDialogsHook(), LongSparseArray.class);
         tryHook("MessagesController.processLoadedDialogs", MessagesController.class, "processLoadedDialogs", new ProcessLoadedDialogs(), TLRPC.messages_Dialogs.class, ArrayList.class, ArrayList.class, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
@@ -176,6 +204,10 @@ public final class HookInit {
             Settings.setLocalPremium(false);
         }
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
+        tryHookByArgCount("UserConfig.setCurrentUser", UserConfig.class, "setCurrentUser", 1, new isPremium.SetCurrentUserHook());
+        tryHookByArgCount("MessagesController.putUser(2arg)", MessagesController.class, "putUser", 2, new isPremium.PutUserHook());
+        tryHookByArgCount("MessagesController.putUser(3arg)", MessagesController.class, "putUser", 3, new isPremium.PutUserHook());
+        tryHookByArgCount("MessagesController.putUsers(premium)", MessagesController.class, "putUsers", 2, new isPremium.PutUsersHook());
         try {
             Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
             tryHook("WindowManagerImpl.addView", clazz, "addView", new WindowManagerImpl(), View.class, ViewGroup.LayoutParams.class);

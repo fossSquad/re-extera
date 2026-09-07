@@ -445,6 +445,14 @@ public final class Settings {
         putBool("local_premium", v);
     }
 
+    public static String getCachedPremiumField(int account, String fieldKey) {
+        return getString("premium_cache_" + account + "_" + fieldKey, null);
+    }
+
+    public static void setCachedPremiumField(int account, String fieldKey, String base64Value) {
+        putString("premium_cache_" + account + "_" + fieldKey, base64Value);
+    }
+
     public static boolean getDisableAds() {
         return getBool("disable_ads", false);
     }
