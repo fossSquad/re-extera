@@ -10,6 +10,8 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.ui.DeletedMessagesInChatFragment;
+import ni.shikatu.re_extera.ui.FilteredLogFragment;
+import ni.shikatu.re_extera.ui.RegexFiltersFragment;
 import ni.shikatu.re_extera.utils.ExceptionsPopupWrapper;
 import ni.shikatu.re_extera.utils.ExclusionUtils;
 import ni.shikatu.re_extera.utils.InternalUtils;
@@ -132,6 +134,16 @@ public class FragmentCreate extends XC_MethodHook {
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
         public void showDeletedMessages() {
             this.val$thisObject.presentFragment(DeletedMessagesInChatFragment.newInstance(this.val$dialog_id));
+        }
+
+        @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
+        public void showFilteredPosts() {
+            this.val$thisObject.presentFragment(new FilteredLogFragment());
+        }
+
+        @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
+        public void openFilterSettings() {
+            this.val$thisObject.presentFragment(new RegexFiltersFragment());
         }
 
         @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback

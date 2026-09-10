@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import ni.shikatu.re_extera.localization.Localization;
+import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
@@ -30,6 +31,10 @@ public class ExceptionsPopupWrapper {
         void openTyping();
 
         void showDeletedMessages();
+
+        void showFilteredPosts();
+
+        void openFilterSettings();
     }
 
     private Drawable getResizedDelete(Context context) {
@@ -96,6 +101,28 @@ public class ExceptionsPopupWrapper {
                 ExceptionsPopupWrapper.lambda$new$3(callback, view);
             }
         });
+        if (Settings.getFiltersEnabled()) {
+            if (Settings.getShowFilteredPostsInChat()) {
+                ActionBarMenuSubItem itemFilteredPosts = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_log, Localization.FILTERED_POSTS_MENU, false, resourcesProvider);
+                itemFilteredPosts.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        callback.dismiss();
+                        callback.showFilteredPosts();
+                    }
+                });
+            }
+            if (Settings.getShowFilterSettingsInChat()) {
+                ActionBarMenuSubItem itemFilterSettings = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_edit, Localization.FILTER_SETTINGS_MENU, false, resourcesProvider);
+                itemFilterSettings.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        callback.dismiss();
+                        callback.openFilterSettings();
+                    }
+                });
+            }
+        }
         addGap(9992, this.windowLayout, resourcesProvider);
         ActionBarMenuSubItem itemFinallyDelete = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_clear, Localization.CLEAR_DELETED, false, resourcesProvider);
         itemFinallyDelete.setOnClickListener(new View.OnClickListener() { 
