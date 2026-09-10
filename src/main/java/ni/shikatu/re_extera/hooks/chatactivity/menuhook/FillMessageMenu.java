@@ -43,9 +43,16 @@ public class FillMessageMenu extends XC_MethodHook {
             appendSaveOptions(msgObj, icons, items, options);
         }
         if (Settings.getFiltersEnabled() && (msgObj.messageOwner != null && msgObj.messageOwner.message != null || msgObj.messageText != null)) {
-            icons.add(Integer.valueOf(R.drawable.msg_search));
-            items.add(Localization.TEST_FILTERS_MESSAGE_MENU);
-            options.add(Integer.valueOf(ProcessSelectedOption.OPT_CHECK_FILTERS));
+            if (Settings.getShowCheckFiltersInMenu()) {
+                icons.add(Integer.valueOf(R.drawable.msg_search));
+                items.add(Localization.TEST_FILTERS_MESSAGE_MENU);
+                options.add(Integer.valueOf(ProcessSelectedOption.OPT_CHECK_FILTERS));
+            }
+            if (Settings.getShowAddToFiltersInMenu()) {
+                icons.add(Integer.valueOf(R.drawable.msg_add));
+                items.add(Localization.ADD_TO_FILTERS);
+                options.add(Integer.valueOf(ProcessSelectedOption.OPT_ADD_TO_FILTERS));
+            }
         }
     }
 
