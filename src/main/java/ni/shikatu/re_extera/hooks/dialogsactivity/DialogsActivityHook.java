@@ -56,6 +56,14 @@ public class DialogsActivityHook extends XC_MethodHook {
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
         if (this.mode == Mode.ADD_ITEMS) {
             GhostMenuHelper.scrubGhostFromConfig();
+            // Append "Close app" item at the bottom of the Settings long-press popup
+            if (param.args != null && param.args.length >= 1 && param.args[0] instanceof ItemOptions) {
+                ItemOptions io = (ItemOptions) param.args[0];
+                io.addGap();
+                io.add(R.drawable.msg_cancel, Localization.CLOSE_APP, () -> {
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                });
+            }
         }
     }
 
@@ -66,6 +74,7 @@ public class DialogsActivityHook extends XC_MethodHook {
                 @Override
                 public boolean test(int value) {
                     if (value == 910001) return false;
+                    if (value == 910002) return false;
                     return original != null && original.test(value);
                 }
             };
@@ -88,7 +97,7 @@ public class DialogsActivityHook extends XC_MethodHook {
     }
 
     static /* synthetic */ boolean lambda$onBeforeAddItems$0(Integer id) {
-        return id != null && id.intValue() == 910001;
+        return id != null && (id.intValue() == 910001 || id.intValue() == 910002);
     }
 
     private void onBeforeAddItem(final XC_MethodHook.MethodHookParam param) {
