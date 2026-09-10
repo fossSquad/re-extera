@@ -45,6 +45,15 @@ public class Localization {
     public static String EXCEPTION_TYPING_TEXT;
     public static String EXCLUSIONS;
     public static String FILTERED_MESSAGE;
+    public static String FILTERED_POSTS_MENU;
+    public static String FILTER_SETTINGS_MENU;
+    public static String ADD_TO_FILTERS;
+    public static String ADD_TO_FILTERS_HINT;
+    public static String CLOSE_APP;
+    public static String SHOW_TEST_FILTERS_MENU;
+    public static String SHOW_ADD_TO_FILTERS_MENU;
+    public static String SHOW_FILTERED_POSTS_IN_CHAT;
+    public static String SHOW_FILTER_SETTINGS_IN_CHAT;
     public static String IMPORT_FILTERS;
     public static String EXPORT_FILTERS;
     public static String IMPORT_FILTERS_SUCCESS;
@@ -272,6 +281,10 @@ public class Localization {
             DELETE_FILTER = "Удалить фильтр";
             DELETE_FILTER_ABOUT = "Удалить фильтр?";
             ENABLE_FILTERS = "Включить фильтры";
+            SHOW_TEST_FILTERS_MENU = "Кнопка «Проверить по фильтрам»";
+            SHOW_ADD_TO_FILTERS_MENU = "Кнопка «Добавить в фильтры»";
+            SHOW_FILTERED_POSTS_IN_CHAT = "«Отсеянные посты» в меню чата";
+            SHOW_FILTER_SETTINGS_IN_CHAT = "«Настройки фильтров» в меню чата";
             FILTERS_ABOUT = "Фильтры позволяют скрывать сообщения, подходящие под regex паттерн.\nИспользуйте regex101.com для составления фильтров.";
             COPY_FILTER = "Копировать фильтр";
             COPIED = "Скопировано";
@@ -319,6 +332,11 @@ public class Localization {
             HIDE_IN_GROUPS = "Скрыть в группах";
             SHADOWBAN_ABOUT = "Теневой бан позволяет скрыть диалог пользователя и/или его сообщения в группах";
             FILTERED_MESSAGE = "Отфильтровано";
+            FILTERED_POSTS_MENU = "Отсеянные посты";
+            FILTER_SETTINGS_MENU = "Настройки фильтров";
+            ADD_TO_FILTERS = "Добавить в фильтры";
+            ADD_TO_FILTERS_HINT = "Введите regex-паттерн для добавления:";
+            CLOSE_APP = "Закрыть приложение";
             return;
         } else if ("uk".equals(currentLang)) {
             HIDE_READING_MESSAGE = "Не читати повідомлення";
@@ -430,6 +448,10 @@ public class Localization {
             DELETE_FILTER = "Видалити фільтр";
             DELETE_FILTER_ABOUT = "Видалити фільтр?";
             ENABLE_FILTERS = "Увімкнути фільтри";
+            SHOW_TEST_FILTERS_MENU = "Кнопка «Перевірити за фільтрами»";
+            SHOW_ADD_TO_FILTERS_MENU = "Кнопка «Додати до фільтрів»";
+            SHOW_FILTERED_POSTS_IN_CHAT = "«Відсіяні пости» в меню чату";
+            SHOW_FILTER_SETTINGS_IN_CHAT = "«Налаштування фільтрів» в меню чату";
             FILTERS_ABOUT = "Фільтри дозволяють приховувати повідомлення, які відповідають regex шаблону.\nВикористовуйте regex101.com для складання фільтрів.";
             COPY_FILTER = "Копіювати фільтр";
             COPIED = "Скопійовано";
@@ -477,6 +499,11 @@ public class Localization {
             HIDE_IN_GROUPS = "Приховати в групах";
             SHADOWBAN_ABOUT = "Тіньовий бан дозволяє приховати діалог користувача та/або його повідомлення в групах";
             FILTERED_MESSAGE = "Відфільтровано";
+            FILTERED_POSTS_MENU = "Відсіяні пости";
+            FILTER_SETTINGS_MENU = "Налаштування фільтрів";
+            ADD_TO_FILTERS = "Додати до фільтрів";
+            ADD_TO_FILTERS_HINT = "Введіть regex-патерн для додавання:";
+            CLOSE_APP = "Закрити додаток";
             return;
         }
         HIDE_READING_MESSAGE = "Don't read messages";
@@ -588,6 +615,10 @@ public class Localization {
         DELETE_FILTER = "Delete filter";
         DELETE_FILTER_ABOUT = "Delete filter?";
         ENABLE_FILTERS = "Enable filters";
+        SHOW_TEST_FILTERS_MENU = "\"Test against filters\" button";
+        SHOW_ADD_TO_FILTERS_MENU = "\"Add to filters\" button";
+        SHOW_FILTERED_POSTS_IN_CHAT = "\"Filtered posts\" in chat menu";
+        SHOW_FILTER_SETTINGS_IN_CHAT = "\"Filter settings\" in chat menu";
         FILTERS_ABOUT = "Filters allow you to hide messages that match the regex pattern. Use regex101.com to create filters";
         COPY_FILTER = "Copy filter";
         COPIED = "Copied";
@@ -635,5 +666,10 @@ public class Localization {
         HIDE_IN_GROUPS = "Hide in groups";
         SHADOWBAN_ABOUT = "Shadowban allows you to hide user's dialog and/or their messages in groups";
         FILTERED_MESSAGE = "Filtered";
+        FILTERED_POSTS_MENU = "Filtered posts";
+        FILTER_SETTINGS_MENU = "Filter settings";
+        ADD_TO_FILTERS = "Add to filters";
+        ADD_TO_FILTERS_HINT = "Enter regex pattern to add:";
+        CLOSE_APP = "Close app";
     }
 }
