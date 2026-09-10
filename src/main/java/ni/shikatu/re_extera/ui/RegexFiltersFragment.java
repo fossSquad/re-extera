@@ -41,6 +41,13 @@ import org.telegram.ui.Components.UniversalAdapter;
 
 public class RegexFiltersFragment extends BasePreferencesActivity {
     private static final int ID_ENABLE_FILTERS = 1;
+    private static final int ID_TEST_FILTERS = 2;
+    private static final int ID_FILTERED_LOG = 3;
+    private static final int ID_SHOW_CHECK_FILTERS = 4;
+    private static final int ID_SHOW_ADD_TO_FILTERS = 5;
+    private static final int ID_SHOW_FILTERED_POSTS_IN_CHAT = 6;
+    private static final int ID_SHOW_FILTER_SETTINGS_IN_CHAT = 7;
+    private boolean isFiltersExpanded = false;
     private ArrayList<String> filters = new ArrayList<>();
 
     public View createView(Context context) {
@@ -103,10 +110,57 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
     }
 
+    private int countOfFilterToggles() {
+        int count = 0;
+        if (Settings.getShowCheckFiltersInMenu()) count++;
+        if (Settings.getShowAddToFiltersInMenu()) count++;
+        if (Settings.getShowFilteredPostsInChat()) count++;
+        if (Settings.getShowFilterSettingsInChat()) count++;
+        return count;
+    }
+
+    private UItem filtersUItem() {
+        UItem item = UItem.asExteraExpandableSwitch(ID_ENABLE_FILTERS, Localization.ENABLE_FILTERS, String.format("%d/4", Integer.valueOf(countOfFilterToggles())), new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
+                if (getAdapter() != null) {
+                    getAdapter().update(true);
+                }
+            }
+        });
+        item.setChecked(Settings.getFiltersEnabled());
+        item.setCollapsed(!this.isFiltersExpanded);
+        item.clickCallback = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                RegexFiltersFragment.this.isFiltersExpanded = !RegexFiltersFragment.this.isFiltersExpanded;
+                if (getAdapter() != null) {
+                    getAdapter().update(true);
+                }
+            }
+        };
+        return item;
+    }
+
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItemUtils.setLinkAlias(UItem.asCheck(1, Localization.ENABLE_FILTERS).setChecked(Settings.getFiltersEnabled()), "reExteraFiltersEnable", this));
-        items.add(UItem.asButton(2, Localization.TEST_FILTERS));
-        items.add(UItem.asButton(3, Localization.FILTERED_LOG));
+        items.add(UItemUtils.setLinkAlias(filtersUItem(), "reExteraFiltersEnable", this));
+        if (this.isFiltersExpanded) {
+            items.add(UItem.asRoundCheckbox(ID_SHOW_CHECK_FILTERS, Localization.SHOW_TEST_FILTERS_MENU)
+                    .setChecked(Settings.getShowCheckFiltersInMenu())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(ID_SHOW_ADD_TO_FILTERS, Localization.SHOW_ADD_TO_FILTERS_MENU)
+                    .setChecked(Settings.getShowAddToFiltersInMenu())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(ID_SHOW_FILTERED_POSTS_IN_CHAT, Localization.SHOW_FILTERED_POSTS_IN_CHAT)
+                    .setChecked(Settings.getShowFilteredPostsInChat())
+                    .pad());
+            items.add(UItem.asRoundCheckbox(ID_SHOW_FILTER_SETTINGS_IN_CHAT, Localization.SHOW_FILTER_SETTINGS_IN_CHAT)
+                    .setChecked(Settings.getShowFilterSettingsInChat())
+                    .pad());
+        }
+        items.add(UItem.asButton(ID_TEST_FILTERS, Localization.TEST_FILTERS));
+        items.add(UItem.asButton(ID_FILTERED_LOG, Localization.FILTERED_LOG));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         for (int i = 0; i < this.filters.size(); i++) {
             String filter = this.filters.get(i);
@@ -118,18 +172,46 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
 
     public void onClick(UItem item, View view, int position, float x, float y) {
         int filterIndex;
-        if (item.id == 1) {
-            Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
+        if (item.id == ID_ENABLE_FILTERS) {
+            this.isFiltersExpanded = !this.isFiltersExpanded;
             if (getAdapter() != null) {
                 getAdapter().update(true);
             }
             return;
         }
-        if (item.id == 2) {
+        if (item.id == ID_SHOW_CHECK_FILTERS) {
+            Settings.setShowCheckFiltersInMenu(!Settings.getShowCheckFiltersInMenu());
+            if (getAdapter() != null) {
+                getAdapter().update(true);
+            }
+            return;
+        }
+        if (item.id == ID_SHOW_ADD_TO_FILTERS) {
+            Settings.setShowAddToFiltersInMenu(!Settings.getShowAddToFiltersInMenu());
+            if (getAdapter() != null) {
+                getAdapter().update(true);
+            }
+            return;
+        }
+        if (item.id == ID_SHOW_FILTERED_POSTS_IN_CHAT) {
+            Settings.setShowFilteredPostsInChat(!Settings.getShowFilteredPostsInChat());
+            if (getAdapter() != null) {
+                getAdapter().update(true);
+            }
+            return;
+        }
+        if (item.id == ID_SHOW_FILTER_SETTINGS_IN_CHAT) {
+            Settings.setShowFilterSettingsInChat(!Settings.getShowFilterSettingsInChat());
+            if (getAdapter() != null) {
+                getAdapter().update(true);
+            }
+            return;
+        }
+        if (item.id == ID_TEST_FILTERS) {
             showTestFilterDialog();
             return;
         }
-        if (item.id == 3) {
+        if (item.id == ID_FILTERED_LOG) {
             presentFragment(new FilteredLogFragment());
             return;
         }
