@@ -421,6 +421,38 @@ public final class Settings {
         putBool("filters_enabled", v);
     }
 
+    public static boolean getShowCheckFiltersInMenu() {
+        return getBool("show_check_filters_in_menu", true);
+    }
+
+    public static void setShowCheckFiltersInMenu(boolean v) {
+        putBool("show_check_filters_in_menu", v);
+    }
+
+    public static boolean getShowAddToFiltersInMenu() {
+        return getBool("show_add_to_filters_in_menu", true);
+    }
+
+    public static void setShowAddToFiltersInMenu(boolean v) {
+        putBool("show_add_to_filters_in_menu", v);
+    }
+
+    public static boolean getShowFilteredPostsInChat() {
+        return getBool("show_filtered_posts_in_chat", true);
+    }
+
+    public static void setShowFilteredPostsInChat(boolean v) {
+        putBool("show_filtered_posts_in_chat", v);
+    }
+
+    public static boolean getShowFilterSettingsInChat() {
+        return getBool("show_filter_settings_in_chat", true);
+    }
+
+    public static void setShowFilterSettingsInChat(boolean v) {
+        putBool("show_filter_settings_in_chat", v);
+    }
+
     public static boolean getAddGhostToDrawer() {
         return getBool("add_ghost_to_drawer", true);
     }
