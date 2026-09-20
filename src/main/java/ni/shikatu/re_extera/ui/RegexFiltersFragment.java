@@ -120,7 +120,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     }
 
     private UItem filtersUItem() {
-        UItem item = UItem.asExteraExpandableSwitch(ID_ENABLE_FILTERS, Localization.ENABLE_FILTERS, String.format("%d/4", Integer.valueOf(countOfFilterToggles())), new View.OnClickListener() {
+        UItem item = UItemUtils.asExpandableSwitch(ID_ENABLE_FILTERS, Localization.ENABLE_FILTERS, String.format("%d/4", Integer.valueOf(countOfFilterToggles())), new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Settings.setFiltersEnabled(!Settings.getFiltersEnabled());
@@ -173,6 +173,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     public void onClick(UItem item, View view, int position, float x, float y) {
         int filterIndex;
         if (item.id == ID_ENABLE_FILTERS) {
+            UItemUtils.bindSwitch(item.id, view);
             this.isFiltersExpanded = !this.isFiltersExpanded;
             if (getAdapter() != null) {
                 getAdapter().update(true);
