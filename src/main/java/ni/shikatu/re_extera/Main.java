@@ -13,12 +13,14 @@ import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.HookInit;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
+import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.settings.newui.AdditionalFragment;
 import ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment;
 import ni.shikatu.re_extera.settings.newui.GhostFragment;
 import ni.shikatu.re_extera.settings.newui.SettingsFragmentNew;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
 import ni.shikatu.re_extera.ui.ShadowbanFragment;
+import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
 import ni.shikatu.re_extera.utils.ShadowbanCache;
@@ -130,6 +132,9 @@ public final class Main {
         hooks = new HookInit();
         hooks.init();
         initFragments();
+        if (Settings.getHideOnlineWithGhost()) {
+            GhostMenuHelper.syncOnlineStatus();
+        }
     }
 
     public void onUnload() {

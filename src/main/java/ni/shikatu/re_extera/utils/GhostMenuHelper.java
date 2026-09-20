@@ -21,7 +21,13 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
+import org.telegram.tgnet.ConnectionsManager;
+import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BulletinFactory;
@@ -43,6 +49,23 @@ public final class GhostMenuHelper {
     private static boolean pluginMenuRegistered;
     private static Class<?> pyObjectClass;
     private static Class<?> pythonClass;
+    private static Field mcOfflineSentField;
+    private static Field mcLastStatusUpdateTimeField;
+
+    static {
+        try {
+            mcOfflineSentField = MessagesController.class.getDeclaredField("offlineSent");
+            mcOfflineSentField.setAccessible(true);
+        } catch (Throwable t) {
+            Main.log("GhostMenuHelper: offlineSent field not found: %s", t.getMessage());
+        }
+        try {
+            mcLastStatusUpdateTimeField = MessagesController.class.getDeclaredField("lastStatusUpdateTime");
+            mcLastStatusUpdateTimeField.setAccessible(true);
+        } catch (Throwable t) {
+            Main.log("GhostMenuHelper: lastStatusUpdateTime field not found: %s", t.getMessage());
+        }
+    }
 
     private GhostMenuHelper() {
     }
@@ -223,9 +246,44 @@ public final class GhostMenuHelper {
     public static void toggleGhostMode(BaseFragment fragment) {
         boolean enabled = !Settings.getGhostModeEnabledGlobal();
         Settings.setGhostModeEnabledGlobal(enabled);
+        if (enabled && Settings.countOfGhost() == 0) {
+            Settings.setHideOnline(true);
+            Settings.setHideTyping(true);
+            Settings.setHideReading(true);
+            Settings.setNoReadStories(true);
+        }
+        syncOnlineStatus();
         registerPluginMenuItem(true);
         if (fragment != null) {
             BulletinFactory.of(fragment).createSuccessBulletin(enabled ? Localization.GHOST_MODE_ENABLED : Localization.GHOST_MODE_DISABLED).show();
+        }
+    }
+
+    public static void syncOnlineStatus() {
+        boolean hideOnline = Settings.getHideOnlineWithGhost();
+        boolean offline = hideOnline || ApplicationLoader.mainInterfacePaused;
+        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+            UserConfig cfg = UserConfig.getInstance(i);
+            if (cfg != null && cfg.isClientActivated()) {
+                final int account = i;
+                TL_account.updateStatus req = new TL_account.updateStatus();
+                req.offline = offline;
+                ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {});
+
+                Utilities.stageQueue.postRunnable(() -> {
+                    try {
+                        MessagesController mc = MessagesController.getInstance(account);
+                        if (mcOfflineSentField != null) {
+                            mcOfflineSentField.setBoolean(mc, false);
+                        }
+                        if (mcLastStatusUpdateTimeField != null) {
+                            mcLastStatusUpdateTimeField.setLong(mc, System.currentTimeMillis());
+                        }
+                    } catch (Throwable t) {
+                        Main.log("GhostMenuHelper.syncOnlineStatus: error updating MessagesController: %s", t.getMessage());
+                    }
+                });
+            }
         }
     }
 

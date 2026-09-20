@@ -124,7 +124,7 @@ public final class Settings {
     }
 
     public static boolean getHideOnline() {
-        return getBool("hide_online", false);
+        return getBool("hide_online", true);
     }
 
     public static void setHideOnline(boolean v) {
@@ -132,7 +132,7 @@ public final class Settings {
     }
 
     public static boolean getHideTyping() {
-        return getBool("hide_typing", false);
+        return getBool("hide_typing", true);
     }
 
     public static void setHideTyping(boolean v) {
@@ -140,7 +140,7 @@ public final class Settings {
     }
 
     public static boolean getHideReading() {
-        return getBool("hide_reading", false);
+        return getBool("hide_reading", true);
     }
 
     public static void setHideReading(boolean v) {
@@ -148,7 +148,7 @@ public final class Settings {
     }
 
     public static boolean getNoReadStories() {
-        return getBool("no_read_stories", false);
+        return getBool("no_read_stories", true);
     }
 
     public static void setNoReadStories(boolean v) {

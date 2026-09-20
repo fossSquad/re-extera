@@ -68,7 +68,15 @@ public class GhostFragment extends BasePreferencesActivityExtended {
 
     /* JADX INFO: Access modifiers changed from: private */
     public /* synthetic */ void lambda$ghostUItem$0(View v) {
-        Settings.setGhostModeEnabledGlobal(!Settings.getGhostModeEnabledGlobal());
+        boolean enabled = !Settings.getGhostModeEnabledGlobal();
+        Settings.setGhostModeEnabledGlobal(enabled);
+        if (enabled && Settings.countOfGhost() == 0) {
+            Settings.setHideOnline(true);
+            Settings.setHideTyping(true);
+            Settings.setHideReading(true);
+            Settings.setNoReadStories(true);
+        }
+        GhostMenuHelper.syncOnlineStatus();
         this.listView.adapter.update(true);
     }
 
@@ -177,6 +185,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 break;
             case 2:
                 Settings.setHideOnline(!Settings.getHideOnline());
+                GhostMenuHelper.syncOnlineStatus();
                 refreshCheckBox(item, position, Settings.getHideOnline(), true);
                 break;
             case 3:
@@ -324,6 +333,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 case GHOST_HIDE_ONLINE_ID:
                     newLocked = !Settings.getHideOnlineLocked();
                     Settings.setHideOnlineLocked(newLocked);
+                    GhostMenuHelper.syncOnlineStatus();
                     toggled = true;
                     break;
                 case GHOST_IMMEDIATE_OFFLINE_ID:
