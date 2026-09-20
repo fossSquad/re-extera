@@ -3,6 +3,7 @@ from base_plugin import BasePlugin, MethodHook
 from client_utils import get_last_fragment
 import requests
 import json
+import re
 import io
 import zipfile
 import shutil

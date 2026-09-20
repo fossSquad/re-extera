@@ -177,6 +177,23 @@ class Loader:
             self.plugin.log(f"Error checking dev version: {e}")
             return None, None
 
+    def _version_candidates(self, raw):
+        """Variants of the client version to try against release tags, most specific first."""
+        candidates = []
+
+        def add(value):
+            value = str(value or "").strip()
+            if value and value not in candidates:
+                candidates.append(value)
+
+        add(raw)
+        add(raw.split("-")[0])
+        add(raw.split(" ")[0])
+        match = re.match(r"\d+(?:\.\d+)+", raw)
+        if match:
+            add(match.group(0))
+        return candidates
+
     def _check_release_version(self, force=False):
         if not force and not self.config.can_check():
             self.plugin.log("Release check skipped (rate limit cooldown)")
@@ -190,15 +207,20 @@ class Loader:
             r.raise_for_status()
             releases = r.json()
             
-            tg_version = BuildVars.BUILD_VERSION_STRING
-            suffix = f"-{tg_version}"
-            
+            tg_version = str(BuildVars.BUILD_VERSION_STRING or "").strip()
+
+            # Some clients append their own build info to the version ("12.10.1-bbc3d7c"),
+            # while the release tags only carry the plain Telegram version ("-12.10.1").
             target_release = None
-            for release in releases:
-                if release.get("tag_name", "").endswith(suffix):
-                    target_release = release
+            for candidate in self._version_candidates(tg_version):
+                suffix = f"-{candidate}"
+                for release in releases:
+                    if release.get("tag_name", "").endswith(suffix):
+                        target_release = release
+                        break
+                if target_release:
                     break
-            
+
             if not target_release:
                 self.plugin.log(f"No release found for Telegram version {tg_version}")
                 return "UNSUPPORTED_VERSION", None
