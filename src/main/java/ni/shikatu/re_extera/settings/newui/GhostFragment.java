@@ -49,7 +49,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
     }
 
     private UItem ghostUItem() {
-        UItem ghostItem = UItem.asExteraExpandableSwitch(GhostIds.GHOST_ID.getId(), Localization.GHOST_MODE, String.format("%d/5", Integer.valueOf(Settings.countOfGhost())), new View.OnClickListener() { 
+        UItem ghostItem = UItemUtils.asExpandableSwitch(GhostIds.GHOST_ID.getId(), Localization.GHOST_MODE, String.format("%d/5", Integer.valueOf(Settings.countOfGhost())), new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 lambda$ghostUItem$0(view);
@@ -149,7 +149,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                     .pad());
             items.add(UItem.asShadow(Localization.GHOST_LONG_PRESS_HINT));
         } else {
-            items.add(UItem.asShadow());
+            items.add(UItemUtils.asShadow());
         }
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.READ_ON_INTERACT_ID.getId(), Localization.READ_ON_INTERACT).setChecked(Settings.getReadOnInteract()), "reExteraReadOnInteract", this));
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(GhostIds.CLIENT_SIDE_READ_ID.getId(), Localization.CLIENT_SIDE_READ).setChecked(Settings.getClientSideRead()), "reExteraClientSideRead", this));
@@ -160,7 +160,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()), "reExteraUseSchedule", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()), "reExteraSendSilence", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS), "reExteraExclusions", this));
     }
 
@@ -171,6 +171,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         GhostIds clicked = GhostIds.values()[item.id - 1];
         switch (AnonymousClass1.$SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
+                UItemUtils.bindSwitch(item.id, view);
                 this.isGhostExpanded = !this.isGhostExpanded;
                 this.listView.adapter.update(true);
                 break;
