@@ -363,11 +363,11 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
         
         items.add(UItem.asHeader(Localization.CUSTOM_PREFIX));
         items.add(UItemUtils.setLinkAlias(UItem.asCustom(CustomizationIds.CUSTOM_DELETED_MARK_ID.getId(), customMarkView()), "reExteraCustomDeletedMark", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         
         items.add(UItem.asHeader("Deleted Mark Color"));
         items.add(UItem.asCustom(CustomizationIds.DELETED_MARK_COLOR_ID.getId(), colorSelectorView()));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
 
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(CustomizationIds.DISABLE_COLORED_REPLIES_ID.getId(), Localization.DISABLE_COLORED_REPLIES).setChecked(Settings.getDisableColoredReplies()), "reExteraDisableColoredReplies", this));
 
@@ -377,7 +377,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
             items.add(UItem.asCustom(CustomizationIds.TRANSPARENT_DELETED_MESSAGES_SLIDER_ID.getId(), alphaSliderView()));
         }
         
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         
         if (previewCell != null) {
             if (Settings.getTransparentDeletedMessages()) {

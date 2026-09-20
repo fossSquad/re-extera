@@ -47,8 +47,8 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()), "reExteraSaveDeletedMessages", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.setLinkAlias(UItemUtils.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()), "reExteraSaveDeletedMessages", this));
+        items.add(UItemUtils.asShadow());
 
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()), "reExteraSaveAttachments", this));
         items.add(UItem.asHeader(Localization.SAVE_ATTACHMENTS_SIZE));
@@ -86,7 +86,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_READ_DATE_ID.getId(), Localization.SAVE_READ_DATE).setChecked(Settings.getSaveReadDate()), "reExteraSaveReadDate", this));
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.getId(), Localization.SAVE_LAST_ONLINE).setChecked(Settings.getSaveLastOnline()), "reExteraSaveLastOnline", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
     }
 
     public void onClick(UItem item, View view, int position, float x, float y) {

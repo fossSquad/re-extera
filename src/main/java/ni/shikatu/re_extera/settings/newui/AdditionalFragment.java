@@ -52,7 +52,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()), "reExteraLocalPremium", this));
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()), "reExteraDisableAds", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
 
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.WORK_IN_BACKGROUND_ID.getId(), Localization.WORK_IN_BACKGROUND).setChecked(Settings.getWorkInBackground()), "reExteraWorkInBackground", this));
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.IGNORE_FLAG_SECURE_ID.getId(), Localization.REMOVE_FLAG_SECURE).setChecked(Settings.getRemoveFlagSecure()), "reExteraIgnoreFlagSecure", this));
@@ -67,7 +67,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
         items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.EXPORT_DB_ID.getId(), Localization.EXPORT_DB), "reExteraExportDb", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.IMPORT_DB_ID.getId(), Localization.IMPORT_DB), "reExteraImportDb", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(AdditionalIds.UNLOAD_HOOKS.getId(), Localization.UNLOAD_REEXTERA), "reExteraUnloadHooks", this));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
     }
 
     /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.AdditionalFragment$1, reason: invalid class name */

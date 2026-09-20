@@ -13,6 +13,7 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.utils.DrawableUtils;
+import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.Theme;
@@ -92,15 +93,15 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
         items.clear();
         items.add(UItem.asCustom(IDs.STICKER_ID.getId(), createStickerView()).setTransparent(true));
         items.add(UItem.asCustom(IDs.THANKS_ID.getId(), createThanksView()).setTransparent(true));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItem.asButton(IDs.GHOST_MODE_BTN_ID.getId(), this.ghostIcon, Localization.GHOST_MODE));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItem.asButton(IDs.DELETED_AND_EDITED_MESSAGES_BTN_ID.getId(), this.deletedIcon, Localization.SPY));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItem.asButton(IDs.CUSTOMIZATION_BTN_ID.getId(), this.customizationIcon, Localization.CUSTOMIZATION));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItem.asButton(IDs.ADDITIONAL_BTN_ID.getId(), this.additionalIcon, Localization.OTHER));
-        items.add(UItem.asShadow());
+        items.add(UItemUtils.asShadow());
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(String.format("**Version: %s**", Main.VERSION))));
     }
 
