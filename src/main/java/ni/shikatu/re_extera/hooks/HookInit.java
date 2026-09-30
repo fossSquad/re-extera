@@ -28,6 +28,7 @@ import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
+import ni.shikatu.re_extera.hooks.messagesstorage.DeleteMessagesRangeHook;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternalRange;
 import ni.shikatu.re_extera.hooks.messagesstorage.UpdateDialogsWithDeletedMessages;
@@ -44,8 +45,6 @@ import ni.shikatu.re_extera.hooks.messagescontroller.IsUserNoForwards;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessLoadedDialogs;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates;
 import ni.shikatu.re_extera.hooks.messagescontroller.SortDialogsHook;
-import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
-import ni.shikatu.re_extera.hooks.messagesstorage.UpdateDialogsWithDeletedMessages;
 import ni.shikatu.re_extera.hooks.navigation.AppNavigationGhostEditorHook;
 import ni.shikatu.re_extera.hooks.navigation.DrawerMenuGhostHook;
 import ni.shikatu.re_extera.hooks.notificationmanager.FilterShadowbannedNotifications;
@@ -192,6 +191,8 @@ public final class HookInit {
         // Range deletions: markMessagesAsDeleted(long did, int maxMid, boolean isChannel, boolean isTopic)
         tryHook("MessagesStorage.markMessagesAsDeleted(range)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("MessagesStorage.markMessagesAsDeletedInternal(range)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
+        // Set ThreadLocal flag for entire deleteMessagesRange call to skip stack trace scanning in range hooks
+        tryHook("MessagesController.deleteMessagesRange", MessagesController.class, "deleteMessagesRange", new DeleteMessagesRangeHook(), Long.TYPE, Long.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Runnable.class);
 
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
