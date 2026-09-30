@@ -1,0 +1,13 @@
+{
+  "name": "re-extera-inugram-loader",
+  "version": "2.9.0",
+  "description": "Inugram TypeScript loader for re:extera plugin",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3"
+  }
+}

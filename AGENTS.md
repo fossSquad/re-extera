@@ -2,7 +2,10 @@
 
 ## What this is
 
-Android plugin for exteraGram (Telegram fork) loaded at runtime via DEX injection. Two deliverable artifacts: `classes.dex` (the plugin) and `loader.plugin` (the Python loader that downloads/loads the DEX).
+Android plugin for exteraGram and Inugram (Telegram forks) loaded at runtime via DEX injection. Three deliverable artifacts:
+- `classes.dex` (the core plugin)
+- `loader.plugin` (the Python loader for exteraGram)
+- `re_extera.inu.js` (the TypeScript loader for Inugram)
 
 ## Build commands (exact)
 
@@ -10,13 +13,17 @@ Android plugin for exteraGram (Telegram fork) loaded at runtime via DEX injectio
 # Build the DEX plugin (assembleRelease AAR → d8 → classes.dex)
 ./gradlew buildDex
 
-# Build the Python loader plugin (concatenates loader/*.py → loader.plugin)
-python3 loader/build.py
+# Build all loader plugins (both Python and TypeScript)
+./gradlew buildPlugin
+
+# Or build individually:
+./gradlew buildPlugin -Ptarget=python      # or python3 loader/python/build.py
+./gradlew buildPlugin -Ptarget=typescript  # or cd loader/typescript && pnpm run build
 ```
 
-**Requirements**: JDK 17, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x.
+**Requirements**: JDK 17, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x, Node.js + pnpm.
 
-**Output**: `build/dex/classes.dex` and `build/plugin/loader.plugin`.
+**Output**: `build/dex/classes.dex`, `build/plugin/loader.plugin`, and `build/plugin/re_extera.inu.js`.
 
 ## Project structure
 
@@ -24,13 +31,25 @@ python3 loader/build.py
 re-extera/
 ├── build.gradle                  # Android library build script
 ├── libs/exteragram.jar           # compileOnly dependency (exteraGram SDK stubs)
-├── loader/                       # Python loader (concatenated by build.py)
-│   ├── build.py                  # Concatenation and syntax-checking script
-│   ├── config.py                 # Stores cached versions and rate-limiting data
-│   ├── dex.py                    # GitHub releases fetching and DEX loading engine
-│   ├── plugin.py                 # Main exteraGram BasePlugin implementation & UI dialogs
-│   ├── metadata.py               # Plugin metadata (__version__, __id__, __min_version__)
-│   └── (utils.py, constants.py, imports.py)
+├── loader/
+│   ├── python/                   # Python loader for exteraGram
+│   │   ├── build.py              # Concatenation and syntax-checking script
+│   │   ├── config.py             # Stores cached versions and rate-limiting data
+│   │   ├── dex.py                # GitHub releases fetching and DEX loading engine
+│   │   ├── plugin.py             # Main exteraGram BasePlugin implementation & UI dialogs
+│   │   ├── metadata.py           # Plugin metadata (__version__, __id__, __min_version__)
+│   │   └── (utils.py, constants.py, imports.py)
+│   └── typescript/               # TypeScript loader for Inugram
+│       ├── package.json          # pnpm workspace config
+│       ├── inu.config.ts         # Inugram plugin config & manifest
+│       ├── build.mjs             # Inugram CLI / esbuild bundler script
+│       └── src/
+│           ├── index.ts          # Entry point
+│           ├── constants.ts      # URLs, cache paths, tags
+│           ├── config.ts         # Persistent config manager
+│           ├── dex.ts            # DEX fetcher & JVM loader
+│           ├── i18n.ts           # Loader translations (uk, ru, en)
+│           └── ui.ts             # Settings page registration
 └── src/main/java/ni/shikatu/re_extera/
     ├── Main.java                 # Entry point: initAndStart() → DB init & hooks
     ├── Defaults.java             # Constants for Ghost mode (typing, reading, etc.)

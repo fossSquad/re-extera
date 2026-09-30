@@ -5,12 +5,12 @@ import py_compile
 import sys
 
 LOADER_DIR = os.path.dirname(os.path.abspath(__file__))
-ROOT_DIR = os.path.dirname(LOADER_DIR)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(LOADER_DIR))
 
-if ROOT_DIR not in sys.path:
-    sys.path.insert(0, ROOT_DIR)
+if LOADER_DIR not in sys.path:
+    sys.path.insert(0, LOADER_DIR)
 
-from loader import BUILD_ORDER
+from __init__ import BUILD_ORDER
 
 def build():
     print("Starting build process...")
@@ -43,7 +43,7 @@ def build():
             content += pyfile.read()
             content += "\n\n"
 
-    output_dir = os.path.join(ROOT_DIR, "build", "plugin")
+    output_dir = os.path.join(PROJECT_ROOT, "build", "plugin")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "loader.plugin")
     
@@ -59,7 +59,7 @@ def build():
         print(e)
         return
 
-    print(f"\nSuccess! Generated loader.plugin in {os.path.relpath(output_dir, ROOT_DIR)}")
+    print(f"\nSuccess! Generated loader.plugin in {os.path.relpath(output_dir, PROJECT_ROOT)}")
 
 if __name__ == "__main__":
     build()
