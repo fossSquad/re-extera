@@ -477,6 +477,14 @@ public final class Settings {
         putBool("local_premium", v);
     }
 
+    public static int getRealPremium(int account) {
+        return getInt("real_premium_" + account, -1);
+    }
+
+    public static void setRealPremium(int account, boolean v) {
+        putInt("real_premium_" + account, v ? 1 : 0);
+    }
+
     public static String getCachedPremiumField(int account, String fieldKey) {
         return getString("premium_cache_" + account + "_" + fieldKey, null);
     }

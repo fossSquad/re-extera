@@ -55,7 +55,6 @@ import ni.shikatu.re_extera.hooks.profileactivity.UpdateProfileData;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
 import ni.shikatu.re_extera.hooks.userconfig.isPremium;
-import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FlagSecureReason;
@@ -201,14 +200,20 @@ public final class HookInit {
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
-        if (anyAccountIsPremium()) {
-            Settings.setLocalPremium(false);
-        }
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
         tryHookByArgCount("UserConfig.setCurrentUser", UserConfig.class, "setCurrentUser", 1, new isPremium.SetCurrentUserHook());
         tryHookByArgCount("MessagesController.putUser(2arg)", MessagesController.class, "putUser", 2, new isPremium.PutUserHook());
         tryHookByArgCount("MessagesController.putUser(3arg)", MessagesController.class, "putUser", 3, new isPremium.PutUserHook());
         tryHookByArgCount("MessagesController.putUsers(premium)", MessagesController.class, "putUsers", 2, new isPremium.PutUsersHook());
+        tryHookByArgCount("MessagesStorage.putUsersInternal", MessagesStorage.class, "putUsersInternal", 1, new isPremium.PutUsersInternalHook());
+        for (final java.lang.reflect.Method saveConfigLambda : isPremium.findSaveConfigLambdas()) {
+            tryAddHook("UserConfig." + saveConfigLambda.getName(), new HookRegistrar() {
+                @Override
+                public XC_MethodHook.Unhook register() {
+                    return XposedBridge.hookMethod(saveConfigLambda, new isPremium.SaveConfigHook());
+                }
+            });
+        }
         try {
             Class<?> clazz = Class.forName("android.view.WindowManagerImpl");
             tryHook("WindowManagerImpl.addView", clazz, "addView", new WindowManagerImpl(), View.class, ViewGroup.LayoutParams.class);
@@ -288,17 +293,6 @@ public final class HookInit {
             tryHook("AppNavigationPreferencesActivity.resetToDefault", appNavClass, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
         } catch (ClassNotFoundException ignored) {
         }
-    }
-
-    private static boolean anyAccountIsPremium() {
-        TLRPC.User user;
-        for (int i = 0; i < 16; i++) {
-            UserConfig cfg = UserConfig.getInstance(i);
-            if (cfg != null && cfg.isClientActivated() && (user = cfg.getCurrentUser()) != null && user.premium) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public void onUnload() {
