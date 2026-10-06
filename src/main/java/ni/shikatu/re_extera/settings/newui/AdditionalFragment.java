@@ -7,6 +7,7 @@ import com.exteragram.messenger.utils.system.VibratorUtils;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
+import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.ui.RegexFiltersFragment;
@@ -16,7 +17,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
 import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.Components.BulletinFactory;
@@ -145,15 +145,23 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             case 4:
                 presentFragment(new ShadowbanFragment());
                 break;
-            case 5:
-                if (UserConfig.getInstance(getCurrentAccount()).isPremium() && !Settings.getLocalPremium()) {
+            case 5: {
+                int account = getCurrentAccount();
+                if (Settings.getRealPremium(account) == 1 && !Settings.getLocalPremium()) {
                     BulletinFactory.of(this).createEmojiBulletin("❌", Localization.CANT_USE_WITH_PREMIUM).show();
                 } else {
-                    Settings.setLocalPremium(!Settings.getLocalPremium());
-                    refreshCheckBox(item, position, Settings.getLocalPremium());
+                    boolean enable = !Settings.getLocalPremium();
+                    Settings.setLocalPremium(enable);
+                    if (enable) {
+                        isPremium.refresh(account);
+                    } else {
+                        isPremium.restore(account);
+                    }
+                    refreshCheckBox(item, position, enable);
                     getNotificationCenter().postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
                 }
                 break;
+            }
             case 6:
                 showClearDbDialog();
                 break;
