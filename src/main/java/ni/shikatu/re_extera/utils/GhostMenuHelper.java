@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.utils;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.view.View;
 import android.widget.LinearLayout;
 import com.exteragram.messenger.ExteraConfig;
@@ -71,6 +72,9 @@ public final class GhostMenuHelper {
     }
 
     public static void ensureInitialized() {
+        if (!ForkCompat.isExteraGram()) {
+            return;
+        }
         if (!Settings.isGhostPositionInitialized()) {
             Settings.setGhostInMainMenu(Settings.getAddGhostToDrawer());
             Settings.setGhostMenuIndex(countEditorVisibleItems(ExteraConfig.getMainMenuLayout()));
@@ -81,12 +85,18 @@ public final class GhostMenuHelper {
     }
 
     public static boolean isGhostMenuVisible() {
+        if (!ForkCompat.isExteraGram()) {
+            return false;
+        }
         ensureInitialized();
         if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return false;
         return Settings.getGhostInMainMenu();
     }
 
     public static void setGhostMenuVisible(boolean visible) {
+        if (!ForkCompat.isExteraGram()) {
+            return;
+        }
         ensureInitialized();
         if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         if (visible && Settings.getGhostMenuIndex() < 0) {
@@ -99,12 +109,18 @@ public final class GhostMenuHelper {
     }
 
     public static int getGhostMenuIndex() {
+        if (!ForkCompat.isExteraGram()) {
+            return 0;
+        }
         ensureInitialized();
         if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return 0;
         return Settings.getGhostMenuIndex();
     }
 
     public static void setGhostMenuIndex(int index) {
+        if (!ForkCompat.isExteraGram()) {
+            return;
+        }
         ensureInitialized();
         if (!ni.shikatu.re_extera.hooks.HookInit.isActive) return;
         Settings.setGhostMenuIndex(Math.max(0, index));
@@ -112,6 +128,9 @@ public final class GhostMenuHelper {
     }
 
     public static void clampGhostMenuIndex() {
+        if (!ForkCompat.isExteraGram()) {
+            return;
+        }
         int max = countEditorVisibleItems(ExteraConfig.getMainMenuLayout());
         int current = Settings.getGhostMenuIndex();
         int clamped = Math.max(0, Math.min(current, max));
@@ -144,6 +163,9 @@ public final class GhostMenuHelper {
     }
 
     public static ArrayList<Integer> buildMainSectionDisplayedIds(List<Integer> stableDividerIds) {
+        if (!ForkCompat.isExteraGram()) {
+            return new ArrayList<>();
+        }
         ArrayList<Integer> ids = new ArrayList<>();
         int dividerIndex = 0;
         for (Integer id : ExteraConfig.getMainMenuLayout()) {
@@ -186,6 +208,9 @@ public final class GhostMenuHelper {
     }
 
     public static boolean scrubGhostFromConfig() {
+        if (!ForkCompat.isExteraGram()) {
+            return false;
+        }
         boolean changed = ExteraConfig.getMainMenuLayout().removeIf(new Predicate() { 
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
@@ -205,6 +230,9 @@ public final class GhostMenuHelper {
     }
 
     public static void injectIntoDrawer(Object drawerMenuView, int currentAccount, final BaseFragment fragment) {
+        if (!ForkCompat.isExteraGram()) {
+            return;
+        }
         if (drawerMenuView == null || !(drawerMenuView instanceof View)) {
             return;
         }
@@ -225,7 +253,7 @@ public final class GhostMenuHelper {
             childIndex++;
         }
         DrawerMenuItemView itemView = new DrawerMenuItemView(drawerView.getContext());
-        itemView.setMenuItem(GHOST_MENU_ITEM_ID, currentAccount, R.drawable.ghost, getDrawerTitle());
+        itemView.setMenuItem(GHOST_MENU_ITEM_ID, currentAccount, Res.drawable("ghost", R.drawable.ghost), getDrawerTitle());
         final Runnable onItemClick = getDrawerOnItemClick(drawerMenuView);
         itemView.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
