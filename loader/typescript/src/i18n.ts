@@ -16,6 +16,15 @@ export type TranslationKey =
   | 'logs_copied'
   | 'update_channel'
   | 'select_version'
+  | 'select_tg_version'
+  | 'select_release'
+  | 'select_branch'
+  | 'select_dev_build'
+  | 'no_releases'
+  | 'no_branches'
+  | 'no_runs'
+  | 'no_dex'
+  | 'download_failed'
   | 'dex_settings'
 
 const strings: Record<TranslationKey, [string, string, string]> = {
@@ -52,6 +61,15 @@ const strings: Record<TranslationKey, [string, string, string]> = {
   ],
   update_channel: ['Канал обновлений', 'Канал оновлень', 'Update channel'],
   select_version: ['Выбрать версию', 'Вибрати версію', 'Select Version'],
+  select_tg_version: ['Выберите версию Telegram', 'Виберіть версію Telegram', 'Select Telegram Version'],
+  select_release: ['Выберите релиз', 'Виберіть реліз', 'Select Release'],
+  select_branch: ['Выберите ветку', 'Виберіть гілку', 'Select Branch'],
+  select_dev_build: ['Выберите сборку', 'Виберіть збірку', 'Select Build'],
+  no_releases: ['Релизы не найдены', 'Релізи не знайдено', 'No releases found'],
+  no_branches: ['Ветки не найдены', 'Гілки не знайдено', 'No branches found'],
+  no_runs: ['Сборки не найдены', 'Збірки не знайдено', 'No runs found'],
+  no_dex: ['В этом релизе нет DEX', 'У цьому релізі немає DEX', 'No DEX in this release'],
+  download_failed: ['Ошибка загрузки', 'Помилка завантаження', 'Download failed'],
   dex_settings: ['Настройки DEX', 'Налаштування DEX', 'DEX Settings'],
 }
 

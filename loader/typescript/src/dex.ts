@@ -1,14 +1,25 @@
 import {
+  BRANCHES_API_URL,
   CACHE_DEX_DEV,
   CACHE_DEX_RELEASE,
   CLASS_NAME,
-  DEV_API_URL,
   DEV_RUN_URL_TEMPLATE,
   RELEASE_API_URL,
+  RUNS_API_URL_TEMPLATE,
   TAG,
   USER_AGENT,
 } from './constants'
 import { configManager } from './config'
+
+export interface GitHubRelease {
+  tag_name?: string
+  assets?: Array<{ name?: string; browser_download_url?: string }>
+}
+
+export interface DevRun {
+  id: number
+  head_commit?: { message?: string }
+}
 
 export class DexLoader {
   private dexLoaded = false
@@ -108,35 +119,43 @@ export class DexLoader {
     }
   }
 
-  async downloadLatestRelease(): Promise<boolean> {
+  async fetchReleases(): Promise<GitHubRelease[] | null> {
     try {
-      console.log(TAG, 'Fetching latest release...')
+      console.log(TAG, 'Fetching releases list...')
       const res = await fetch(RELEASE_API_URL, {
         headers: { 'User-Agent': USER_AGENT },
       })
       if (!res.ok) {
         console.error(TAG, 'Failed to fetch releases:', res.statusText)
-        return false
+        return null
       }
+      return (await res.json()) as GitHubRelease[]
+    } catch (e) {
+      console.error(TAG, 'Failed to fetch releases:', e)
+      return null
+    }
+  }
 
-      const releases = (await res.json()) as any[]
-      const currentTg = this.getTelegramVersion()
-
-      let targetRelease = releases.find((r: any) => {
-        const tag = r.tag_name || ''
-        return currentTg && tag.endsWith(`-${currentTg}`)
-      })
-
-      if (!targetRelease && releases.length > 0) {
-        targetRelease = releases[0]
+  groupReleasesByTgVersion(releases: GitHubRelease[]): Map<string, GitHubRelease[]> {
+    const grouped = new Map<string, GitHubRelease[]>()
+    for (const rel of releases) {
+      const tag = rel.tag_name || ''
+      const dash = tag.lastIndexOf('-')
+      if (dash === -1) continue
+      const tgVersion = tag.slice(dash + 1)
+      const list = grouped.get(tgVersion)
+      if (list) {
+        list.push(rel)
+      } else {
+        grouped.set(tgVersion, [rel])
       }
+    }
+    return grouped
+  }
 
-      if (!targetRelease) {
-        console.error(TAG, 'No releases found')
-        return false
-      }
-
-      const asset = targetRelease.assets?.find((a: any) => a.name === 'classes.dex')
+  async downloadRelease(targetRelease: GitHubRelease): Promise<boolean> {
+    try {
+      const asset = targetRelease.assets?.find((a) => a.name?.endsWith('.dex'))
       if (!asset?.browser_download_url) {
         console.error(TAG, 'classes.dex not found in release assets')
         return false
@@ -160,7 +179,7 @@ export class DexLoader {
 
       const success = await this.startFromBytes(bytes)
       if (success) {
-        this.loadedVersion = targetRelease.tag_name
+        this.loadedVersion = targetRelease.tag_name || '?'
       }
       return success
     } catch (e) {
@@ -169,29 +188,70 @@ export class DexLoader {
     }
   }
 
-  async downloadLatestDev(): Promise<boolean> {
+  async downloadLatestRelease(): Promise<boolean> {
+    console.log(TAG, 'Fetching latest release...')
+    const releases = await this.fetchReleases()
+    if (!releases || releases.length === 0) {
+      console.error(TAG, 'No releases found')
+      return false
+    }
+
+    const currentTg = this.getTelegramVersion()
+    let targetRelease = releases.find((r) => {
+      const tag = r.tag_name || ''
+      return currentTg && tag.endsWith(`-${currentTg}`)
+    })
+
+    if (!targetRelease) {
+      targetRelease = releases[0]
+    }
+
+    return await this.downloadRelease(targetRelease)
+  }
+
+  async fetchBranches(): Promise<string[] | null> {
     try {
-      console.log(TAG, 'Fetching latest dev workflow run...')
-      const res = await fetch(DEV_API_URL, {
+      console.log(TAG, 'Fetching branches list...')
+      const res = await fetch(BRANCHES_API_URL, {
+        headers: { 'User-Agent': USER_AGENT },
+      })
+      if (!res.ok) {
+        console.error(TAG, 'Failed to fetch branches:', res.statusText)
+        return null
+      }
+      const data = (await res.json()) as Array<{ name?: string }>
+      return data.map((b) => b.name || '').filter((name) => name.length > 0)
+    } catch (e) {
+      console.error(TAG, 'Failed to fetch branches:', e)
+      return null
+    }
+  }
+
+  async fetchRuns(branch: string): Promise<DevRun[] | null> {
+    try {
+      console.log(TAG, `Fetching workflow runs for branch ${branch}...`)
+      const url = RUNS_API_URL_TEMPLATE.replace('{}', encodeURIComponent(branch))
+      const res = await fetch(url, {
         headers: { 'User-Agent': USER_AGENT },
       })
       if (!res.ok) {
         console.error(TAG, 'Failed to fetch dev workflow runs:', res.statusText)
-        return false
+        return null
       }
+      const data = (await res.json()) as { workflow_runs?: DevRun[] }
+      return data.workflow_runs || []
+    } catch (e) {
+      console.error(TAG, 'Failed to fetch dev workflow runs:', e)
+      return null
+    }
+  }
 
-      const data = (await res.json()) as any
-      const runs = data.workflow_runs || []
-      if (runs.length === 0) {
-        console.error(TAG, 'No dev runs found')
-        return false
-      }
+  async downloadDevRun(runId: number | string): Promise<boolean> {
+    try {
+      const id = String(runId)
+      const downloadUrl = DEV_RUN_URL_TEMPLATE.replace('{}', id)
 
-      const latestRun = runs[0]
-      const runId = String(latestRun.id)
-      const downloadUrl = DEV_RUN_URL_TEMPLATE.replace('{}', runId)
-
-      console.log(TAG, `Downloading dev artifact for run #${runId}...`)
+      console.log(TAG, `Downloading dev artifact for run #${id}...`)
       const zipRes = await fetch(downloadUrl, {
         headers: { 'User-Agent': USER_AGENT },
       })
@@ -210,18 +270,28 @@ export class DexLoader {
       }
 
       inu.fs.write(CACHE_DEX_DEV, dexBytes)
-      this.setCachedVersion(runId)
+      this.setCachedVersion(id)
       await configManager.save()
 
       const success = await this.startFromBytes(dexBytes)
       if (success) {
-        this.loadedVersion = `dev #${runId}`
+        this.loadedVersion = `dev #${id}`
       }
       return success
     } catch (e) {
       console.error(TAG, 'Failed to download dev run:', e)
       return false
     }
+  }
+
+  async downloadLatestDev(): Promise<boolean> {
+    console.log(TAG, 'Fetching latest dev workflow run...')
+    const runs = await this.fetchRuns('master')
+    if (!runs || runs.length === 0) {
+      console.error(TAG, 'No dev runs found')
+      return false
+    }
+    return await this.downloadDevRun(runs[0].id)
   }
 
   private extractDexFromZip(zipBytes: Uint8Array): Uint8Array | null {

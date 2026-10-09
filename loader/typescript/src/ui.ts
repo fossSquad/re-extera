@@ -3,6 +3,102 @@ import { dexLoader } from './dex'
 import { t } from './i18n'
 import { TAG } from './constants'
 
+async function pickReleaseVersion(page: inu.ui.UIPage): Promise<void> {
+  const releases = await dexLoader.fetchReleases()
+  if (!releases || releases.length === 0) {
+    inu.ui.toast(t('no_releases'))
+    return
+  }
+
+  const grouped = dexLoader.groupReleasesByTgVersion(releases)
+  const tgVersions = Array.from(grouped.keys())
+  if (tgVersions.length === 0) {
+    inu.ui.toast(t('no_releases'))
+    return
+  }
+
+  const rawTg = dexLoader.getTelegramVersion().trim()
+  const baseTg = rawTg.split('-')[0]
+  let currentTg: string | null = null
+  if (tgVersions.indexOf(rawTg) !== -1) {
+    currentTg = rawTg
+  } else if (tgVersions.indexOf(baseTg) !== -1) {
+    currentTg = baseTg
+  }
+  if (currentTg) {
+    tgVersions.splice(tgVersions.indexOf(currentTg), 1)
+    tgVersions.unshift(currentTg)
+  }
+
+  const tgIdx = await inu.ui.chooser({
+    title: t('select_tg_version'),
+    items: tgVersions.map((v) => (v === currentTg ? `⭐ ${v}` : v)),
+  })
+  if (tgIdx == null) return
+
+  const tgVersion = tgVersions[tgIdx]
+  const list = grouped.get(tgVersion) || []
+  const labels = list.map((rel) => (rel.tag_name || '').split('-')[0] || '?')
+  if (labels.length > 0 && tgVersion === currentTg) {
+    labels[0] = `⭐ ${labels[0]}`
+  }
+
+  const buildIdx = await inu.ui.chooser({
+    title: t('select_release'),
+    items: labels,
+  })
+  if (buildIdx == null) return
+
+  inu.ui.toast(t('downloading'))
+  const success = await dexLoader.downloadRelease(list[buildIdx])
+  if (success) {
+    inu.ui.toast(t('update_avail'))
+    page.invalidate()
+  } else {
+    inu.ui.toast(t('download_failed'))
+  }
+}
+
+async function pickDevBuild(page: inu.ui.UIPage): Promise<void> {
+  const branches = await dexLoader.fetchBranches()
+  if (!branches || branches.length === 0) {
+    inu.ui.toast(t('no_branches'))
+    return
+  }
+
+  const branchIdx = await inu.ui.chooser({
+    title: t('select_branch'),
+    items: branches,
+  })
+  if (branchIdx == null) return
+
+  const runs = await dexLoader.fetchRuns(branches[branchIdx])
+  if (!runs || runs.length === 0) {
+    inu.ui.toast(t('no_runs'))
+    return
+  }
+
+  const labels = runs.map((r) => `#${r.id} - ${(r.head_commit?.message || '').slice(0, 20)}`)
+  if (labels.length > 0) {
+    labels[0] = `⭐ ${labels[0]}`
+  }
+
+  const runIdx = await inu.ui.chooser({
+    title: t('select_dev_build'),
+    items: labels,
+  })
+  if (runIdx == null) return
+
+  inu.ui.toast(t('downloading'))
+  const success = await dexLoader.downloadDevRun(runs[runIdx].id)
+  if (success) {
+    inu.ui.toast(t('update_avail'))
+    page.invalidate()
+  } else {
+    inu.ui.toast(t('download_failed'))
+  }
+}
+
 export function setupSettingsUI(): void {
   const { ui } = inu
 
@@ -47,6 +143,16 @@ export function setupSettingsUI(): void {
               page.invalidate()
             } else {
               ui.toast(t('up_to_date'))
+            }
+          },
+        }),
+        ui.button({
+          text: t('select_version'),
+          onClick: async () => {
+            if (configManager.channel === 'dev') {
+              await pickDevBuild(page)
+            } else {
+              await pickReleaseVersion(page)
             }
           },
         }),
