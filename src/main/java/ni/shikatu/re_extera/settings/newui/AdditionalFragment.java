@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.text.TextUtils;
+import ni.shikatu.re_extera.utils.Res;
 import android.view.View;
 import ni.shikatu.re_extera.utils.SettingsRegistryHelper;
 import com.exteragram.messenger.utils.system.VibratorUtils;
@@ -188,7 +189,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
             return false;
         }
         view.performHapticFeedback(VibratorUtils.getType(3), 1);
-        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
+        ItemOptions.makeOptions(this, view).add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 AndroidUtilities.addToClipboard(settingLink);

@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.utils;
 
 import android.os.Bundle;
+import ni.shikatu.re_extera.utils.Res;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,12 +25,12 @@ public final class RestrictedMessageUtils {
     }
 
     public static void createMenu(final BaseFragment fragment, View view, final MessageObject toForward) {
-        ItemOptions.makeOptions(fragment, view).add(R.drawable.msg_forward, LocaleController.getString(R.string.Forward), new Runnable() { 
+        ItemOptions.makeOptions(fragment, view).add(Res.drawable("msg_forward", R.drawable.msg_forward), LocaleController.getString(Res.string("Forward", R.string.Forward)), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 RestrictedMessageUtils.forwardMessages(fragment, new ArrayList(Collections.singletonList(toForward)));
             }
-        }).add(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { 
+        }).add(Res.drawable("msg_saved", R.drawable.msg_saved), LocaleController.getString(Res.string("SavedMessages", R.string.SavedMessages)), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 RestrictedMessageUtils.saveMessagesToSaved(fragment, new ArrayList(Collections.singletonList(toForward)));
@@ -70,7 +71,7 @@ public final class RestrictedMessageUtils {
                 if (dids.size() == 1) {
                     bulletin.showForwardedBulletinWithTag(dids.get(0).dialogId, messages.size());
                 } else {
-                    bulletin.createSimpleBulletin(R.raw.forward, LocaleController.formatPluralString("ForwardedMessageCount", messages.size(), new Object[0]), LocaleController.formatPluralString("ForwardedToChatsCount", dids.size(), new Object[0])).show();
+                    bulletin.createSimpleBulletin(Res.raw("forward", R.raw.forward), LocaleController.formatPluralString("ForwardedMessageCount", messages.size(), new Object[0]), LocaleController.formatPluralString("ForwardedToChatsCount", dids.size(), new Object[0])).show();
                 }
                 return true;
             }

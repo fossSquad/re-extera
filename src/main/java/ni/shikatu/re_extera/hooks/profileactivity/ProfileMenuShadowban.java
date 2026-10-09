@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.profileactivity;
 
 import android.view.View;
+import ni.shikatu.re_extera.utils.Res;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
 import ni.shikatu.re_extera.Main;
@@ -39,7 +40,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
             final long userId = ((Long) ReflectionUtils.get(USER_ID_FIELD, activity)).longValue();
             if (otherItem != null && userId > 0) {
                 if (ShadowbanCache.isShadowbanned(userId)) {
-                    ActionBarMenuSubItem subItem = otherItem.addSubItem(0, R.drawable.msg_block2, Localization.REMOVE_FROM_SHADOWBAN);
+                    ActionBarMenuSubItem subItem = otherItem.addSubItem(0, Res.drawable("msg_block2", R.drawable.msg_block2), Localization.REMOVE_FROM_SHADOWBAN);
                     subItem.setOnClickListener(new View.OnClickListener() { 
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view) {
@@ -47,7 +48,7 @@ public class ProfileMenuShadowban extends XC_MethodHook {
                         }
                     });
                 } else {
-                    ActionBarMenuSubItem subItem2 = otherItem.addSubItem(0, R.drawable.msg_block, Localization.ADD_TO_SHADOWBAN);
+                    ActionBarMenuSubItem subItem2 = otherItem.addSubItem(0, Res.drawable("msg_block", R.drawable.msg_block), Localization.ADD_TO_SHADOWBAN);
                     subItem2.setOnClickListener(new View.OnClickListener() { 
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view) {

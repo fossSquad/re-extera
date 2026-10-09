@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,10 +45,10 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
 
     public View createView(Context context) {
         int sizeDp = AndroidUtilities.dp(28.0f);
-        this.ghostIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.ghost), sizeDp, sizeDp);
-        this.deletedIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.menu_hide_gift), sizeDp, sizeDp);
-        this.customizationIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_theme), sizeDp, sizeDp);
-        this.additionalIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, R.drawable.msg_list), sizeDp, sizeDp);
+        this.ghostIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, Res.drawable("ghost", R.drawable.ghost)), sizeDp, sizeDp);
+        this.deletedIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, Res.drawable("menu_hide_gift", R.drawable.menu_hide_gift)), sizeDp, sizeDp);
+        this.customizationIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, Res.drawable("msg_theme", R.drawable.msg_theme)), sizeDp, sizeDp);
+        this.additionalIcon = DrawableUtils.resize(context.getResources(), ContextCompat.getDrawable(context, Res.drawable("msg_list", R.drawable.msg_list)), sizeDp, sizeDp);
         return super.createView(context);
     }
 

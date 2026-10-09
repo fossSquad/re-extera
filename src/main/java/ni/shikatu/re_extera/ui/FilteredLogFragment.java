@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.ui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.content.DialogInterface;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -27,11 +28,11 @@ public class FilteredLogFragment extends BasePreferencesActivity {
     public View createView(Context context) {
         View view = super.createView(context);
         if (this.actionBar != null) {
-            this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+            this.actionBar.setBackButtonImage(Res.drawable("ic_ab_back", R.drawable.ic_ab_back));
             this.actionBar.setAllowOverlayTitle(true);
             this.actionBar.setTitle(Localization.FILTERED_LOG_TITLE);
             this.actionBar.createMenu().clearItems();
-            this.actionBar.createMenu().addItem(1, R.drawable.msg_delete);
+            this.actionBar.createMenu().addItem(1, Res.drawable("msg_delete", R.drawable.msg_delete));
             this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
                 @Override
                 public void onItemClick(int id) {
@@ -122,12 +123,12 @@ public class FilteredLogFragment extends BasePreferencesActivity {
         sb.append("\n").append(entry.text);
 
         builder.setMessage(sb.toString());
-        builder.setPositiveButton(LocaleController.getString(R.string.Copy), new AlertDialog.OnButtonClickListener() {
+        builder.setPositiveButton(LocaleController.getString(Res.string("Copy", R.string.Copy)), new AlertDialog.OnButtonClickListener() {
             @Override
             public void onClick(AlertDialog alertDialog, int i) {
                 AndroidUtilities.addToClipboard(entry.text);
                 BulletinFactory.of(FilteredLogFragment.this).createSimpleBulletin(
-                        ContextCompat.getDrawable(getContext(), R.drawable.msg_copy),
+                        ContextCompat.getDrawable(getContext(), Res.drawable("msg_copy", R.drawable.msg_copy)),
                         Localization.COPIED
                 ).show();
             }

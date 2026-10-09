@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.ui;
 
 import android.app.Activity;
+import ni.shikatu.re_extera.utils.Res;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -53,16 +54,16 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     public View createView(Context context) {
         View view = super.createView(context);
         if (this.actionBar != null) {
-            this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+            this.actionBar.setBackButtonImage(Res.drawable("ic_ab_back", R.drawable.ic_ab_back));
             this.actionBar.setAllowOverlayTitle(true);
             this.actionBar.setTitle(Localization.FILTERS);
             this.actionBar.createMenu().clearItems();
-            this.actionBar.createMenu().addItem(1, R.drawable.msg_add);
-            org.telegram.ui.ActionBar.ActionBarMenuItem otherItem = this.actionBar.createMenu().addItem(2, R.drawable.ic_ab_other);
-            otherItem.addSubItem(10, R.drawable.msg_bot, Localization.TEST_FILTERS);
-            otherItem.addSubItem(11, R.drawable.msg_log, Localization.FILTERED_LOG);
-            otherItem.addSubItem(12, R.drawable.msg_download, Localization.IMPORT_FILTERS);
-            otherItem.addSubItem(13, R.drawable.msg_share, Localization.EXPORT_FILTERS);
+            this.actionBar.createMenu().addItem(1, Res.drawable("msg_add", R.drawable.msg_add));
+            org.telegram.ui.ActionBar.ActionBarMenuItem otherItem = this.actionBar.createMenu().addItem(2, Res.drawable("ic_ab_other", R.drawable.ic_ab_other));
+            otherItem.addSubItem(10, Res.drawable("msg_bot", R.drawable.msg_bot), Localization.TEST_FILTERS);
+            otherItem.addSubItem(11, Res.drawable("msg_log", R.drawable.msg_log), Localization.FILTERED_LOG);
+            otherItem.addSubItem(12, Res.drawable("msg_download", R.drawable.msg_download), Localization.IMPORT_FILTERS);
+            otherItem.addSubItem(13, Res.drawable("msg_share", R.drawable.msg_share), Localization.EXPORT_FILTERS);
 
             this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: ni.shikatu.re_extera.ui.RegexFiltersFragment.1
                 public void onItemClick(int id) {
@@ -234,7 +235,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
         builder.setTitle(filter);
         CharSequence[] items = {Localization.EDIT_REGEX_FILTER, Localization.COPY_FILTER, Localization.DELETE_FILTER};
-        int[] icons = {R.drawable.floating_pencil, R.drawable.msg_copy, R.drawable.msg_delete};
+        int[] icons = {Res.drawable("floating_pencil", R.drawable.floating_pencil), Res.drawable("msg_copy", R.drawable.msg_copy), Res.drawable("msg_delete", R.drawable.msg_delete)};
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
@@ -252,7 +253,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
                 break;
             case 1:
                 if (AndroidUtilities.addToClipboard(filter)) {
-                    BulletinFactory.of(this).createSimpleBulletin(ContextCompat.getDrawable(getContext(), R.drawable.msg_copy), Localization.COPIED).show();
+                    BulletinFactory.of(this).createSimpleBulletin(ContextCompat.getDrawable(getContext(), Res.drawable("msg_copy", R.drawable.msg_copy)), Localization.COPIED).show();
                 }
                 break;
             case 2:
@@ -435,7 +436,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setPositiveButton(Localization.TEST_FILTERS, (dialog, which) -> {
             checkAction.run();
         });
-        builder.setNegativeButton(LocaleController.getString(R.string.Close), null);
+        builder.setNegativeButton(LocaleController.getString(Res.string("Close", R.string.Close)), null);
         AlertDialog dialog = builder.create();
         dialog.show();
 
@@ -451,7 +452,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         BottomSheet.Builder builder = new BottomSheet.Builder(context);
         builder.setTitle(Localization.IMPORT_FILTERS);
         CharSequence[] items = {Localization.FROM_FILE, Localization.FROM_CLIPBOARD, Localization.IMPORT_FILTERS};
-        int[] icons = {R.drawable.msg_openin, R.drawable.msg_copy, R.drawable.msg_edit};
+        int[] icons = {Res.drawable("msg_openin", R.drawable.msg_openin), Res.drawable("msg_copy", R.drawable.msg_copy), Res.drawable("msg_edit", R.drawable.msg_edit)};
         builder.setItems(items, icons, (dialog, which) -> {
             if (which == 0) {
                 chooseFileForImport();
@@ -505,17 +506,17 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         try {
             android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getParentActivity().getSystemService(Context.CLIPBOARD_SERVICE);
             if (clipboard == null || !clipboard.hasPrimaryClip() || clipboard.getPrimaryClip().getItemCount() == 0) {
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.IMPORT_FILTERS_EMPTY).show();
                 return;
             }
             CharSequence clipText = clipboard.getPrimaryClip().getItemAt(0).getText();
             if (clipText == null || clipText.toString().trim().isEmpty()) {
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.IMPORT_FILTERS_EMPTY).show();
                 return;
             }
             processImportContent(clipText.toString());
         } catch (Exception e) {
-            BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, e.getMessage()).show();
+            BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), e.getMessage()).show();
         }
     }
 
@@ -549,7 +550,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     private void processImportContent(String content) {
         List<String> parsed = ni.shikatu.re_extera.utils.FilterImportExportUtils.parseFilters(content);
         if (parsed.isEmpty()) {
-            BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.IMPORT_FILTERS_EMPTY).show();
+            BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.IMPORT_FILTERS_EMPTY).show();
             return;
         }
         int added = ReExteraDb.get().addRegexFiltersBatch(parsed);
@@ -558,7 +559,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         if (getAdapter() != null) {
             getAdapter().update(true);
         }
-        BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, String.format(Localization.IMPORT_FILTERS_SUCCESS, added)).show();
+        BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), String.format(Localization.IMPORT_FILTERS_SUCCESS, added)).show();
     }
 
     public void showExportOptions() {
@@ -567,16 +568,16 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         BottomSheet.Builder builder = new BottomSheet.Builder(context);
         builder.setTitle(Localization.EXPORT_FILTERS);
         CharSequence[] items = {"JSON", "TXT"};
-        int[] icons = {R.drawable.msg_copy, R.drawable.msg_copy};
+        int[] icons = {Res.drawable("msg_copy", R.drawable.msg_copy), Res.drawable("msg_copy", R.drawable.msg_copy)};
         builder.setItems(items, icons, (dialog, which) -> {
             if (which == 0) {
                 String json = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToJson(this.filters);
                 AndroidUtilities.addToClipboard(json);
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.COPIED).show();
+                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.COPIED).show();
             } else if (which == 1) {
                 String txt = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToPlainText(this.filters);
                 AndroidUtilities.addToClipboard(txt);
-                BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_info, Localization.COPIED).show();
+                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.COPIED).show();
             }
         });
         builder.show();

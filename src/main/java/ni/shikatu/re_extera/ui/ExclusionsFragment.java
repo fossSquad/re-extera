@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.ui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
@@ -34,7 +35,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     public View createView(Context context) {
         View view = super.createView(context);
         if (this.actionBar != null) {
-            this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+            this.actionBar.setBackButtonImage(Res.drawable("ic_ab_back", R.drawable.ic_ab_back));
             this.actionBar.setTitle(Localization.EXCLUSIONS);
             this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: ni.shikatu.re_extera.ui.ExclusionsFragment.1
                 public void onItemClick(int id) {
@@ -168,7 +169,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     private View createEmptyView(Context context) {
         TextInfoPrivacyCell cell = new TextInfoPrivacyCell(context);
         cell.setText(Localization.NO_EXLCUSIONS);
-        cell.setBackgroundDrawable(Theme.getThemedDrawable(context, R.drawable.greydivider_bottom, Theme.key_windowBackgroundGrayShadow));
+        cell.setBackgroundDrawable(Theme.getThemedDrawable(context, Res.drawable("greydivider_bottom", R.drawable.greydivider_bottom), Theme.key_windowBackgroundGrayShadow));
         return cell;
     }
 
@@ -177,7 +178,7 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
         builder.setTitle(dialogName);
         CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.EDIT_FILTER, Localization.DELETE_FROM_EXCLUSIONS};
-        int[] icons = {R.drawable.msg_openprofile, R.drawable.msg_archive_hide, R.drawable.floating_pencil, R.drawable.msg_permissions, R.drawable.msg_delete};
+        int[] icons = {Res.drawable("msg_openprofile", R.drawable.msg_openprofile), Res.drawable("msg_archive_hide", R.drawable.msg_archive_hide), Res.drawable("floating_pencil", R.drawable.floating_pencil), Res.drawable("msg_permissions", R.drawable.msg_permissions), Res.drawable("msg_delete", R.drawable.msg_delete)};
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {

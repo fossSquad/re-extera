@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -361,11 +362,11 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 view.performHapticFeedback(VibratorUtils.getType(3), 1);
                 item.setLocked(newLocked);
                 if (view instanceof org.telegram.ui.Cells.CheckBoxCell) {
-                    ((org.telegram.ui.Cells.CheckBoxCell) view).setIcon(newLocked ? R.drawable.permission_locked : 0);
+                    ((org.telegram.ui.Cells.CheckBoxCell) view).setIcon(newLocked ? Res.drawable("permission_locked", R.drawable.permission_locked) : 0);
                 }
                 this.listView.adapter.update(false);
                 org.telegram.ui.Components.BulletinFactory.of(this).createSimpleBulletin(
-                        newLocked ? R.drawable.permission_locked : R.drawable.menu_unlock,
+                        newLocked ? Res.drawable("permission_locked", R.drawable.permission_locked) : Res.drawable("menu_unlock", R.drawable.menu_unlock),
                         newLocked ? Localization.GHOST_OPTION_PINNED : Localization.GHOST_OPTION_UNPINNED
                 ).show();
                 return true;
@@ -377,7 +378,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             return false;
         }
         view.performHapticFeedback(VibratorUtils.getType(3), 1);
-        ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
+        ItemOptions.makeOptions(this, view).add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 AndroidUtilities.addToClipboard(settingLink);

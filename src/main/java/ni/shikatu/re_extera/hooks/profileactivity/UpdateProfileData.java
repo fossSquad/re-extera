@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.profileactivity;
 
 import android.util.SparseArray;
+import ni.shikatu.re_extera.utils.Res;
 import android.util.SparseLongArray;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
@@ -194,7 +195,7 @@ public class UpdateProfileData extends XC_MethodHook {
 
     private String formatLastSeen(int timestamp) {
         if (timestamp == 0) {
-            return LocaleController.getString(R.string.Online);
+            return LocaleController.getString(Res.string("Online", R.string.Online));
         }
         return LocaleController.formatDateTime(timestamp, true);
     }
