@@ -214,22 +214,35 @@ public final class UItemUtils {
         }
 
         switchListeners.put(id, onSwitch);
-        return UItem.asExpandableSwitch(id, text, subtitle);
+        UItem item = UItem.asExpandableSwitch(id, text, subtitle);
+        item.onBind(view -> bindSwitch(id, view));
+        return item;
     }
 
     /**
      * Attaches the listener parked by {@link #asExpandableSwitch} to the switch view of the row,
      * so that tapping the switch toggles the option while tapping the rest of the row expands or
-     * collapses it. Safe to call more than once; the listener is consumed on the first call.
+     * collapses it. Safe to call more than once because RecyclerView rebinds rows.
      */
     public static void bindSwitch(int id, android.view.View row) {
-        android.view.View.OnClickListener listener = switchListeners.remove(id);
+        android.view.View.OnClickListener listener = switchListeners.get(id);
         if (listener == null) {
             return;
         }
 
         if (row instanceof org.telegram.ui.Cells.TextCheckCell2) {
-            org.telegram.ui.Components.Switch checkBox = ((org.telegram.ui.Cells.TextCheckCell2) row).getCheckBox();
+            org.telegram.ui.Cells.TextCheckCell2 cell = (org.telegram.ui.Cells.TextCheckCell2) row;
+            try {
+                java.lang.reflect.Field clickArea = cell.getClass().getDeclaredField("checkBoxClickArea");
+                clickArea.setAccessible(true);
+                android.view.View view = (android.view.View) clickArea.get(cell);
+                if (view != null) {
+                    view.setOnClickListener(listener);
+                    return;
+                }
+            } catch (Throwable ignored) {}
+
+            org.telegram.ui.Components.Switch checkBox = cell.getCheckBox();
             if (checkBox != null) {
                 checkBox.setOnClickListener(listener);
                 return;
@@ -239,4 +252,3 @@ public final class UItemUtils {
         row.setOnClickListener(listener);
     }
 }
-
