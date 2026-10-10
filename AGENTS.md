@@ -39,10 +39,9 @@ re-extera/
 │   │   ├── plugin.py             # Main exteraGram BasePlugin implementation & UI dialogs
 │   │   ├── metadata.py           # Plugin metadata (__version__, __id__, __min_version__)
 │   │   └── (utils.py, constants.py, imports.py)
-│   └── typescript/               # TypeScript loader for Inugram
+│   └── typescript/               # TypeScript loader for Inugram (built with @inugram/cli)
 │       ├── package.json          # pnpm workspace config
 │       ├── inu.config.ts         # Inugram plugin config & manifest
-│       ├── build.mjs             # Inugram CLI / esbuild bundler script
 │       └── src/
 │           ├── index.ts          # Entry point
 │           ├── constants.ts      # URLs, cache paths, tags
