@@ -292,7 +292,8 @@ public final class HookInit {
 
     private static boolean anyAccountIsPremium() {
         TLRPC.User user;
-        for (int i = 0; i < 16; i++) {
+        int maxAccounts = UserConfig.getMaxAccountCount();
+        for (int i = 0; i < maxAccounts; i++) {
             UserConfig cfg = UserConfig.getInstance(i);
             if (cfg != null && cfg.isClientActivated() && (user = cfg.getCurrentUser()) != null && user.premium) {
                 return true;

@@ -290,7 +290,8 @@ public final class GhostMenuHelper {
     public static void syncOnlineStatus() {
         boolean hideOnline = Settings.getHideOnlineWithGhost();
         boolean offline = hideOnline || ApplicationLoader.mainInterfacePaused;
-        for (int i = 0; i < UserConfig.MAX_ACCOUNT_COUNT; i++) {
+        int maxAccounts = UserConfig.getMaxAccountCount();
+        for (int i = 0; i < maxAccounts; i++) {
             UserConfig cfg = UserConfig.getInstance(i);
             if (cfg != null && cfg.isClientActivated()) {
                 final int account = i;
