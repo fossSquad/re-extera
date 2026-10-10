@@ -1,6 +1,12 @@
 name: Build Dex and Plugins
 
 on:
+  workflow_dispatch:
+    inputs:
+      gradle_args:
+        description: 'Extra args for Gradle (e.g. --warning-mode all)'
+        required: false
+        default: ''
   push:
     branches: [ "master", "main" ]
     tags: [ "v*" ]
@@ -51,8 +57,8 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        ./gradlew buildDex
-        ./gradlew buildPlugin
+        ./gradlew buildDex ${{ inputs.gradle_args }}
+        ./gradlew buildPlugin ${{ inputs.gradle_args }}
 
     - name: Copy build artifacts to root
       run: |
