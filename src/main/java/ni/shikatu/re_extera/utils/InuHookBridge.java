@@ -212,10 +212,10 @@ public final class InuHookBridge {
     }
 
     /** Callback object handed to lsplant; the method signature must stay exactly (Object[]) -> Object. */
-    private static final class Hooker {
+    public static final class Hooker {
         private final Entry entry;
 
-        Hooker(Entry entry) {
+        public Hooker(Entry entry) {
             this.entry = entry;
         }
 
