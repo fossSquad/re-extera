@@ -47,7 +47,7 @@ jobs:
     - name: Install loader/typescript dependencies
       run: |
         cd loader/typescript
-        pnpm install --no-frozen-lockfile
+        pnpm install --frozen-lockfile
 
     - name: Build with Gradle
       run: |
