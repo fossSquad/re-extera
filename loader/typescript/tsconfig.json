@@ -1,10 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "skipLibCheck": true
-  },
-  "include": ["src/**/*", "types/**/*"]
+  "extends": "@inugram/plugin-types/tsconfig.json",
+  "include": ["src/**/*"]
 }

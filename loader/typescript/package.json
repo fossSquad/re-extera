@@ -4,10 +4,14 @@
   "description": "Inugram TypeScript loader for re:extera plugin",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "inu build",
+    "check": "inu check",
+    "dev": "inu dev",
+    "push": "inu push"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
+    "@inugram/cli": "44.0.0",
+    "@inugram/plugin-types": "44.0.0",
     "typescript": "^5.9.3"
   }
 }
