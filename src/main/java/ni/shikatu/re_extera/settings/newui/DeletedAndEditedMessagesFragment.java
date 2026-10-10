@@ -183,21 +183,23 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
                 final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
+                ItemOptions options = ItemOptions.makeOptions(this, view);
                 if (!TextUtils.isEmpty(settingLink)) {
-                    view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
+                    options.add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             AndroidUtilities.addToClipboard(settingLink);
                         }
-                    }).add(Res.drawable("msg_settings", R.drawable.msg_settings), Localization.ADDITIONAL_SETTINGS, new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            showAdditionalDeleted();
-                        }
-                    }).show();
-                    break;
+                    });
                 }
+                options.add(Res.drawable("msg_settings", R.drawable.msg_settings), Localization.ADDITIONAL_SETTINGS, new Runnable() { 
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        showAdditionalDeleted();
+                    }
+                });
+                view.performHapticFeedback(VibratorUtils.getType(3), 1);
+                options.show();
                 break;
             default:
                 final String settingLink2 = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
