@@ -1,6 +1,12 @@
 name: Build Dex and Plugins
 
 on:
+  workflow_dispatch:
+    inputs:
+      gradle_args:
+        description: 'Extra args for Gradle (e.g. --warning-mode all)'
+        required: false
+        default: ''
   push:
     branches: [ "master", "main" ]
     tags: [ "v*" ]
@@ -12,30 +18,32 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+    - name: Set up JDK 25
+      uses: actions/setup-java@v6
       with:
-        java-version: '17'
+        java-version: '25'
         distribution: 'temurin'
-        cache: gradle
+
+    - name: Set up Gradle caching
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Set up Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
-        node-version: '20'
+        node-version: '22'
 
     - name: Set up pnpm
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v6
       with:
         version: 10
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.x'
 
@@ -45,12 +53,12 @@ jobs:
     - name: Install loader/typescript dependencies
       run: |
         cd loader/typescript
-        pnpm install --no-frozen-lockfile
+        pnpm install --frozen-lockfile
 
     - name: Build with Gradle
       run: |
-        ./gradlew buildDex
-        ./gradlew buildPlugin
+        ./gradlew buildDex ${{ inputs.gradle_args }}
+        ./gradlew buildPlugin ${{ inputs.gradle_args }}
 
     - name: Copy build artifacts to root
       run: |
@@ -59,7 +67,7 @@ jobs:
         cp build/plugin/loader.inu.js .
 
     - name: Upload Dev artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: re-extera-dev
         path: |
@@ -80,7 +88,7 @@ jobs:
 
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
         files: |
