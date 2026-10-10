@@ -48,7 +48,7 @@ public abstract class BasePreferencesActivity extends BaseFragment {
     }
 
     public int getListTopPadding(int topPadding) {
-        return topPadding;
+        return topPadding + ActionBar.getCurrentActionBarHeight();
     }
 
     @Override
@@ -77,6 +77,8 @@ public abstract class BasePreferencesActivity extends BaseFragment {
                 (items, adapter) -> fillItems(items, adapter),
                 this::onClick,
                 this::onLongClick);
+        listView.setSections();
+        listView.adapter.setApplyBackground(false);
         listView.setClipToPadding(false);
         listView.setPadding(0, getListTopPadding(AndroidUtilities.statusBarHeight), 0, 0);
         layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
