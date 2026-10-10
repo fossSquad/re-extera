@@ -1,5 +1,6 @@
 import {
   BRANCHES_API_URL,
+  CACHE_DEX_DIR,
   CACHE_DEX_DEV,
   CACHE_DEX_RELEASE,
   CLASS_NAME,
@@ -79,10 +80,12 @@ export class DexLoader {
 
     const cacheFile = this.getCacheFileName()
     try {
-      if (inu.fs.exists(cacheFile)) {
+      const cachePath = this.getDexCachePath(cacheFile)
+      const File = inu.jvm.cls('java.io.File')
+      const file = new File(cachePath)
+      if (file.call('isFile')) {
         console.log(TAG, `Loading from cache: ${cacheFile}`)
-        const bytes = inu.fs.read(cacheFile)
-        const success = await this.startFromBytes(bytes)
+        const success = await this.startFromPath(cachePath)
         if (success) {
           const cachedVer = this.getCachedVersion()
           if (cachedVer) {
@@ -104,8 +107,7 @@ export class DexLoader {
       if (!inu.fs.exists(localPath)) {
         return false
       }
-      const bytes = inu.fs.read(localPath)
-      const success = await this.startFromBytes(bytes)
+      const success = await this.copyAndStart(localPath, this.getCacheFileName())
       if (success) {
         this.loadedVersion = 'local'
       }
@@ -190,13 +192,11 @@ export class DexLoader {
       const buffer = await dexRes.arrayBuffer()
       const bytes = new Uint8Array(buffer)
 
-      inu.fs.write(CACHE_DEX_RELEASE, bytes)
-      this.removeLocalDex()
-      this.setCachedVersion(targetRelease.tag_name)
-      await configManager.save()
-
-      const success = await this.startFromBytes(bytes)
+      const success = await this.cacheAndStart(bytes, CACHE_DEX_RELEASE)
       if (success) {
+        this.removeLocalDex()
+        this.setCachedVersion(targetRelease.tag_name)
+        await configManager.save()
         this.loadedVersion = targetRelease.tag_name || '?'
       }
       return success
@@ -280,20 +280,11 @@ export class DexLoader {
 
       const buffer = await zipRes.arrayBuffer()
       const zipBytes = new Uint8Array(buffer)
-      const dexBytes = this.extractDexFromZip(zipBytes)
-
-      if (!dexBytes || dexBytes.length === 0) {
-        console.error(TAG, 'Could not extract classes.dex from dev zip')
-        return false
-      }
-
-      inu.fs.write(CACHE_DEX_DEV, dexBytes)
-      this.removeLocalDex()
-      this.setCachedVersion(id)
-      await configManager.save()
-
-      const success = await this.startFromBytes(dexBytes)
+      const success = await this.extractAndStart(zipBytes, CACHE_DEX_DEV)
       if (success) {
+        this.removeLocalDex()
+        this.setCachedVersion(id)
+        await configManager.save()
         this.loadedVersion = `dev #${id}`
       }
       return success
@@ -313,43 +304,135 @@ export class DexLoader {
     return await this.downloadDevRun(runs[0].id)
   }
 
-  private extractDexFromZip(zipBytes: Uint8Array): Uint8Array | null {
+  private extractAndStart(zipBytes: Uint8Array, fileName: string): Promise<boolean> {
     try {
+      const cachePath = this.getDexCachePath(fileName)
       const ByteArrayInputStream = inu.jvm.cls('java.io.ByteArrayInputStream')
       const ZipInputStream = inu.jvm.cls('java.util.zip.ZipInputStream')
-      const ByteArrayOutputStream = inu.jvm.cls('java.io.ByteArrayOutputStream')
+      const FileOutputStream = inu.jvm.cls('java.io.FileOutputStream')
 
+      this.prepareDexCache(cachePath)
       const bais = new ByteArrayInputStream(zipBytes)
       const zis = new ZipInputStream(bais)
 
-      let entry = zis.call('getNextEntry') as JavaObject | null
-      while (entry != null) {
-        const name = entry.call('getName') as string
-        if (name === 'classes.dex' || name.endsWith('/classes.dex')) {
-          const baos = new ByteArrayOutputStream()
-          const buffer = new Uint8Array(4096)
-          let len = zis.call('read', buffer) as number
-          while (len > 0) {
-            baos.call('write', buffer, 0, len)
-            len = zis.call('read', buffer) as number
+      try {
+        let entry = zis.call('getNextEntry') as JavaObject | null
+        while (entry != null) {
+          const name = entry.call('getName') as string
+          if (name === 'classes.dex' || name.endsWith('/classes.dex')) {
+            const output = new FileOutputStream(cachePath, false)
+            try {
+              const copied = zis.call('transferTo', output) as number
+              if (copied <= 0) {
+                throw new Error('Extracted classes.dex is empty')
+              }
+            } finally {
+              output.call('close')
+            }
+            this.makeDexReadOnly(cachePath)
+            return this.startFromPath(cachePath)
           }
-          zis.call('closeEntry')
-          zis.call('close')
-          return baos.call('toByteArray') as Uint8Array
+          entry = zis.call('getNextEntry') as JavaObject | null
         }
-        entry = zis.call('getNextEntry') as JavaObject | null
+      } finally {
+        zis.call('close')
       }
-      zis.call('close')
     } catch (e) {
       console.error(TAG, 'Error extracting DEX from zip via Java:', e)
     }
-    return null
+    console.error(TAG, 'Could not extract classes.dex from dev zip')
+    return Promise.resolve(false)
   }
 
-  async startFromBytes(bytes: Uint8Array): Promise<boolean> {
+  private getDexCachePath(fileName: string): string {
+    const AppLoader = inu.jvm.cls('org.telegram.messenger.ApplicationLoader')
+    const ctx = AppLoader.getStaticField('applicationContext') as JavaObject
+    const filesDir = ctx.call('getCodeCacheDir') as JavaObject
+    return `${filesDir.call('getAbsolutePath') as string}/${CACHE_DEX_DIR}/${fileName}`
+  }
+
+  private async cacheAndStart(bytes: Uint8Array, fileName: string): Promise<boolean> {
     try {
-      console.log(TAG, `Loading DEX into Inugram (${bytes.length} bytes)...`)
-      inu.jvm.loadDex(bytes)
+      const cachePath = this.getDexCachePath(fileName)
+      const FileOutputStream = inu.jvm.cls('java.io.FileOutputStream')
+      this.prepareDexCache(cachePath)
+      const output = new FileOutputStream(cachePath, false)
+      try {
+        output.call('write', bytes)
+      } finally {
+        output.call('close')
+      }
+      this.makeDexReadOnly(cachePath)
+      return await this.startFromPath(cachePath)
+    } catch (e) {
+      console.error(TAG, 'Failed to cache DEX:', e)
+      return false
+    }
+  }
+
+  private async copyAndStart(sourcePath: string, fileName: string): Promise<boolean> {
+    try {
+      const cachePath = this.getDexCachePath(fileName)
+      const File = inu.jvm.cls('java.io.File')
+      const FileInputStream = inu.jvm.cls('java.io.FileInputStream')
+      const FileOutputStream = inu.jvm.cls('java.io.FileOutputStream')
+      this.prepareDexCache(cachePath)
+
+      const input = new FileInputStream(sourcePath)
+      const output = new FileOutputStream(cachePath, false)
+      try {
+        const inputChannel = input.call('getChannel') as JavaObject
+        const outputChannel = output.call('getChannel') as JavaObject
+        const sourceSize = inputChannel.call('size') as number
+        const copied = inputChannel.call('transferTo', 0, sourceSize, outputChannel) as number
+        if (copied !== sourceSize) {
+          throw new Error(`Copied DEX size does not match source: ${copied} != ${sourceSize}`)
+        }
+      } finally {
+        output.call('close')
+        input.call('close')
+      }
+
+      const source = new File(sourcePath)
+      const cached = new File(cachePath)
+      if (source.call('length') !== cached.call('length')) {
+        throw new Error(`Copied DEX size does not match source: ${source.call('length')} != ${cached.call('length')}`)
+      }
+      this.makeDexReadOnly(cachePath)
+      return await this.startFromPath(cachePath)
+    } catch (e) {
+      console.error(TAG, 'Failed to copy local DEX:', e)
+      return false
+    }
+  }
+
+  private prepareDexCache(path: string): void {
+    const File = inu.jvm.cls('java.io.File')
+    const file = new File(path)
+    const parent = file.call('getParentFile') as JavaObject
+    if (!parent.call('isDirectory') && !parent.call('mkdirs')) {
+      throw new Error(`Could not create DEX cache directory: ${parent.call('getAbsolutePath')}`)
+    }
+    if (file.call('exists')) {
+      file.call('setWritable', true)
+      if (!file.call('delete')) {
+        throw new Error(`Could not replace DEX cache: ${path}`)
+      }
+    }
+  }
+
+  private makeDexReadOnly(path: string): void {
+    const File = inu.jvm.cls('java.io.File')
+    const file = new File(path)
+    if (!file.call('setReadOnly')) {
+      throw new Error(`Could not mark DEX cache read-only: ${path}`)
+    }
+  }
+
+  private async startFromPath(path: string): Promise<boolean> {
+    try {
+      console.log(TAG, `Loading DEX into Inugram from ${path}...`)
+      inu.jvm.loadDex(path)
 
       const mainClass = inu.jvm.cls(CLASS_NAME)
       if (!mainClass) {
@@ -380,8 +463,17 @@ export class DexLoader {
 
   showSettingsExternal(): void {
     try {
+      const Handler = inu.jvm.cls('android.os.Handler')
+      const Looper = inu.jvm.cls('android.os.Looper')
       const mainClass = inu.jvm.cls(CLASS_NAME)
-      mainClass.callStatic('showSettingsExternal')
+      const handler = new Handler(Looper.callStatic('getMainLooper'))
+      handler.call('post', inu.jvm.runnable(() => {
+        try {
+          mainClass.callStatic('showSettingsExternal')
+        } catch (e) {
+          console.error(TAG, 'Failed to open re:extera settings:', e)
+        }
+      }))
     } catch (e) {
       console.error(TAG, 'Failed to open re:extera settings:', e)
     }

@@ -16,4 +16,5 @@ export const USER_AGENT =
 
 export const CACHE_DEX_RELEASE = 're_extera_release.dex'
 export const CACHE_DEX_DEV = 're_extera_dev.dex'
+export const CACHE_DEX_DIR = 're_extera_dex'
 export const CONFIG_FILE = 're_extera_config.json'
