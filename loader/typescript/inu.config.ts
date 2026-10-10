@@ -8,7 +8,7 @@ const rootDir = path.resolve(__dirname, '../..')
 export default defineConfig({
   outDir: path.resolve(rootDir, 'build/plugin'),
   plugins: {
-    re_extera: {
+    loader: {
       entry: 'src/index.ts',
       manifest: {
         id: 're_extera_loader',

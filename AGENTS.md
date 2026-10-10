@@ -5,7 +5,7 @@
 Android plugin for exteraGram and Inugram (Telegram forks) loaded at runtime via DEX injection. Three deliverable artifacts:
 - `classes.dex` (the core plugin)
 - `loader.plugin` (the Python loader for exteraGram)
-- `re_extera.inu.js` (the TypeScript loader for Inugram)
+- `loader.inu.js` (the TypeScript loader for Inugram)
 
 ## Build commands (exact)
 
@@ -23,7 +23,7 @@ Android plugin for exteraGram and Inugram (Telegram forks) loaded at runtime via
 
 **Requirements**: JDK 17, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x, Node.js + pnpm.
 
-**Output**: `build/dex/classes.dex`, `build/plugin/loader.plugin`, and `build/plugin/re_extera.inu.js`.
+**Output**: `build/dex/classes.dex`, `build/plugin/loader.plugin`, and `build/plugin/loader.inu.js`.
 
 ## Project structure
 

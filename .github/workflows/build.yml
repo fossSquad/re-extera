@@ -56,7 +56,7 @@ jobs:
       run: |
         cp build/dex/classes.dex .
         cp build/plugin/loader.plugin .
-        cp build/plugin/re_extera.inu.js .
+        cp build/plugin/loader.inu.js .
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
@@ -65,7 +65,7 @@ jobs:
         path: |
           classes.dex
           loader.plugin
-          re_extera.inu.js
+          loader.inu.js
 
     - name: Parse tag for release name
       id: parse_tag
@@ -86,5 +86,5 @@ jobs:
         files: |
           classes.dex
           loader.plugin
-          re_extera.inu.js
+          loader.inu.js
         generate_release_notes: true
