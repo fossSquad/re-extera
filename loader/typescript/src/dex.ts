@@ -72,6 +72,11 @@ export class DexLoader {
   }
 
   async loadFromCacheOrRemote(): Promise<boolean> {
+    if (await this.loadFromLocalFile()) {
+      console.log(TAG, 'Loaded DEX from local file')
+      return true
+    }
+
     const cacheFile = this.getCacheFileName()
     try {
       if (inu.fs.exists(cacheFile)) {
@@ -108,6 +113,18 @@ export class DexLoader {
     } catch (e) {
       console.error(TAG, 'Failed to load local file:', e)
       return false
+    }
+  }
+
+  removeLocalDex(): void {
+    try {
+      const localPath = this.getLocalDexPath()
+      if (inu.fs.exists(localPath)) {
+        inu.fs.rm(localPath)
+        console.log(TAG, 'Removed local DEX because a new version was explicitly downloaded')
+      }
+    } catch (e) {
+      console.error(TAG, 'Failed to remove local DEX:', e)
     }
   }
 
@@ -174,6 +191,7 @@ export class DexLoader {
       const bytes = new Uint8Array(buffer)
 
       inu.fs.write(CACHE_DEX_RELEASE, bytes)
+      this.removeLocalDex()
       this.setCachedVersion(targetRelease.tag_name)
       await configManager.save()
 
@@ -270,6 +288,7 @@ export class DexLoader {
       }
 
       inu.fs.write(CACHE_DEX_DEV, dexBytes)
+      this.removeLocalDex()
       this.setCachedVersion(id)
       await configManager.save()
 
