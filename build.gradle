@@ -2,22 +2,71 @@ plugins {
     id 'com.android.library' version '9.4.1'
 }
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.TaskAction
+import org.gradle.process.ExecOperations
+
+import javax.inject.Inject
+
+// Task.exec() was removed in Gradle 9, use injected ExecOperations instead.
+abstract class BuildTypescriptTask extends DefaultTask {
+    @Inject
+    protected abstract ExecOperations getExecOperations()
+
+    @InputDirectory
+    abstract DirectoryProperty getWorkDir()
+
+    @TaskAction
+    void build() {
+        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        def hasPnpm = false
+        try {
+            def checkCmd = isWindows ? ["cmd", "/c", "where pnpm"] : ["which", "pnpm"]
+            def proc = checkCmd.execute()
+            proc.waitFor()
+            hasPnpm = proc.exitValue() == 0
+        } catch (Exception ignored) {
+        }
+
+        def packageManager = hasPnpm ? "pnpm" : "npm"
+        logger.lifecycle("Using ${packageManager} to build TypeScript loader")
+
+        getExecOperations().exec {
+            workingDir = workDir.get().asFile
+            if (isWindows) {
+                commandLine("cmd", "/c", "${packageManager} run build")
+            } else {
+                commandLine(packageManager, "run", "build")
+            }
+        }
+    }
+}
+
+def runGit(Project project, List<String> args) {
+    try {
+        def output = project.providers.exec {
+            commandLine("git", *args)
+            workingDir = project.rootDir
+            ignoreExitValue = true
+        }.standardOutput.asText.get().trim()
+        return output ? output : null
+    } catch (Exception e) {
+        return null
+    }
+}
+
 def getVersionName(Project project) {
     def envTag = System.getenv("GITHUB_REF_TYPE") == "tag" ? System.getenv("GITHUB_REF_NAME") : null
     def tag = null
-    
+
     if (envTag != null && !envTag.isEmpty()) {
         tag = envTag
     } else {
-        try {
-            def process = "git describe --tags --exact-match".execute(null, project.rootDir)
-            process.waitFor()
-            if (process.exitValue() == 0) {
-                tag = process.text.trim()
-            }
-        } catch (Exception e) {}
+        tag = runGit(project, ["describe", "--tags", "--exact-match"])
     }
-    
+
     if (tag != null && !tag.isEmpty()) {
         if (tag.startsWith("v")) {
             tag = tag.substring(1)
@@ -26,14 +75,7 @@ def getVersionName(Project project) {
     }
 
     def date = new Date().format("yyyyMMddHHmmss")
-    def commit = "unknown"
-    try {
-        def process = "git rev-parse --short HEAD".execute(null, project.rootDir)
-        process.waitFor()
-        if (process.exitValue() == 0) {
-            commit = process.text.trim()
-        }
-    } catch (Exception e) {}
+    def commit = runGit(project, ["rev-parse", "--short", "HEAD"]) ?: "unknown"
 
     return "${date}-${commit}"
 }
@@ -113,32 +155,10 @@ tasks.register("buildPluginPython", Exec) {
     commandLine "python3", "loader/python/build.py"
 }
 
-tasks.register("buildPluginTypescript") {
+tasks.register("buildPluginTypescript", BuildTypescriptTask) {
     group = "build"
     description = "Builds TypeScript loader plugin for Inugram"
-    doLast {
-        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
-        def hasPnpm = false
-        try {
-            def checkCmd = isWindows ? ["cmd", "/c", "where pnpm"] : ["which", "pnpm"]
-            def proc = checkCmd.execute()
-            proc.waitFor()
-            hasPnpm = proc.exitValue() == 0
-        } catch (Exception ignored) {
-        }
-
-        def packageManager = hasPnpm ? "pnpm" : "npm"
-        project.logger.lifecycle("Using ${packageManager} to build TypeScript loader")
-
-        exec {
-            workingDir = file("loader/typescript")
-            if (isWindows) {
-                commandLine("cmd", "/c", "${packageManager} run build")
-            } else {
-                commandLine(packageManager, "run", "build")
-            }
-        }
-    }
+    workDir.set(project.layout.projectDirectory.dir("loader/typescript"))
 }
 
 tasks.register("buildPlugin") {
@@ -158,7 +178,7 @@ tasks.register("buildPlugin") {
 repositories {
     mavenCentral()
     google()
-    maven { url 'https://maven.aliucord.com/snapshots' }
+    maven { url = 'https://maven.aliucord.com/snapshots' }
 }
 dependencies {
     compileOnly fileTree(dir: 'libs', include: ['*.jar'])
