@@ -262,16 +262,17 @@ public class SendMessage extends XC_MethodHook {
             }
         }
         for (int i = 0; i < entities.size(); i++) {
-            TLRPC.TL_messageEntityCustomEmoji tL_messageEntityCustomEmoji = (TLRPC.TL_messageEntityCustomEmoji) entities.get(i);
-            if (tL_messageEntityCustomEmoji instanceof TLRPC.TL_messageEntityCustomEmoji) {
-                TLRPC.TL_messageEntityCustomEmoji emoji = tL_messageEntityCustomEmoji;
-                if ((!replaceOnlyLocal || emoji.local) && !groupEmoji.contains(Long.valueOf(emoji.document_id))) {
-                    TLRPC.TL_messageEntityTextUrl newEntity = new TLRPC.TL_messageEntityTextUrl();
-                    newEntity.offset = emoji.offset;
-                    newEntity.length = emoji.length;
-                    newEntity.url = "tg://emoji?id=" + emoji.document_id;
-                    entities.set(i, newEntity);
-                }
+            TLRPC.MessageEntity entity = entities.get(i);
+            if (!(entity instanceof TLRPC.TL_messageEntityCustomEmoji)) {
+                continue;
+            }
+            TLRPC.TL_messageEntityCustomEmoji emoji = (TLRPC.TL_messageEntityCustomEmoji) entity;
+            if ((!replaceOnlyLocal || emoji.local) && !groupEmoji.contains(Long.valueOf(emoji.document_id))) {
+                TLRPC.TL_messageEntityTextUrl newEntity = new TLRPC.TL_messageEntityTextUrl();
+                newEntity.offset = emoji.offset;
+                newEntity.length = emoji.length;
+                newEntity.url = "tg://emoji?id=" + emoji.document_id;
+                entities.set(i, newEntity);
             }
         }
     }
