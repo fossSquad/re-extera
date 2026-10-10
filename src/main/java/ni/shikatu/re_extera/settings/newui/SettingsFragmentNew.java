@@ -92,8 +92,8 @@ public class SettingsFragmentNew extends BasePreferencesActivityExtended {
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.clear();
-        items.add(UItem.asCustom(IDs.STICKER_ID.getId(), createStickerView()).setTransparent(true));
-        items.add(UItem.asCustom(IDs.THANKS_ID.getId(), createThanksView()).setTransparent(true));
+        items.add(UItemUtils.setTransparent(UItem.asCustom(IDs.STICKER_ID.getId(), createStickerView()), true));
+        items.add(UItemUtils.setTransparent(UItem.asCustom(IDs.THANKS_ID.getId(), createThanksView()), true));
         items.add(UItemUtils.asShadow());
         items.add(UItem.asButton(IDs.GHOST_MODE_BTN_ID.getId(), this.ghostIcon, Localization.GHOST_MODE));
         items.add(UItemUtils.asShadow());
