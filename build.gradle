@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.library' version '8.2.2'
+    id 'com.android.library' version '9.4.1'
 }
 
 def getVersionName(Project project) {
@@ -77,7 +77,23 @@ tasks.register("aarToDex", Exec) {
         def dexOut = "$buildDir/dex/"
         mkdir dexOut
 
-        commandLine "${android.sdkDirectory}/build-tools/36.0.0/d8",
+        // android.sdkDirectory was removed from the AGP DSL, resolve like AGP does:
+        // local.properties sdk.dir -> ANDROID_HOME -> ANDROID_SDK_ROOT
+        def sdkDir = null
+        def localProps = new File(project.rootDir, "local.properties")
+        if (localProps.exists()) {
+            def props = new Properties()
+            localProps.withInputStream { props.load(it) }
+            sdkDir = props.getProperty("sdk.dir")
+        }
+        if (!sdkDir) {
+            sdkDir = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        }
+        if (!sdkDir) {
+            throw new GradleException("Android SDK not found: set sdk.dir in local.properties or ANDROID_HOME")
+        }
+
+        commandLine "${sdkDir}/build-tools/36.0.0/d8",
                 aarPath,
                 "--output", dexOut
     }
