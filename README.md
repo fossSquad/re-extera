@@ -33,8 +33,8 @@ Plugin for exteraGram that adds ghost mode, deleted message recovery, and variou
 git clone https://github.com/fossSquad/re-extera.git
 cd re-extera
 
-# build .plugin
-python3 loader/build.py
+# build .plugin (both. use -Ptarget parameter to build for ts or python.)
+./gradlew buildPlugin
 
 # build .dex
 ./gradlew buildDex

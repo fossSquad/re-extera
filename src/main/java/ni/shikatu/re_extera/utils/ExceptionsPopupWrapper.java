@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.utils;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -40,11 +41,11 @@ public class ExceptionsPopupWrapper {
     private Drawable getResizedDelete(Context context) {
         Drawable drawable = null;
         try {
-            drawable = ContextCompat.getDrawable(context, R.drawable.msg_delete_filled);
+            drawable = ContextCompat.getDrawable(context, Res.drawable("msg_delete_filled", R.drawable.msg_delete_filled));
         } catch (Throwable t) {
         }
         if (drawable == null) {
-            drawable = ContextCompat.getDrawable(context, R.drawable.msg_delete);
+            drawable = ContextCompat.getDrawable(context, Res.drawable("msg_delete", R.drawable.msg_delete));
         }
         if (drawable != null) {
             drawable = drawable.mutate();
@@ -57,8 +58,8 @@ public class ExceptionsPopupWrapper {
         View cell = new View(popupLayout.getContext());
         cell.setBackgroundColor(resourcesProvider.getColor(Theme.key_chat_messagePanelBackground));
         cell.setTag(Integer.valueOf(id));
-        cell.setTag(R.id.object_tag, 1);
-        cell.setTag(R.id.fit_width_tag, 1);
+        cell.setTag(Res.id("object_tag", R.id.object_tag), 1);
+        cell.setTag(Res.id("fit_width_tag", R.id.fit_width_tag), 1);
         popupLayout.addView(cell);
         LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) cell.getLayoutParams();
         if (LocaleController.isRTL) {
@@ -73,28 +74,28 @@ public class ExceptionsPopupWrapper {
         this.windowLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(context, 0, resourcesProvider);
         this.windowLayout.setFitItems(true);
         if (swipeBackLayout != null) {
-            ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_arrow_back, LocaleController.getString(R.string.Back), false, resourcesProvider).setOnClickListener(new View.OnClickListener() { 
+            ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_arrow_back", R.drawable.msg_arrow_back), LocaleController.getString(Res.string("Back", R.string.Back)), false, resourcesProvider).setOnClickListener(new View.OnClickListener() { 
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     swipeBackLayout.closeForeground();
                 }
             });
         }
-        ActionBarMenuSubItem itemReading = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_archive_hide, Localization.EXCEPTION_READING_TEXT, false, resourcesProvider);
+        ActionBarMenuSubItem itemReading = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_archive_hide", R.drawable.msg_archive_hide), Localization.EXCEPTION_READING_TEXT, false, resourcesProvider);
         itemReading.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$1(callback, view);
             }
         });
-        ActionBarMenuSubItem itemTyping = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.floating_pencil, Localization.EXCEPTION_TYPING_TEXT, false, resourcesProvider);
+        ActionBarMenuSubItem itemTyping = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("floating_pencil", R.drawable.floating_pencil), Localization.EXCEPTION_TYPING_TEXT, false, resourcesProvider);
         itemTyping.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$2(callback, view);
             }
         });
-        ActionBarMenuSubItem itemViewDeleted = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.chats_archive, Localization.VIEW_DELETED, false, resourcesProvider);
+        ActionBarMenuSubItem itemViewDeleted = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("chats_archive", R.drawable.chats_archive), Localization.VIEW_DELETED, false, resourcesProvider);
         itemViewDeleted.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
@@ -103,7 +104,7 @@ public class ExceptionsPopupWrapper {
         });
         if (Settings.getFiltersEnabled()) {
             if (Settings.getShowFilteredPostsInChat()) {
-                ActionBarMenuSubItem itemFilteredPosts = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_log, Localization.FILTERED_POSTS_MENU, false, resourcesProvider);
+                ActionBarMenuSubItem itemFilteredPosts = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_log", R.drawable.msg_log), Localization.FILTERED_POSTS_MENU, false, resourcesProvider);
                 itemFilteredPosts.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -113,7 +114,7 @@ public class ExceptionsPopupWrapper {
                 });
             }
             if (Settings.getShowFilterSettingsInChat()) {
-                ActionBarMenuSubItem itemFilterSettings = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_edit, Localization.FILTER_SETTINGS_MENU, false, resourcesProvider);
+                ActionBarMenuSubItem itemFilterSettings = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_edit", R.drawable.msg_edit), Localization.FILTER_SETTINGS_MENU, false, resourcesProvider);
                 itemFilterSettings.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -124,7 +125,7 @@ public class ExceptionsPopupWrapper {
             }
         }
         addGap(9992, this.windowLayout, resourcesProvider);
-        ActionBarMenuSubItem itemFinallyDelete = ActionBarMenuItem.addItem(this.windowLayout, R.drawable.msg_clear, Localization.CLEAR_DELETED, false, resourcesProvider);
+        ActionBarMenuSubItem itemFinallyDelete = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_clear", R.drawable.msg_clear), Localization.CLEAR_DELETED, false, resourcesProvider);
         itemFinallyDelete.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {

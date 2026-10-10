@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.ui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -212,7 +213,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             }
 
             public void onTextCopied() {
-                BulletinFactory.of(MessageHistoryFragment.this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+                BulletinFactory.of(MessageHistoryFragment.this).createCopyBulletin(LocaleController.getString(Res.string("TextCopied", R.string.TextCopied))).show();
             }
         });
         int topInset = ActionBar.getCurrentActionBarHeight() + (this.actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0);
@@ -328,7 +329,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         }
         this.textSelectionHelper.setParentView(this.chatListView);
         this.emptyView = new TextView(context);
-        this.emptyView.setText(LocaleController.getString(R.string.NoResult));
+        this.emptyView.setText(LocaleController.getString(Res.string("NoResult", R.string.NoResult)));
         this.emptyView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
         this.emptyView.setTextSize(16.0f);
         this.emptyView.setVisibility(8);
@@ -375,7 +376,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         this.loadingMessages = true;
         updateHeader(this.adapter.getMessageCount());
         if (this.emptyView != null) {
-            this.emptyView.setText(LocaleController.getString(R.string.Loading));
+            this.emptyView.setText(LocaleController.getString(Res.string("Loading", R.string.Loading)));
             this.emptyView.setVisibility(this.adapter.getItemCount() == 0 ? 0 : 8);
         }
         final int currentGeneration = this.reloadGeneration + 1;
@@ -396,7 +397,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
         this.loadingMessages = false;
         updateHeader(this.adapter.getMessageCount());
         if (this.emptyView != null) {
-            this.emptyView.setText(LocaleController.getString(R.string.NoResult));
+            this.emptyView.setText(LocaleController.getString(Res.string("NoResult", R.string.NoResult)));
             this.emptyView.setVisibility(this.adapter.getItemCount() != 0 ? 8 : 0);
         }
     }
@@ -412,7 +413,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             if (this.currentMessageObject != null) {
                 long senderId = this.currentMessageObject.getSenderId();
                 if (senderId > 0 && (sender = getMessagesController().getUser(Long.valueOf(senderId))) != null) {
-                    this.avatarContainer.setSubtitle(this.loadingMessages ? LocaleController.getString(R.string.Loading) : ContactsController.formatName(sender.first_name, sender.last_name));
+                    this.avatarContainer.setSubtitle(this.loadingMessages ? LocaleController.getString(Res.string("Loading", R.string.Loading)) : ContactsController.formatName(sender.first_name, sender.last_name));
                     return;
                 }
             }
@@ -423,7 +424,7 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             this.avatarContainer.setTitle(Localization.MESSAGE_HISTORY_TITLE);
         }
         if (this.loadingMessages) {
-            this.avatarContainer.setSubtitle(LocaleController.getString(R.string.Loading));
+            this.avatarContainer.setSubtitle(LocaleController.getString(Res.string("Loading", R.string.Loading)));
         } else {
             this.avatarContainer.setSubtitle(Localization.MESSAGE_HISTORY_TITLE);
         }
@@ -457,14 +458,14 @@ public class MessageHistoryFragment extends BaseFragment implements ChatMessageC
             return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.AppName));
-        builder.setPositiveButton(LocaleController.getString(R.string.OK), (AlertDialog.OnButtonClickListener) null);
+        builder.setTitle(LocaleController.getString(Res.string("AppName", R.string.AppName)));
+        builder.setPositiveButton(LocaleController.getString(Res.string("OK", R.string.OK)), (AlertDialog.OnButtonClickListener) null);
         if (message.type == 3) {
-            builder.setMessage(LocaleController.getString(R.string.NoPlayerInstalled));
+            builder.setMessage(LocaleController.getString(Res.string("NoPlayerInstalled", R.string.NoPlayerInstalled)));
         } else if (message.getDocument() != null) {
-            builder.setMessage(LocaleController.formatString(R.string.NoHandleAppInstalled, new Object[]{message.getDocument().mime_type}));
+            builder.setMessage(LocaleController.formatString(Res.string("NoHandleAppInstalled", R.string.NoHandleAppInstalled), new Object[]{message.getDocument().mime_type}));
         } else {
-            builder.setMessage(LocaleController.getString(R.string.UnknownError));
+            builder.setMessage(LocaleController.getString(Res.string("UnknownError", R.string.UnknownError)));
         }
         showDialog(builder.create());
     }

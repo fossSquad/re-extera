@@ -91,6 +91,54 @@ tasks.register("buildDex") {
     dependsOn "assembleRelease", "aarToDex"
 }
 
+tasks.register("buildPluginPython", Exec) {
+    group = "build"
+    description = "Builds Python loader plugin for exteraGram"
+    commandLine "python3", "loader/python/build.py"
+}
+
+tasks.register("buildPluginTypescript") {
+    group = "build"
+    description = "Builds TypeScript loader plugin for Inugram"
+    doLast {
+        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        def hasPnpm = false
+        try {
+            def checkCmd = isWindows ? ["cmd", "/c", "where pnpm"] : ["which", "pnpm"]
+            def proc = checkCmd.execute()
+            proc.waitFor()
+            hasPnpm = proc.exitValue() == 0
+        } catch (Exception ignored) {
+        }
+
+        def packageManager = hasPnpm ? "pnpm" : "npm"
+        project.logger.lifecycle("Using ${packageManager} to build TypeScript loader")
+
+        exec {
+            workingDir = file("loader/typescript")
+            if (isWindows) {
+                commandLine("cmd", "/c", "${packageManager} run build")
+            } else {
+                commandLine(packageManager, "run", "build")
+            }
+        }
+    }
+}
+
+tasks.register("buildPlugin") {
+    group = "build"
+    description = "Builds loader plugins (specify -Ptarget=python or -Ptarget=typescript to build only one)"
+
+    def target = project.findProperty("target") ?: project.findProperty("plugin") ?: "all"
+    if (target == "python") {
+        dependsOn "buildPluginPython"
+    } else if (target == "typescript" || target == "ts") {
+        dependsOn "buildPluginTypescript"
+    } else {
+        dependsOn "buildPluginPython", "buildPluginTypescript"
+    }
+}
+
 repositories {
     mavenCentral()
     google()

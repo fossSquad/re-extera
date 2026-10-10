@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.chatactivity.menuhook;
 
 import de.robv.android.xposed.XC_MethodHook;
+import ni.shikatu.re_extera.utils.Res;
 import java.util.ArrayList;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
@@ -19,7 +20,7 @@ public class FillMessageMenu extends XC_MethodHook {
         ArrayList<Integer> options = (ArrayList) param.args[3];
         boolean oneTime = msgObj.isSecret() || msgObj.isSecretMedia() || msgObj.isVoiceOnce() || msgObj.isRoundOnce();
         if (Settings.getSaveEditedMessages() && ReExteraDb.get().messageHasSavedEdits(msgObj)) {
-            icons.add(0, Integer.valueOf(R.drawable.menu_premium_clock));
+            icons.add(0, Integer.valueOf(Res.drawable("menu_premium_clock", R.drawable.menu_premium_clock)));
             items.add(0, Localization.MESSAGE_HISTORY);
             options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_MESSAGE_HISTORY));
         }
@@ -27,7 +28,7 @@ public class FillMessageMenu extends XC_MethodHook {
             int readDate = ReExteraDb.get().getReadDate(msgObj.getDialogId(), msgObj.getId());
             if (readDate > 0) {
                 String timeStr = new java.text.SimpleDateFormat("HH:mm").format(new java.util.Date(readDate * 1000L));
-                icons.add(0, Integer.valueOf(R.drawable.msg_info)); // fallback icon
+                icons.add(0, Integer.valueOf(Res.drawable("msg_info", R.drawable.msg_info))); // fallback icon
                 items.add(0, String.format(Localization.READ_AT, timeStr));
                 options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_READ_AT));
             }
@@ -35,7 +36,7 @@ public class FillMessageMenu extends XC_MethodHook {
         boolean hideReading = Settings.getHideReadingWithGhost() || SendRequest.getCurrentReadingStatus() == -1;
         boolean alwaysRead = SendRequest.getCurrentReadingStatus() == 1;
         if (((hideReading && !alwaysRead) || oneTime) && !msgObj.isOut()) {
-            icons.add(0, Integer.valueOf(R.drawable.msg_markread));
+            icons.add(0, Integer.valueOf(Res.drawable("msg_markread", R.drawable.msg_markread)));
             items.add(0, Localization.READ_MESSAGE);
             options.add(0, Integer.valueOf(ProcessSelectedOption.OPT_READ_MESSAGE));
         }
@@ -44,12 +45,12 @@ public class FillMessageMenu extends XC_MethodHook {
         }
         if (Settings.getFiltersEnabled() && (msgObj.messageOwner != null && msgObj.messageOwner.message != null || msgObj.messageText != null)) {
             if (Settings.getShowCheckFiltersInMenu()) {
-                icons.add(Integer.valueOf(R.drawable.msg_search));
+                icons.add(Integer.valueOf(Res.drawable("msg_search", R.drawable.msg_search)));
                 items.add(Localization.TEST_FILTERS_MESSAGE_MENU);
                 options.add(Integer.valueOf(ProcessSelectedOption.OPT_CHECK_FILTERS));
             }
             if (Settings.getShowAddToFiltersInMenu()) {
-                icons.add(Integer.valueOf(R.drawable.msg_add));
+                icons.add(Integer.valueOf(Res.drawable("msg_add", R.drawable.msg_add)));
                 items.add(Localization.ADD_TO_FILTERS);
                 options.add(Integer.valueOf(ProcessSelectedOption.OPT_ADD_TO_FILTERS));
             }
@@ -57,27 +58,27 @@ public class FillMessageMenu extends XC_MethodHook {
     }
 
     private static void appendSaveOptions(MessageObject msgObj, ArrayList<Integer> icons, ArrayList<CharSequence> items, ArrayList<Integer> options) {
-        items.add(LocaleController.getString(R.string.Forward));
+        items.add(LocaleController.getString(Res.string("Forward", R.string.Forward)));
         options.add(2);
-        icons.add(Integer.valueOf(R.drawable.msg_forward));
+        icons.add(Integer.valueOf(Res.drawable("msg_forward", R.drawable.msg_forward)));
         if (msgObj.isVideo()) {
-            addSaveEntry(items, options, icons, R.string.SaveToGallery, 4, R.drawable.msg_gallery);
-            addSaveEntry(items, options, icons, R.string.ShareFile, 6, R.drawable.msg_shareout);
+            addSaveEntry(items, options, icons, Res.string("SaveToGallery", R.string.SaveToGallery), 4, Res.drawable("msg_gallery", R.drawable.msg_gallery));
+            addSaveEntry(items, options, icons, Res.string("ShareFile", R.string.ShareFile), 6, Res.drawable("msg_shareout", R.drawable.msg_shareout));
             return;
         }
         if (msgObj.isMusic()) {
-            addSaveEntry(items, options, icons, R.string.SaveToMusic, 10, R.drawable.msg_download);
-            addSaveEntry(items, options, icons, R.string.ShareFile, 6, R.drawable.msg_shareout);
+            addSaveEntry(items, options, icons, Res.string("SaveToMusic", R.string.SaveToMusic), 10, Res.drawable("msg_download", R.drawable.msg_download));
+            addSaveEntry(items, options, icons, Res.string("ShareFile", R.string.ShareFile), 6, Res.drawable("msg_shareout", R.drawable.msg_shareout));
         } else {
             if (msgObj.getDocument() != null) {
                 if (MessageObject.isNewGifDocument(msgObj.getDocument())) {
-                    addSaveEntry(items, options, icons, R.string.SaveToGIFs, 11, R.drawable.msg_gif);
+                    addSaveEntry(items, options, icons, Res.string("SaveToGIFs", R.string.SaveToGIFs), 11, Res.drawable("msg_gif", R.drawable.msg_gif));
                 }
-                addSaveEntry(items, options, icons, R.string.SaveToDownloads, 10, R.drawable.msg_download);
-                addSaveEntry(items, options, icons, R.string.ShareFile, 6, R.drawable.msg_shareout);
+                addSaveEntry(items, options, icons, Res.string("SaveToDownloads", R.string.SaveToDownloads), 10, Res.drawable("msg_download", R.drawable.msg_download));
+                addSaveEntry(items, options, icons, Res.string("ShareFile", R.string.ShareFile), 6, Res.drawable("msg_shareout", R.drawable.msg_shareout));
                 return;
             }
-            addSaveEntry(items, options, icons, R.string.SaveToGallery, 4, R.drawable.msg_gallery);
+            addSaveEntry(items, options, icons, Res.string("SaveToGallery", R.string.SaveToGallery), 4, Res.drawable("msg_gallery", R.drawable.msg_gallery));
         }
     }
 

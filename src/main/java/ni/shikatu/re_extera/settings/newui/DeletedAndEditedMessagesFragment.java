@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.text.Editable;
+import ni.shikatu.re_extera.utils.Res;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
@@ -182,27 +183,29 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
         switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
             case Defaults.ALWAYS /* 1 */:
                 final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
+                ItemOptions options = ItemOptions.makeOptions(this, view);
                 if (!TextUtils.isEmpty(settingLink)) {
-                    view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
+                    options.add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             AndroidUtilities.addToClipboard(settingLink);
                         }
-                    }).add(R.drawable.msg_settings, Localization.ADDITIONAL_SETTINGS, new Runnable() { 
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            showAdditionalDeleted();
-                        }
-                    }).show();
-                    break;
+                    });
                 }
+                options.add(Res.drawable("msg_settings", R.drawable.msg_settings), Localization.ADDITIONAL_SETTINGS, new Runnable() { 
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        showAdditionalDeleted();
+                    }
+                });
+                view.performHapticFeedback(VibratorUtils.getType(3), 1);
+                options.show();
                 break;
             default:
                 final String settingLink2 = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 if (!TextUtils.isEmpty(settingLink2)) {
                     view.performHapticFeedback(VibratorUtils.getType(3), 1);
-                    ItemOptions.makeOptions(this, view).add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), new Runnable() { 
+                    ItemOptions.makeOptions(this, view).add(Res.drawable("msg_copy", R.drawable.msg_copy), LocaleController.getString(Res.string("CopyLink", R.string.CopyLink)), new Runnable() { 
                         @Override // java.lang.Runnable
                         public final void run() {
                             AndroidUtilities.addToClipboard(settingLink2);

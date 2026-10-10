@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.navigation;
 
 import com.exteragram.messenger.ExteraConfig;
+import ni.shikatu.re_extera.utils.Res;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -74,7 +75,7 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
             if (itemDetails.containsKey(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID))) {
                 return;
             }
-            itemDetails.put(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID), getItemInfoConstructor(param.thisObject.getClass()).newInstance(Localization.GHOST_MODE, Integer.valueOf(R.drawable.ghost)));
+            itemDetails.put(Integer.valueOf(GhostMenuHelper.GHOST_MENU_ITEM_ID), getItemInfoConstructor(param.thisObject.getClass()).newInstance(Localization.GHOST_MODE, Integer.valueOf(Res.drawable("ghost", R.drawable.ghost))));
         } catch (Exception e) {
             Main.log("Failed to inject ghost menu item into editor: %s", e.getMessage());
         }
@@ -93,7 +94,7 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
         try {
             ArrayList<UItem> items = (ArrayList) param.args[0];
             UniversalAdapter adapter = (UniversalAdapter) param.args[1];
-            ReflectionUtils.invoke(getAddMenuSectionMethod(param.thisObject.getClass()), param.thisObject, items, adapter, LocaleController.getString(R.string.MainMenuHiddenItems), new ArrayList(), false);
+            ReflectionUtils.invoke(getAddMenuSectionMethod(param.thisObject.getClass()), param.thisObject, items, adapter, LocaleController.getString(Res.string("MainMenuHiddenItems", R.string.MainMenuHiddenItems)), new ArrayList(), false);
             items.add(UItem.asShadow((CharSequence) null));
         } catch (Exception e) {
             Main.log("Failed to append hidden ghost editor section: %s", e.getMessage());

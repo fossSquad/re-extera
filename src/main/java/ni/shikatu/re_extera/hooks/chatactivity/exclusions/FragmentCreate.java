@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.chatactivity.exclusions;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
@@ -75,7 +76,7 @@ public class FragmentCreate extends XC_MethodHook {
         }
         Context context = thisObject.getContext();
         ExceptionsPopupWrapper exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, currentAccount, dialog_id, thisObject), thisObject.getResourceProvider());
-        final ActionBarMenuSubItem exceptionsItem = headerItem.addSwipeBackItem(R.drawable.filled_giveaway_premium, (Drawable) null, "re:extera", exceptionsPopupWrapper.windowLayout);
+        final ActionBarMenuSubItem exceptionsItem = headerItem.addSwipeBackItem(Res.drawable("filled_giveaway_premium", R.drawable.filled_giveaway_premium), (Drawable) null, "re:extera", exceptionsPopupWrapper.windowLayout);
         exceptionsItem.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {

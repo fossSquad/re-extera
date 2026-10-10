@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.settings.newui;
 
 import android.content.Context;
+import ni.shikatu.re_extera.utils.Res;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -108,7 +109,7 @@ public class CustomizationFragment extends BasePreferencesActivityExtended {
             setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 1));
             
             if (isCustom) {
-                icon = ContextCompat.getDrawable(context, org.telegram.messenger.R.drawable.msg_edit);
+                icon = ContextCompat.getDrawable(context, Res.drawable("msg_edit", org.telegram.messenger.R.drawable.msg_edit));
                 if (icon != null) {
                     icon = icon.mutate();
                 }

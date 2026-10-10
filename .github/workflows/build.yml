@@ -1,4 +1,4 @@
-name: Build Dex
+name: Build Dex and Plugins
 
 on:
   push:
@@ -18,25 +18,45 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
 
-    - name: Build with Gradle
-      run: ./gradlew buildDex
-
-    - name: Copy classes.dex to root
-      run: cp build/dex/classes.dex .
-
-    - name: Build loader.plugin
+    - name: Install loader/typescript dependencies
       run: |
-        python3 loader/build.py
+        cd loader/typescript
+        pnpm install --no-frozen-lockfile
+
+    - name: Build with Gradle
+      run: |
+        ./gradlew buildDex
+        ./gradlew buildPlugin
+
+    - name: Copy build artifacts to root
+      run: |
+        cp build/dex/classes.dex .
         cp build/plugin/loader.plugin .
+        cp build/plugin/loader.inu.js .
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v4
@@ -45,6 +65,7 @@ jobs:
         path: |
           classes.dex
           loader.plugin
+          loader.inu.js
 
     - name: Parse tag for release name
       id: parse_tag
@@ -65,4 +86,5 @@ jobs:
         files: |
           classes.dex
           loader.plugin
+          loader.inu.js
         generate_release_notes: true

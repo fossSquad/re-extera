@@ -52,6 +52,44 @@ public final class UItemUtils {
         return item;
     }
 
+    private static Method setTransparentMethod;
+    private static java.lang.reflect.Field transparentField;
+    private static boolean checkedTransparent;
+
+    /**
+     * exteraGram's UItem exposes setTransparent(); the plain client only carries the
+     * `transparent` field, so the value is applied directly when the setter is missing.
+     */
+    public static UItem setTransparent(UItem item, boolean transparent) {
+        if (item == null) {
+            return null;
+        }
+        if (!checkedTransparent) {
+            checkedTransparent = true;
+            try {
+                setTransparentMethod = UItem.class.getMethod("setTransparent", boolean.class);
+            } catch (Throwable ignored) {}
+            try {
+                transparentField = UItem.class.getDeclaredField("transparent");
+                transparentField.setAccessible(true);
+            } catch (Throwable ignored) {}
+        }
+
+        if (setTransparentMethod != null) {
+            try {
+                setTransparentMethod.invoke(item, transparent);
+                return item;
+            } catch (Throwable ignored) {}
+        }
+
+        if (transparentField != null) {
+            try {
+                transparentField.setBoolean(item, transparent);
+            } catch (Throwable ignored) {}
+        }
+        return item;
+    }
+
     public static UItem setLinkAlias(UItem item, String alias, Object activity) {
         if (item == null) {
             return null;

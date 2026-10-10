@@ -1,6 +1,7 @@
 package ni.shikatu.re_extera.hooks.dialogsactivity;
 
 import com.exteragram.messenger.ExteraConfig;
+import ni.shikatu.re_extera.utils.Res;
 import de.robv.android.xposed.XC_MethodHook;
 import java.util.ArrayList;
 import java.util.function.Predicate;
@@ -60,7 +61,7 @@ public class DialogsActivityHook extends XC_MethodHook {
             if (param.args != null && param.args.length >= 1 && param.args[0] instanceof ItemOptions) {
                 ItemOptions io = (ItemOptions) param.args[0];
                 io.addGap();
-                io.add(R.drawable.msg_cancel, Localization.CLOSE_APP, () -> {
+                io.add(Res.drawable("msg_cancel", R.drawable.msg_cancel), Localization.CLOSE_APP, () -> {
                     android.os.Process.killProcess(android.os.Process.myPid());
                 });
             }
@@ -136,7 +137,7 @@ public class DialogsActivityHook extends XC_MethodHook {
         Main.log("DialogsActivityHook: onBeforeAddItem id 910001! enabled=%s", enabled);
         final BaseFragment finalFragment = fragment;
         
-        io.add(R.drawable.ghost, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
+        io.add(Res.drawable("ghost", R.drawable.ghost), enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
                 DialogsActivityHook.lambda$onBeforeAddItem$1(io, finalFragment);
