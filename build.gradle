@@ -114,15 +114,21 @@ tasks.register("aarToDex", Exec) {
     group = "build"
     description = "Собирает DEX из AAR модуля"
 
+    // Task.project at execution time is deprecated: capture everything at configuration time.
+    def rootDir = project.rootDir
+    def projBuildDir = project.layout.buildDirectory.get().asFile
+    def projName = project.name
+    def compileClasspath = configurations.named("releaseCompileClasspath")
+
     doFirst {
-        def aarPath = "$buildDir/outputs/aar/${project.name}-release.aar"
-        def dexOut = "$buildDir/dex/"
+        def aarPath = new File(projBuildDir, "outputs/aar/${projName}-release.aar")
+        def dexOut = new File(projBuildDir, "dex/")
         mkdir dexOut
 
         // android.sdkDirectory was removed from the AGP DSL, resolve like AGP does:
         // local.properties sdk.dir -> ANDROID_HOME -> ANDROID_SDK_ROOT
         def sdkDir = null
-        def localProps = new File(project.rootDir, "local.properties")
+        def localProps = new File(rootDir, "local.properties")
         if (localProps.exists()) {
             def props = new Properties()
             localProps.withInputStream { props.load(it) }
@@ -135,8 +141,16 @@ tasks.register("aarToDex", Exec) {
             throw new GradleException("Android SDK not found: set sdk.dir in local.properties or ANDROID_HOME")
         }
 
+        def libArgs = ["--lib", "${sdkDir}/platforms/android-35/android.jar"]
+        compileClasspath.get().files.each { f ->
+            if (f.name.endsWith(".jar")) {
+                libArgs += ["--lib", f.absolutePath]
+            }
+        }
+
         commandLine "${sdkDir}/build-tools/36.0.0/d8",
                 aarPath,
+                *libArgs,
                 "--output", dexOut
     }
 }
