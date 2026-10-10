@@ -1,0 +1,181 @@
+from base_plugin import BasePlugin, MethodHook
+from hook_utils import find_class
+
+__app_version__ = ">=12.6.4"
+__sdk_version__ = ">=1.4.0"
+
+PROFILE_ACTIVITY_CLASS = "org.telegram.ui.ProfileActivity"
+UPDATE_ROWS_METHOD = "updateRowsIds"
+USER_INFO_FIELD = "userInfo"
+RISK_FIELD = "unofficial_security_risk"
+
+
+class HideRiskRowsHook(MethodHook):
+    def __init__(self, plugin):
+        self.plugin = plugin
+
+    def before_hooked_method(self, param):
+        try:
+            self.plugin.hide_risk_flag_for_rows(param)
+        except Exception as exc:
+            self.plugin.log_once("before_rows", f"before updateRowsIds failed: {exc}")
+
+    def after_hooked_method(self, param):
+        try:
+            self.plugin.restore_risk_flag_after_rows(param)
+        except Exception as exc:
+            self.plugin.log_once("after_rows", f"after updateRowsIds failed: {exc}")
+
+
+class HideUnofficialClientWarningPlugin(BasePlugin):
+    def __init__(self):
+        super().__init__()
+        self.unhook_objects = []
+        self.pending_restore = {}
+        self.logged_messages = set()
+        self.field_cache = {}
+
+    def on_plugin_load(self):
+        self.on_plugin_unload()
+
+        try:
+            profile_activity = find_class(PROFILE_ACTIVITY_CLASS)
+            if profile_activity is None:
+                self.log_once("missing_class", f"Class not found: {PROFILE_ACTIVITY_CLASS}")
+                return
+
+            unhooks = self.hook_all_methods(
+                profile_activity,
+                UPDATE_ROWS_METHOD,
+                HideRiskRowsHook(self),
+                priority=10000,
+            )
+            if unhooks:
+                self.unhook_objects.extend(unhooks)
+            else:
+                self.log_once("missing_method", f"Method not hooked: {PROFILE_ACTIVITY_CLASS}.{UPDATE_ROWS_METHOD}")
+        except Exception as exc:
+            self.log_once("hook_setup", f"Hook setup failed: {exc}")
+
+    def on_plugin_unload(self):
+        for user_info in list(getattr(self, "pending_restore", {}).values()):
+            try:
+                self.set_risk_flag(user_info, True)
+            except Exception:
+                pass
+        self.pending_restore.clear()
+
+        for unhook in list(getattr(self, "unhook_objects", [])):
+            try:
+                self.unhook_method(unhook)
+            except Exception:
+                pass
+        self.unhook_objects.clear()
+
+    def hide_risk_flag_for_rows(self, param):
+        profile = getattr(param, "thisObject", None)
+        if profile is None:
+            return
+
+        user_info = self.get_user_info(profile)
+        if user_info is None or not self.get_risk_flag(user_info):
+            return
+
+        if self.set_risk_flag(user_info, False):
+            self.pending_restore[self.profile_key(profile)] = user_info
+
+    def restore_risk_flag_after_rows(self, param):
+        profile = getattr(param, "thisObject", None)
+        if profile is None:
+            return
+
+        user_info = self.pending_restore.pop(self.profile_key(profile), None)
+        if user_info is not None:
+            self.set_risk_flag(user_info, True)
+
+    def get_user_info(self, profile):
+        try:
+            return self.get_field_value(profile, USER_INFO_FIELD)
+        except Exception as exc:
+            self.log_once("get_user_info", f"Could not read ProfileActivity.userInfo: {exc}")
+        return None
+
+    def get_risk_flag(self, user_info):
+        try:
+            return bool(getattr(user_info, RISK_FIELD))
+        except Exception:
+            pass
+
+        try:
+            return bool(self.get_field_value(user_info, RISK_FIELD))
+        except Exception:
+            return False
+
+    def set_risk_flag(self, user_info, value):
+        try:
+            setattr(user_info, RISK_FIELD, bool(value))
+            return True
+        except Exception:
+            pass
+
+        try:
+            return self.set_boolean_field(user_info, RISK_FIELD, bool(value))
+        except Exception as exc:
+            self.log_once("set_risk_flag", f"Could not update UserFull.{RISK_FIELD}: {exc}")
+        return False
+
+    def get_field_value(self, obj, field_name):
+        field = self.find_field(obj, field_name)
+        if field is None:
+            return None
+        return field.get(obj)
+
+    def set_boolean_field(self, obj, field_name, value):
+        field = self.find_field(obj, field_name)
+        if field is None:
+            return False
+        try:
+            field.setBoolean(obj, bool(value))
+        except Exception:
+            field.set(obj, bool(value))
+        return True
+
+    def find_field(self, obj, field_name):
+        if obj is None:
+            return None
+
+        try:
+            current = obj.getClass()
+        except Exception:
+            return None
+
+        while current is not None:
+            try:
+                key = (str(current.getName()), field_name)
+                cached = self.field_cache.get(key)
+                if cached is not None:
+                    return cached
+
+                field = current.getDeclaredField(field_name)
+                field.setAccessible(True)
+                self.field_cache[key] = field
+                return field
+            except Exception:
+                try:
+                    current = current.getSuperclass()
+                except Exception:
+                    current = None
+
+        return None
+
+    def profile_key(self, profile):
+        try:
+            return int(profile.hashCode())
+        except Exception:
+            return id(profile)
+
+    def log_once(self, key, message):
+        if key in self.logged_messages:
+            return
+        self.logged_messages.add(key)
+        self.log(message)
