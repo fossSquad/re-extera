@@ -16,7 +16,7 @@ export default defineConfig({
         author: '@fossSquad | @shikaatuxplugins',
         version: '2.9.0',
         description: 'Actively maintained FOSS fork. Enable ghost mode, save deleted messages and more!',
-        icon: 'inu://settings',
+        icon: 'inu://eyeOff',
         grants: [
           'fetch',
           'fs',
