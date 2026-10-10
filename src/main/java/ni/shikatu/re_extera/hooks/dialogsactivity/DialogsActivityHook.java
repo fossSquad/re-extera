@@ -2,6 +2,7 @@ package ni.shikatu.re_extera.hooks.dialogsactivity;
 
 import com.exteragram.messenger.ExteraConfig;
 import de.robv.android.xposed.XC_MethodHook;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 import java.lang.reflect.Method;
@@ -16,6 +17,9 @@ import org.telegram.ui.Components.ItemOptions;
 
 public class DialogsActivityHook extends XC_MethodHook {
     private final Mode mode;
+
+    // ADD_ITEMS fires for a single popup on several entry points; skip if already appended here (weak ref to avoid leaking the popup).
+    private static WeakReference<ItemOptions> lastCloseAppOptions = new WeakReference<>(null);
 
     public enum Mode {
         ADD_ITEMS,
@@ -59,6 +63,10 @@ public class DialogsActivityHook extends XC_MethodHook {
             // Append "Close app" item at the bottom of the Settings long-press popup
             if (param.args != null && param.args.length >= 1 && param.args[0] instanceof ItemOptions) {
                 ItemOptions io = (ItemOptions) param.args[0];
+                if (io == lastCloseAppOptions.get()) {
+                    return;
+                }
+                lastCloseAppOptions = new WeakReference<>(io);
                 io.addGap();
                 io.add(R.drawable.msg_cancel, Localization.CLOSE_APP, () -> {
                     android.os.Process.killProcess(android.os.Process.myPid());
