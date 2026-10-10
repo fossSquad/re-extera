@@ -200,7 +200,7 @@ public final class InuHookBridge {
         return null;
     }
 
-    private static final class Entry {
+    public static final class Entry {
         final Member target;
         final Hooker hooker = new Hooker(this);
         final List<XC_MethodHook> hooks = new ArrayList<>(1);
