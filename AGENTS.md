@@ -21,7 +21,7 @@ Android plugin for exteraGram and Inugram (Telegram forks) loaded at runtime via
 ./gradlew buildPlugin -Ptarget=typescript  # or cd loader/typescript && pnpm run build
 ```
 
-**Requirements**: JDK 17, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x, Node.js + pnpm.
+**Requirements**: JDK 25, Android SDK (compileSdk 35, build-tools 36.0.0), Python 3.x, Node.js + pnpm.
 
 **Output**: `build/dex/classes.dex`, `build/plugin/loader.plugin`, and `build/plugin/loader.inu.js`.
 
