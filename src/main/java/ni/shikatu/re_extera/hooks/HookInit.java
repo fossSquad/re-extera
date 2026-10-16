@@ -44,7 +44,9 @@ import ni.shikatu.re_extera.hooks.messagescontroller.IsChatNoForwards;
 import ni.shikatu.re_extera.hooks.messagescontroller.IsUserNoForwards;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessLoadedDialogs;
 import ni.shikatu.re_extera.hooks.messagescontroller.ProcessUpdates;
+import ni.shikatu.re_extera.hooks.messagescontroller.PreserveOneTimeMessages;
 import ni.shikatu.re_extera.hooks.messagescontroller.SortDialogsHook;
+import ni.shikatu.re_extera.hooks.messagescontroller.UpdateTimerProc;
 import ni.shikatu.re_extera.hooks.navigation.AppNavigationGhostEditorHook;
 import ni.shikatu.re_extera.hooks.navigation.DrawerMenuGhostHook;
 import ni.shikatu.re_extera.hooks.notificationmanager.FilterShadowbannedNotifications;
@@ -182,6 +184,8 @@ public final class HookInit {
     public void startIntercepting() {
         startSendRequestHook();
         tryHook("MessagesController.processUpdates", MessagesController.class, "processUpdates", new ProcessUpdates(), TLRPC.Updates.class, Boolean.TYPE);
+        tryHook("MessagesController.processUpdateArray", MessagesController.class, "processUpdateArray", new PreserveOneTimeMessages(), ArrayList.class, ArrayList.class, ArrayList.class, Boolean.TYPE, Integer.TYPE);
+        tryHook("MessagesController.updateTimerProc", MessagesController.class, "updateTimerProc", new UpdateTimerProc(), new Class[0]);
         tryHook("MessagesController.putUsers", MessagesController.class, "putUsers", new ni.shikatu.re_extera.hooks.messagescontroller.PutUsers(), ArrayList.class, Boolean.TYPE);
         tryHook("MessagesController.isChatNoForwards(Chat)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), TLRPC.Chat.class);
         tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);

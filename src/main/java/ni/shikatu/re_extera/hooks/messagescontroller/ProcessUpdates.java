@@ -47,23 +47,13 @@ public class ProcessUpdates extends XC_MethodHook {
                 if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
                     if (nm.message != null) {
-                        if (ni.shikatu.re_extera.settings.Settings.getSaveOneTimeMessages()) {
-                            if (nm.message.ttl > 0) nm.message.ttl = 0;
-                            if (nm.message.media != null && nm.message.media.ttl_seconds > 0) {
-                                nm.message.media.ttl_seconds = 0;
-                            }
-                        }
+                        preserveOneTimeMessage(nm.message);
                         midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
                     }
                 } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
                     org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
                     if (ncm.message != null) {
-                        if (ni.shikatu.re_extera.settings.Settings.getSaveOneTimeMessages()) {
-                            if (ncm.message.ttl > 0) ncm.message.ttl = 0;
-                            if (ncm.message.media != null && ncm.message.media.ttl_seconds > 0) {
-                                ncm.message.media.ttl_seconds = 0;
-                            }
-                        }
+                        preserveOneTimeMessage(ncm.message);
                         midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
                     }
                 }
@@ -85,6 +75,25 @@ public class ProcessUpdates extends XC_MethodHook {
             return;
         }
         isPremium.refresh(AccountUtils.getCurrentAccount(param.thisObject));
+    }
+
+    public static void preserveOneTimeMessage(Object update) {
+        if (!ni.shikatu.re_extera.settings.Settings.getSaveOneTimeMessages()) {
+            return;
+        }
+        if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+            preserveOneTimeMessage(((org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update).message);
+        } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+            preserveOneTimeMessage(((org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update).message);
+        } else if (update instanceof TLRPC.Message) {
+            TLRPC.Message message = (TLRPC.Message) update;
+            if (message.ttl > 0) {
+                message.ttl = 0;
+            }
+            if (message.media != null && message.media.ttl_seconds > 0) {
+                message.media.ttl_seconds = 0;
+            }
+        }
     }
 
     private void flushChannelDeleted(LongSparseArray<ArrayList<Integer>> channelDeleted, final int currentAccount) {
