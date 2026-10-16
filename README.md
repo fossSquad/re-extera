@@ -26,7 +26,7 @@ Plugin for exteraGram that adds ghost mode, deleted message recovery, and variou
 
 **Requirements**
 - Android SDK
-- JDK 25
+- JDK 21
 - Python 3.x
 - Node.js + pnpm
 

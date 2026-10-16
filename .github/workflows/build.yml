@@ -18,10 +18,13 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    - name: Set up JDK 25
+    - name: Initialize Telegram source
+      run: git submodule update --init --recursive --depth=1
+
+    - name: Set up JDK 21
       uses: actions/setup-java@v6
       with:
-        java-version: '25'
+        java-version: '21'
         distribution: 'temurin'
 
     - name: Set up Gradle caching
