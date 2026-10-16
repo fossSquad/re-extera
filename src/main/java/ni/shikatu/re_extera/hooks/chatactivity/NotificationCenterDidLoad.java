@@ -38,7 +38,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
         int id = ((Integer) param.args[0]).intValue();
         Object[] args = (Object[]) param.args[2];
-        if ((id == NotificationCenter.messagesDidLoad || id == NotificationCenter.messagesDidLoadWithoutProcess) && args != null && args.length > 3) {
+        if (id == NotificationCenter.messagesDidLoad && args != null && args.length > 3) {
             ArrayList<MessageObject> messArr = (ArrayList) args[2];
             int originalSize = messArr.size();
             long dialogId = ((Long) args[0]).longValue();
@@ -66,7 +66,7 @@ public class NotificationCenterDidLoad extends XC_MethodHook {
         if (Settings.getFiltersEnabled()) {
             int id = ((Integer) param.args[0]).intValue();
             Object[] args = (Object[]) param.args[2];
-            if (id != NotificationCenter.messagesDidLoad && id != NotificationCenter.messagesDidLoadWithoutProcess) {
+            if (id != NotificationCenter.messagesDidLoad) {
                 return;
             }
             org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
