@@ -4,7 +4,7 @@ import android.os.Environment;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,6 +14,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 
 public class AttachmentSaver {
+    private static final Object saveLock = new Object();
 
     private static File getAttachmentsDir() {
         File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -54,10 +55,23 @@ public class AttachmentSaver {
             if (sourceFile != null && sourceFile.exists()) {
                 File dir = getAttachmentsDir();
                 String ext = getExtension(sourceFile.getName());
-                String newFileName = "att_" + msg.getDialogId() + "_" + msg.getId() + ext;
-                File destFile = new File(dir, newFileName);
-                if (!destFile.exists()) {
-                    copyFile(sourceFile, destFile);
+                String digest = getSha256(sourceFile);
+                if (digest == null) {
+                    Main.log("Failed to hash attachment: " + sourceFile.getAbsolutePath());
+                    return;
+                }
+                synchronized (saveLock) {
+                    File destFile = new File(dir, "att_" + digest + ext);
+                    if (destFile.exists() || findFileByDigest(dir, digest) != null) {
+                        return;
+                    }
+
+                    File tempFile = new File(dir, ".att_" + digest + ".tmp");
+                    copyFile(sourceFile, tempFile);
+                    if (!tempFile.renameTo(destFile)) {
+                        tempFile.delete();
+                        throw new IllegalStateException("Cannot move saved attachment into place");
+                    }
                     Main.log("Saved attachment to: " + destFile.getAbsolutePath());
                 }
             }
@@ -76,11 +90,46 @@ public class AttachmentSaver {
 
     private static void copyFile(File sourceFile, File destFile) throws Exception {
         try (FileInputStream fis = new FileInputStream(sourceFile);
-             FileOutputStream fos = new FileOutputStream(destFile);
-             FileChannel source = fis.getChannel();
-             FileChannel destination = fos.getChannel()) {
-            destination.transferFrom(source, 0, source.size());
+             FileOutputStream fos = new FileOutputStream(destFile)) {
+            byte[] buffer = new byte[32768];
+            int read;
+            while ((read = fis.read(buffer)) != -1) {
+                fos.write(buffer, 0, read);
+            }
         }
+    }
+
+    private static String getSha256(File file) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (FileInputStream input = new FileInputStream(file)) {
+            byte[] buffer = new byte[32768];
+            int read;
+            while ((read = input.read(buffer)) != -1) {
+                digest.update(buffer, 0, read);
+            }
+        }
+        byte[] hash = digest.digest();
+        StringBuilder output = new StringBuilder(hash.length * 2);
+        for (byte value : hash) {
+            output.append(String.format(java.util.Locale.US, "%02x", value & 255));
+        }
+        return output.toString();
+    }
+
+    private static File findFileByDigest(File dir, String digest) throws Exception {
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return null;
+        }
+        for (File file : files) {
+            if (!file.isFile() || file.getName().startsWith(".")) {
+                continue;
+            }
+            if (digest.equals(getSha256(file))) {
+                return file;
+            }
+        }
+        return null;
     }
 
     private static void checkFolderSize() {
@@ -94,7 +143,9 @@ public class AttachmentSaver {
 
         long currentSize = 0;
         for (File f : files) {
-            currentSize += f.length();
+            if (f.isFile() && !f.getName().startsWith(".")) {
+                currentSize += f.length();
+            }
         }
 
         if (currentSize > maxSize) {
@@ -106,7 +157,7 @@ public class AttachmentSaver {
             });
 
             for (File f : files) {
-                if (".nomedia".equals(f.getName())) continue;
+                if (!f.isFile() || f.getName().startsWith(".")) continue;
                 long size = f.length();
                 if (f.delete()) {
                     currentSize -= size;
