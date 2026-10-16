@@ -28,10 +28,12 @@ Plugin for exteraGram that adds ghost mode, deleted message recovery, and variou
 - Android SDK
 - JDK 25
 - Python 3.x
+- Node.js + pnpm
 
 ```bash
 git clone https://github.com/fossSquad/re-extera.git
 cd re-extera
+git submodule update --init --recursive --depth=1
 
 # build .plugin (both. use -Ptarget parameter to build for ts or python.)
 ./gradlew buildPlugin
