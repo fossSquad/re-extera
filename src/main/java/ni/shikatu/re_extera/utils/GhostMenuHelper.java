@@ -335,6 +335,12 @@ public final class GhostMenuHelper {
         }
     }
 
+    public static void enforceOnlineStatus(int account) {
+        if (Settings.getHideOnlineWithGhost()) {
+            setIgnoreSetOnline(account, true);
+        }
+    }
+
     public static void toggleGhostModeFromPlugin(Object ignoredContextData) {
         Main.log("Ghost mode plugin menu item clicked", new Object[0]);
         toggleGhostMode(LaunchActivity.getSafeLastFragment());
