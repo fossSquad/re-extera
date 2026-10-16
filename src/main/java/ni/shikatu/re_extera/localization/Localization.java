@@ -87,6 +87,7 @@ public class Localization {
     public static String SERVER_READ_STATUS_UNREAD_ONLY;
     public static String SERVER_READ_STATUS_BOTH;
     public static String GHOST_IN_DRAWER;
+    public static String HIDDEN_MENU_ITEMS;
     public static String GHOST_MODE;
     public static String GHOST_MODE_DISABLE;
     public static String GHOST_MODE_DISABLED;
@@ -211,6 +212,7 @@ public class Localization {
             DEFAULT = "По умолчанию";
             LEAVE_BLANK_FOR_RECYCLE = "Оставьте пустым для выбранного эмодзи или иконки 🗑️";
             GHOST_MODE = "Режим призрака";
+            HIDDEN_MENU_ITEMS = "Скрытые пункты меню";
             UNLIMITED = "Безлимит";
             DELETED_AND_EDITED_MESSAGES = "Измененные и удаленные сообщения";
             OTHER = "Другое";
@@ -380,6 +382,7 @@ public class Localization {
             DEFAULT = "Типова";
             LEAVE_BLANK_FOR_RECYCLE = "Залиште порожнім для вибраного емодзі або іконки 🗑️";
             GHOST_MODE = "Режим привида";
+            HIDDEN_MENU_ITEMS = "Приховані пункти меню";
             UNLIMITED = "Безліміт";
             DELETED_AND_EDITED_MESSAGES = "Змінені та видалені повідомлення";
             OTHER = "Інше";
@@ -549,6 +552,7 @@ public class Localization {
         DEFAULT = "Default";
         LEAVE_BLANK_FOR_RECYCLE = "Leave blank for selected emoji or 🗑 icon";
         GHOST_MODE = "Ghost mode";
+        HIDDEN_MENU_ITEMS = "Hidden menu items";
         UNLIMITED = "Unlimited";
         DELETED_AND_EDITED_MESSAGES = "Edited and deleted messages";
         OTHER = "Other";

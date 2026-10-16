@@ -267,7 +267,7 @@ public class SendMessage extends XC_MethodHook {
                 continue;
             }
             TLRPC.TL_messageEntityCustomEmoji emoji = (TLRPC.TL_messageEntityCustomEmoji) entity;
-            if ((!replaceOnlyLocal || emoji.local) && !groupEmoji.contains(Long.valueOf(emoji.document_id))) {
+            if (!replaceOnlyLocal && !groupEmoji.contains(Long.valueOf(emoji.document_id))) {
                 TLRPC.TL_messageEntityTextUrl newEntity = new TLRPC.TL_messageEntityTextUrl();
                 newEntity.offset = emoji.offset;
                 newEntity.length = emoji.length;

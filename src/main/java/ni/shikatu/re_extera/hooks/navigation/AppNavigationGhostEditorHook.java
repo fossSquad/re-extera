@@ -15,7 +15,6 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import ni.shikatu.re_extera.utils.ReflectionUtils;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
@@ -94,7 +93,7 @@ public class AppNavigationGhostEditorHook extends XC_MethodHook {
         try {
             ArrayList<UItem> items = (ArrayList) param.args[0];
             UniversalAdapter adapter = (UniversalAdapter) param.args[1];
-            ReflectionUtils.invoke(getAddMenuSectionMethod(param.thisObject.getClass()), param.thisObject, items, adapter, LocaleController.getString(Res.string("MainMenuHiddenItems", R.string.MainMenuHiddenItems)), new ArrayList(), false);
+            ReflectionUtils.invoke(getAddMenuSectionMethod(param.thisObject.getClass()), param.thisObject, items, adapter, Localization.HIDDEN_MENU_ITEMS, new ArrayList(), false);
             items.add(UItem.asShadow((CharSequence) null));
         } catch (Exception e) {
             Main.log("Failed to append hidden ghost editor section: %s", e.getMessage());

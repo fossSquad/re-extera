@@ -6,3 +6,9 @@ pluginManagement {
     }
 }
 rootProject.name = 're-extera'
+
+includeBuild('libs/Telegram') {
+    dependencySubstitution {
+        substitute module('org.telegram:TMessagesProj') using project(':TMessagesProj')
+    }
+}
