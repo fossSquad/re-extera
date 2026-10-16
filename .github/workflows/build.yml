@@ -55,8 +55,12 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        ./gradlew buildDex
-        ./gradlew buildPlugin
+        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
+          -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
+          buildDex
+        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
+          -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
+          buildPlugin
 
     - name: Copy build artifacts to root
       run: |
