@@ -12,6 +12,9 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.AccountUtils;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.tgnet.NativeByteBuffer;
 import org.telegram.tgnet.TLRPC;
 
@@ -215,10 +218,31 @@ public class isPremium extends XC_MethodHook {
 
     public static void refresh(int account) {
         try {
-            patchUser(account, UserConfig.getInstance(account).getCurrentUser());
+            TLRPC.User user = UserConfig.getInstance(account).getCurrentUser();
+            boolean wasPremium = user != null && user.premium;
+            long oldEmojiStatusId = getEmojiStatusDocumentId(user != null ? user.emoji_status : null);
+            int oldEmojiStatusUntil = user != null && user.emoji_status != null ? user.emoji_status.until : 0;
+            patchUser(account, user);
+            if (user != null && user.premium && fakePremiumUsers.contains(user.id) &&
+                    (!wasPremium || oldEmojiStatusId != getEmojiStatusDocumentId(user.emoji_status) || oldEmojiStatusUntil != (user.emoji_status != null ? user.emoji_status.until : 0))) {
+                notifyPremiumState(account, user);
+            }
         } catch (Throwable e) {
             Main.log("LocalPremium.refresh: %s", e.getMessage());
         }
+    }
+
+    private static void notifyPremiumState(final int account, final TLRPC.User user) {
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override
+            public void run() {
+                MessagesController.getInstance(account).updatePremium(true);
+                NotificationCenter center = NotificationCenter.getInstance(account);
+                center.postNotificationName(NotificationCenter.currentUserPremiumStatusChanged, new Object[0]);
+                center.postNotificationName(NotificationCenter.userEmojiStatusUpdated, user);
+                center.postNotificationName(NotificationCenter.mainUserInfoChanged, new Object[0]);
+            }
+        });
     }
 
     public static void restore(int account) {

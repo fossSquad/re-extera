@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.hooks.HookInit;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
+import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.settings.newui.AdditionalFragment;
@@ -131,6 +132,13 @@ public final class Main {
         Localization.updateStrings();
         hooks = new HookInit();
         hooks.init();
+        if (Settings.getLocalPremium()) {
+            for (int account = 0; account < org.telegram.messenger.UserConfig.MAX_ACCOUNT_COUNT; account++) {
+                if (org.telegram.messenger.UserConfig.getInstance(account).isClientActivated()) {
+                    isPremium.refresh(account);
+                }
+            }
+        }
         initFragments();
         if (Settings.getHideOnlineWithGhost()) {
             GhostMenuHelper.syncOnlineStatus();

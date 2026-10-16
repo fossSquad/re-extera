@@ -77,6 +77,7 @@ public class SendRequest extends XC_MethodHook {
 
     private static void handleLocalEmojiStatus(XC_MethodHook.MethodHookParam param, int account, TL_account.updateEmojiStatus request) {
         isPremium.cacheEmojiStatus(account, request.emoji_status);
+        isPremium.refresh(account);
         RequestDelegate delegate = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
         if (delegate != null) {
             try {
