@@ -48,6 +48,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
     private static final int ID_SHOW_ADD_TO_FILTERS = 5;
     private static final int ID_SHOW_FILTERED_POSTS_IN_CHAT = 6;
     private static final int ID_SHOW_FILTER_SETTINGS_IN_CHAT = 7;
+    private static final int ID_EXCLUSIONS = 8;
     private boolean isFiltersExpanded = false;
     private ArrayList<String> filters = new ArrayList<>();
 
@@ -162,6 +163,7 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
         items.add(UItem.asButton(ID_TEST_FILTERS, Localization.TEST_FILTERS));
         items.add(UItem.asButton(ID_FILTERED_LOG, Localization.FILTERED_LOG));
+        items.add(UItem.asButton(ID_EXCLUSIONS, Localization.EXCLUSIONS));
         items.add(UItem.asShadow(LocaleUtils.fullyFormatText(Localization.FILTERS_ABOUT)));
         for (int i = 0; i < this.filters.size(); i++) {
             String filter = this.filters.get(i);
@@ -215,6 +217,10 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         }
         if (item.id == ID_FILTERED_LOG) {
             presentFragment(new FilteredLogFragment());
+            return;
+        }
+        if (item.id == ID_EXCLUSIONS) {
+            presentFragment(new FilterExclusionsFragment());
             return;
         }
         if (item.id >= 100 && (filterIndex = item.id - 100) >= 0 && filterIndex < this.filters.size()) {
