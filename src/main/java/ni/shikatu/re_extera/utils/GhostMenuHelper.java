@@ -302,7 +302,7 @@ public final class GhostMenuHelper {
             UserConfig cfg = UserConfig.getInstance(i);
             if (cfg != null && cfg.isClientActivated()) {
                 final int account = i;
-                setIgnoreSetOnline(account, hideOnline);
+                setIgnoreSetOnline(account, false);
                 TL_account.updateStatus req = new TL_account.updateStatus();
                 req.offline = offline;
                 ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {});
@@ -332,12 +332,6 @@ public final class GhostMenuHelper {
             mcIgnoreSetOnlineField.setBoolean(MessagesController.getInstance(account), hideOnline);
         } catch (Throwable t) {
             Main.log("GhostMenuHelper.setIgnoreSetOnline: %s", t.getMessage());
-        }
-    }
-
-    public static void enforceOnlineStatus(int account) {
-        if (Settings.getHideOnlineWithGhost()) {
-            setIgnoreSetOnline(account, true);
         }
     }
 
