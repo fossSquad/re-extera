@@ -17,7 +17,7 @@ import org.telegram.tgnet.TLRPC;
  * (default true): when enabled, messages are marked read locally (the convenient
  * "read, exit, counter still unread" behavior) while the outgoing readHistory RPC
  * is still intercepted by SendRequest. When disabled, local reading is fully
- * blocked in ghost mode (per-dialog "Never read" also always blocks).
+ * blocked in ghost mode.
  *
  * Before any possible blocking we snapshot the persisted server read position
  * into ServerReadTracker so incoming-message read checkmarks stay accurate.
@@ -62,7 +62,7 @@ public class MarkDialogAsRead extends XC_MethodHook {
             case Defaults.ALWAYS:
                 break;
         }
-        if (shouldBlock && (status == Defaults.NEVER || !Settings.getClientSideRead())) {
+        if (shouldBlock && !Settings.getClientSideRead()) {
             param.setResult(null);
         }
     }
