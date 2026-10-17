@@ -1,19 +1,25 @@
 package ni.shikatu.re_extera.ui;
 
 import android.app.Activity;
+import android.os.Build;
+import android.os.Environment;
 import ni.shikatu.re_extera.utils.Res;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +34,7 @@ import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBar;
@@ -574,18 +581,56 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         BottomSheet.Builder builder = new BottomSheet.Builder(context);
         builder.setTitle(Localization.EXPORT_FILTERS);
         CharSequence[] items = {"JSON", "TXT"};
-        int[] icons = {Res.drawable("msg_copy", R.drawable.msg_copy), Res.drawable("msg_copy", R.drawable.msg_copy)};
+        int[] icons = {Res.drawable("msg_share", R.drawable.msg_share), Res.drawable("msg_share", R.drawable.msg_share)};
         builder.setItems(items, icons, (dialog, which) -> {
             if (which == 0) {
                 String json = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToJson(this.filters);
-                AndroidUtilities.addToClipboard(json);
-                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.COPIED).show();
+                exportAndShare(json, "json", "application/json");
             } else if (which == 1) {
                 String txt = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToPlainText(this.filters);
-                AndroidUtilities.addToClipboard(txt);
-                BulletinFactory.of(this).createSimpleBulletin(Res.drawable("msg_info", R.drawable.msg_info), Localization.COPIED).show();
+                exportAndShare(txt, "txt", "text/plain");
             }
         });
         builder.show();
+    }
+
+    private void exportAndShare(String content, String extension, String mimeType) {
+        Context context = getParentActivity();
+        if (context == null) return;
+
+        try {
+            File directory = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+            if (directory == null && context.getExternalCacheDir() != null) {
+                directory = context.getExternalCacheDir();
+            }
+            if (directory == null && context.getFilesDir() != null) {
+                directory = context.getFilesDir();
+            }
+            if (directory == null) {
+                throw new IllegalStateException("Export directory is unavailable");
+            }
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new IllegalStateException("Cannot create export directory");
+            }
+
+            File file = new File(directory, "re_extera_filters_" + System.currentTimeMillis() + "." + extension);
+            try (FileOutputStream output = new FileOutputStream(file)) {
+                output.write(content.getBytes(StandardCharsets.UTF_8));
+            }
+
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType(mimeType);
+            Uri uri;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                uri = FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
+            } else {
+                uri = Uri.fromFile(file);
+            }
+            intent.putExtra(Intent.EXTRA_STREAM, uri);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivityForResult(Intent.createChooser(intent, Localization.EXPORT_FILTERS), 1339);
+        } catch (Exception e) {
+            BulletinFactory.of(this).createErrorBulletin(Localization.EXPORT_FAILED + e.getMessage()).show();
+        }
     }
 }
