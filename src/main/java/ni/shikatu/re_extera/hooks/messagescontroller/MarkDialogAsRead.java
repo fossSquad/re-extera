@@ -2,6 +2,7 @@ package ni.shikatu.re_extera.hooks.messagescontroller;
 
 import de.robv.android.xposed.XC_MethodHook;
 import ni.shikatu.re_extera.Defaults;
+import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.AccountUtils;
@@ -17,7 +18,7 @@ import org.telegram.tgnet.TLRPC;
  * (default true): when enabled, messages are marked read locally (the convenient
  * "read, exit, counter still unread" behavior) while the outgoing readHistory RPC
  * is still intercepted by SendRequest. When disabled, local reading is fully
- * blocked in ghost mode.
+ * blocked in ghost mode (per-dialog "Never read" also always blocks).
  *
  * Before any possible blocking we snapshot the persisted server read position
  * into ServerReadTracker so incoming-message read checkmarks stay accurate.
@@ -25,10 +26,20 @@ import org.telegram.tgnet.TLRPC;
 public class MarkDialogAsRead extends XC_MethodHook {
     @Override
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
-        long dialogId = (Long) param.args[0];
-        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-        int value = 0;
         try {
+            long dialogId = (Long) param.args[0];
+            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+            boolean localReadEnabled = Settings.getClientSideRead();
+            int status = ReExteraDb.get().getDialogReading(dialogId);
+            boolean shouldBlock = shouldBlock(currentAccount, dialogId, status);
+            Main.log("Read locally: did=%d enabled=%s policy=%d blocked=%s", dialogId, localReadEnabled, status, shouldBlock);
+
+            if (shouldBlock && !localReadEnabled) {
+                param.setResult(null);
+                return;
+            }
+
+            int value = 0;
             MessagesController mc = MessagesController.getInstance(currentAccount);
             if (mc != null) {
                 TLRPC.Dialog d = mc.getDialog(dialogId);
@@ -40,30 +51,23 @@ public class MarkDialogAsRead extends XC_MethodHook {
                     value = mapValue.intValue();
                 }
             }
+            if (value > 0) {
+                ServerReadTracker.seed(currentAccount, dialogId, value);
+            }
         } catch (Throwable t) {
-            // Ignore
+            Main.log("Read locally hook failed: %s", t.getMessage());
         }
-        if (value > 0) {
-            ServerReadTracker.seed(currentAccount, dialogId, value);
-        }
+    }
 
-        int status = ReExteraDb.get().getDialogReading(dialogId);
-        boolean shouldBlock = false;
+    private boolean shouldBlock(int currentAccount, long dialogId, int status) {
         switch (status) {
             case Defaults.NEVER:
-                shouldBlock = true;
-                break;
+                return true;
             case Defaults.GLOBAL_VALUE:
             default:
-                if (!isExcludedGlobally(currentAccount, dialogId) && Settings.getHideReadingWithGhost()) {
-                    shouldBlock = true;
-                }
-                break;
+                return !isExcludedGlobally(currentAccount, dialogId) && Settings.getHideReadingWithGhost();
             case Defaults.ALWAYS:
-                break;
-        }
-        if (shouldBlock && !Settings.getClientSideRead()) {
-            param.setResult(null);
+                return false;
         }
     }
 
