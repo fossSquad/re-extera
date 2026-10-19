@@ -9,8 +9,6 @@ import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 
 public class HideOwnOnlineStatus extends XC_MethodHook {
-    private static final String[] TEXT_FIELD_NAMES = {"statusTextView"};
-
     @Override
     public void afterHookedMethod(MethodHookParam param) {
         if (!Settings.getHideOnlineWithGhost()) {
@@ -22,27 +20,11 @@ public class HideOwnOnlineStatus extends XC_MethodHook {
             if (!(user instanceof TLRPC.User) || ((TLRPC.User) user).id != UserConfig.getInstance(account).getClientUserId()) {
                 return;
             }
-            Object textView = getTextView(param.thisObject);
-            if (textView instanceof SimpleTextView) {
-                SimpleTextView statusView = (SimpleTextView) textView;
-                statusView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-                statusView.setText("", true);
-            }
+            SimpleTextView statusView = (SimpleTextView) getField(param.thisObject, "statusTextView");
+            statusView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+            statusView.setText("", true);
         } catch (Throwable ignored) {
         }
-    }
-
-    private static Object getTextView(Object target) throws NoSuchFieldException, IllegalAccessException {
-        for (String name : TEXT_FIELD_NAMES) {
-            try {
-                Object value = getField(target, name);
-                if (value instanceof SimpleTextView) {
-                    return value;
-                }
-            } catch (NoSuchFieldException ignored) {
-            }
-        }
-        return null;
     }
 
     private static Object getField(Object target, String name) throws NoSuchFieldException, IllegalAccessException {

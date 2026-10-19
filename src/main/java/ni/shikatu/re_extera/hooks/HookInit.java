@@ -74,6 +74,8 @@ import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Cells.DialogCell;
 import org.telegram.ui.Cells.ManageChatUserCell;
+import org.telegram.ui.Cells.UserCell;
+import org.telegram.ui.Cells.UserCell2;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.UItem;
@@ -258,6 +260,8 @@ public final class HookInit {
         tryHook("ChatActivity.didReceivedNotification", ChatActivity.class, "didReceivedNotification", new NotificationCenterDidLoad(), Integer.TYPE, Integer.TYPE, Object[].class);
         tryHook("DialogCell.update", DialogCell.class, "update", new FilterDialogCellPreview(), Integer.TYPE, Boolean.TYPE);
         tryHook("ManageChatUserCell.update", ManageChatUserCell.class, "update", new HideOwnOnlineStatus(), Integer.TYPE);
+        tryHook("UserCell.update", UserCell.class, "update", new HideOwnOnlineStatus(), Integer.TYPE);
+        tryHook("UserCell2.update", UserCell2.class, "update", new HideOwnOnlineStatus(), Integer.TYPE);
         tryHook("DialogsActivity.getDialogsArray", DialogsActivity.class, "getDialogsArray", new GetDialogsArray(), Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE);
         tryHook("DialogsActivity.addMainMenuConfiguredItems", DialogsActivity.class, "addMainMenuConfiguredItems", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEMS), ItemOptions.class);
         tryHook("DialogsActivity.addMainMenuConfiguredItem", DialogsActivity.class, "addMainMenuConfiguredItem", new DialogsActivityHook(DialogsActivityHook.Mode.ADD_ITEM), ItemOptions.class, Integer.TYPE);
