@@ -119,7 +119,7 @@ public class SendRequest extends XC_MethodHook {
     }
 
     private static boolean isInteractionRequest(TLObject update) {
-        return (update instanceof TLRPC.TL_messages_sendReaction) || (update instanceof TLRPC.TL_messages_sendVote) || (update instanceof TLRPC.TL_messages_readMentions) || (update instanceof TLRPC.TL_messages_readReactions) || (update instanceof TLRPC.TL_messages_sendMessage) || (update instanceof TLRPC.TL_messages_forwardMessages);
+        return (update instanceof TLRPC.TL_messages_sendReaction) || (update instanceof TLRPC.TL_messages_sendVote) || (update instanceof TLRPC.TL_messages_readMentions) || (update instanceof TLRPC.TL_messages_sendMessage) || (update instanceof TLRPC.TL_messages_forwardMessages);
     }
 
     private static void dispatchReadOnInteract(int currentAccount, TLObject update) {
