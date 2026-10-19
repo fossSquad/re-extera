@@ -1,20 +1,16 @@
 package ni.shikatu.re_extera.ui;
 
 import android.app.Activity;
-import android.os.Build;
-import android.os.Environment;
 import ni.shikatu.re_extera.utils.Res;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.io.BufferedReader;
@@ -33,10 +29,13 @@ import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.UItemUtils;
+import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BottomSheet;
@@ -585,27 +584,18 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
         builder.setItems(items, icons, (dialog, which) -> {
             if (which == 0) {
                 String json = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToJson(this.filters);
-                exportAndShare(json, "json", "application/json");
+                exportToTelegram(json, "json", "application/json");
             } else if (which == 1) {
                 String txt = ni.shikatu.re_extera.utils.FilterImportExportUtils.exportToPlainText(this.filters);
-                exportAndShare(txt, "txt", "text/plain");
+                exportToTelegram(txt, "txt", "text/plain");
             }
         });
         builder.show();
     }
 
-    private void exportAndShare(String content, String extension, String mimeType) {
-        Context context = getParentActivity();
-        if (context == null) return;
-
+    private void exportToTelegram(String content, String extension, String mimeType) {
         try {
-            File directory = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-            if (directory == null && context.getExternalCacheDir() != null) {
-                directory = context.getExternalCacheDir();
-            }
-            if (directory == null && context.getFilesDir() != null) {
-                directory = context.getFilesDir();
-            }
+            File directory = FileLoader.getDirectory(4);
             if (directory == null) {
                 throw new IllegalStateException("Export directory is unavailable");
             }
@@ -617,20 +607,54 @@ public class RegexFiltersFragment extends BasePreferencesActivity {
             try (FileOutputStream output = new FileOutputStream(file)) {
                 output.write(content.getBytes(StandardCharsets.UTF_8));
             }
-
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType(mimeType);
-            Uri uri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                uri = FileProvider.getUriForFile(context, ApplicationLoader.getApplicationId() + ".provider", file);
-            } else {
-                uri = Uri.fromFile(file);
-            }
-            intent.putExtra(Intent.EXTRA_STREAM, uri);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivityForResult(Intent.createChooser(intent, Localization.EXPORT_FILTERS), 1339);
+            openExportTargetPicker(file, mimeType);
         } catch (Exception e) {
             BulletinFactory.of(this).createErrorBulletin(Localization.EXPORT_FAILED + e.getMessage()).show();
         }
+    }
+
+    private void openExportTargetPicker(File file, String mimeType) {
+        android.os.Bundle args = new android.os.Bundle();
+        args.putBoolean("onlySelect", true);
+        args.putInt("dialogsType", 3);
+        org.telegram.ui.DialogsActivity picker = new org.telegram.ui.DialogsActivity(args);
+        picker.setDelegate(new org.telegram.ui.DialogsActivity.DialogsActivityDelegate() {
+            @Override
+            public boolean didSelectDialogs(org.telegram.ui.DialogsActivity dialogsActivity, ArrayList<MessagesStorage.TopicKey> selected, CharSequence comment, boolean notify, boolean schedule, int scheduleDate, int topicsCount, org.telegram.ui.TopicsFragment topicsFragment) {
+                if (selected == null || selected.isEmpty()) {
+                    return false;
+                }
+                for (MessagesStorage.TopicKey target : selected) {
+                    ArrayList<String> paths = new ArrayList<>();
+                    paths.add(file.getAbsolutePath());
+                    ArrayList<String> originalPaths = new ArrayList<>();
+                    originalPaths.add(file.getAbsolutePath());
+                    SendMessagesHelper.prepareSendingDocuments(
+                            AccountInstance.getInstance(currentAccount),
+                            paths,
+                            originalPaths,
+                            null,
+                            null,
+                            mimeType,
+                            target.dialogId,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            notify,
+                            scheduleDate,
+                            null,
+                            null,
+                            0,
+                            false,
+                            0
+                    );
+                }
+                dialogsActivity.finishFragment();
+                return true;
+            }
+        });
+        presentFragment(picker);
     }
 }
