@@ -2,6 +2,7 @@ package ni.shikatu.re_extera.hooks.usercell;
 
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
+import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.UserConfig;
 import org.telegram.tgnet.TLRPC;
@@ -22,7 +23,7 @@ public class HideOwnOnlineStatus extends XC_MethodHook {
             }
             SimpleTextView statusView = (SimpleTextView) getField(param.thisObject, "statusTextView");
             statusView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
-            statusView.setText("", true);
+            statusView.setText(Localization.OFFLINE, true);
         } catch (Throwable ignored) {
         }
     }
