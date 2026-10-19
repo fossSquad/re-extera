@@ -105,7 +105,7 @@ public class ProcessUpdates extends XC_MethodHook {
         }
     }
 
-    private void triggerUIUpdate(int currentAccount) {
+    private static void triggerUIUpdate(int currentAccount) {
         final int currentAccountFinal = currentAccount;
         if (isStatusUpdateQueued.compareAndSet(false, true)) {
             org.telegram.messenger.AndroidUtilities.runOnUIThread(new Runnable() {
@@ -185,54 +185,65 @@ public class ProcessUpdates extends XC_MethodHook {
                 }
             }
         }
-        if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline()) {
-            if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) {
-                org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) update;
-                if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
-                    ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, ((TLRPC.TL_userStatusOffline) statusUpdate.status).expires);
-                } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
-                    ReExteraDb.get().saveLastOnlineAsync(statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
-                }
-            } else {
-                long onlineUserId = 0;
-                int onlineDate = 0;
-                if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-                    if (newMsg.message != null && !(newMsg.message instanceof TLRPC.TL_messageEmpty) && !newMsg.message.out) {
-                        onlineUserId = getFromId(newMsg.message);
-                        onlineDate = newMsg.message.date;
-                    }
-                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-                    if (newMsg2.message != null && !(newMsg2.message instanceof TLRPC.TL_messageEmpty) && !newMsg2.message.out) {
-                        onlineUserId = getFromId(newMsg2.message);
-                        onlineDate = newMsg2.message.date;
-                    }
-                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateEditMessage editMsg = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
-                    if (editMsg.message != null && !(editMsg.message instanceof TLRPC.TL_messageEmpty) && !editMsg.message.out) {
-                        if (editMsg.message.edit_date > 0) {
-                            onlineUserId = getFromId(editMsg.message);
-                            onlineDate = editMsg.message.edit_date;
-                        }
-                    }
-                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) update;
-                    onlineUserId = typing.user_id;
-                    onlineDate = (int) (System.currentTimeMillis() / 1000L);
-                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) update;
-                    onlineUserId = typing.from_id != null ? typing.from_id.user_id : 0;
-                    onlineDate = (int) (System.currentTimeMillis() / 1000L);
-                }
-                
-                if (onlineUserId > 0 && onlineDate > 0) {
-                    ReExteraDb.get().saveLastOnlineAsync(onlineUserId, onlineDate);
-                    triggerUIUpdate(currentAccount);
-                }
-            }
-        }
+        recordLastOnlineFromUpdate(currentAccount, update);
         return true;
+    }
+
+    public static void recordLastOnlineFromUpdate(int currentAccount, Object update) {
+        if (!ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() || !(update instanceof TLRPC.Update)) {
+            return;
+        }
+        TLRPC.Update typedUpdate = (TLRPC.Update) update;
+        if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) {
+            org.telegram.tgnet.tl.TL_update.TL_updateUserStatus statusUpdate = (org.telegram.tgnet.tl.TL_update.TL_updateUserStatus) typedUpdate;
+            if (statusUpdate.status instanceof TLRPC.TL_userStatusOffline) {
+                saveLastOnline(currentAccount, statusUpdate.user_id, ((TLRPC.TL_userStatusOffline) statusUpdate.status).expires);
+            } else if (statusUpdate.status instanceof TLRPC.TL_userStatusOnline) {
+                saveLastOnline(currentAccount, statusUpdate.user_id, (int) (System.currentTimeMillis() / 1000L));
+            }
+            return;
+        }
+
+        long onlineUserId = 0;
+        int onlineDate = 0;
+        if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+            TLRPC.Message message = ((org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) typedUpdate).message;
+            if (isIncomingMessage(message)) {
+                onlineUserId = getFromId(message);
+                onlineDate = message.date;
+            }
+        } else if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+            TLRPC.Message message = ((org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) typedUpdate).message;
+            if (isIncomingMessage(message)) {
+                onlineUserId = getFromId(message);
+                onlineDate = message.date;
+            }
+        } else if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
+            TLRPC.Message message = ((org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) typedUpdate).message;
+            if (isIncomingMessage(message) && message.edit_date > 0) {
+                onlineUserId = getFromId(message);
+                onlineDate = message.edit_date;
+            }
+        } else if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) {
+            onlineUserId = ((org.telegram.tgnet.tl.TL_update.TL_updateUserTyping) typedUpdate).user_id;
+            onlineDate = (int) (System.currentTimeMillis() / 1000L);
+        } else if (typedUpdate instanceof org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) {
+            org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping typing = (org.telegram.tgnet.tl.TL_update.TL_updateChatUserTyping) typedUpdate;
+            onlineUserId = typing.from_id != null ? typing.from_id.user_id : 0;
+            onlineDate = (int) (System.currentTimeMillis() / 1000L);
+        }
+        saveLastOnline(currentAccount, onlineUserId, onlineDate);
+    }
+
+    private static boolean isIncomingMessage(TLRPC.Message message) {
+        return message != null && !(message instanceof TLRPC.TL_messageEmpty) && !message.out;
+    }
+
+    private static void saveLastOnline(int currentAccount, long userId, int timestamp) {
+        if (userId > 0 && timestamp > 0) {
+            ReExteraDb.get().saveLastOnlineAsync(userId, timestamp);
+            triggerUIUpdate(currentAccount);
+        }
     }
 
     private boolean shadowbanFilterHideDialog(TLRPC.Message message) {

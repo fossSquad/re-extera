@@ -990,23 +990,31 @@ public final class ReExteraDb {
     public void lambda$saveLastOnlineAsync$90(long userId, int ts) {
         SQLiteDatabase db = this.helper.getWritableDatabase();
         try {
-            SQLiteStatement st = db.compileStatement("INSERT OR REPLACE INTO last_online_users(user_id, online_ts) VALUES(?, ?)");
+            Cursor cursor = db.rawQuery("SELECT online_ts FROM last_online_users WHERE user_id = ?", new String[]{String.valueOf(userId)});
+            int storedTimestamp = 0;
             try {
-                st.bindLong(1, userId);
-                st.bindLong(2, ts);
-                st.executeInsert();
-                if (st != null) {
+                if (cursor.moveToFirst()) {
+                    storedTimestamp = cursor.getInt(0);
+                }
+            } finally {
+                cursor.close();
+            }
+            int latestTimestamp = Math.max(storedTimestamp, ts);
+            if (latestTimestamp != storedTimestamp) {
+                SQLiteStatement st = db.compileStatement("INSERT OR REPLACE INTO last_online_users(user_id, online_ts) VALUES(?, ?)");
+                try {
+                    st.bindLong(1, userId);
+                    st.bindLong(2, latestTimestamp);
+                    st.executeInsert();
+                } finally {
                     st.close();
                 }
-            } catch (Throwable th) {
-                if (st != null) {
-                    try {
-                        st.close();
-                    } catch (Throwable th2) {
-                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                    }
+            }
+            synchronized (lastOnlineCache) {
+                Integer cachedTimestamp = lastOnlineCache.get(userId);
+                if (cachedTimestamp == null || latestTimestamp > cachedTimestamp) {
+                    lastOnlineCache.put(userId, latestTimestamp);
                 }
-                throw th;
             }
         } catch (Exception e) {
             Main.log("saveLastOnline error: %s", e.getMessage());
@@ -1014,7 +1022,16 @@ public final class ReExteraDb {
     }
 
     public void saveLastOnlineAsync(final long userId, final int ts) {
-        lastOnlineCache.put(userId, ts);
+        if (userId <= 0 || ts <= 0) {
+            return;
+        }
+        synchronized (lastOnlineCache) {
+            Integer cachedTimestamp = lastOnlineCache.get(userId);
+            if (cachedTimestamp != null && cachedTimestamp >= ts) {
+                return;
+            }
+            lastOnlineCache.put(userId, ts);
+        }
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
