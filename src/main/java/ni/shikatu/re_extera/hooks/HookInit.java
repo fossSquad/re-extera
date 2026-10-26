@@ -57,6 +57,7 @@ import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessage;
 import ni.shikatu.re_extera.hooks.sendmessageshelper.SendMessageForwardHook;
 import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.hooks.usercell.HideOwnOnlineStatus;
+import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FlagSecureReason;
@@ -64,6 +65,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessageSuggestionParams;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
+import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.NotificationsController;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserConfig;
@@ -87,6 +89,7 @@ import org.telegram.ui.SecretVoicePlayer;
 public final class HookInit {
     private final ArrayList<XC_MethodHook.Unhook> hooks = new ArrayList<>();
     public XC_MethodHook.Unhook sendRequestHook;
+    private NotificationCenter.NotificationCenterDelegate activeAccountObserver;
 
     /* JADX INFO: Access modifiers changed from: private */
     @FunctionalInterface
@@ -314,10 +317,43 @@ public final class HookInit {
             tryHook("AppNavigationPreferencesActivity.resetToDefault", appNavClass, "resetToDefault", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.RESET_TO_DEFAULT), new Class[0]);
         } catch (ClassNotFoundException ignored) {
         }
+
+        try {
+            activeAccountObserver = new NotificationCenter.NotificationCenterDelegate() {
+                @Override
+                public void didReceivedNotification(int id, int account, Object... args) {
+                    if (id == NotificationCenter.activeAccountChanged) {
+                        try {
+                            int newAccount = account;
+                            ConnectionsManager cm = ConnectionsManager.getInstance(newAccount);
+                            if (cm != null) {
+                                cm.checkConnection();
+                                cm.resumeNetworkMaybe();
+                            }
+                            if (Settings.getHideOnlineWithGhost()) {
+                                GhostMenuHelper.syncOnlineStatus(newAccount);
+                            }
+                        } catch (Throwable t) {
+                            Main.log("activeAccountChanged observer error: %s", t.getMessage());
+                        }
+                    }
+                }
+            };
+            NotificationCenter.getGlobalInstance().addObserver(activeAccountObserver, NotificationCenter.activeAccountChanged);
+        } catch (Throwable t) {
+            Main.log("Failed to register activeAccountObserver: %s", t.getMessage());
+        }
     }
 
     public void onUnload() {
         isActive = false;
+        if (this.activeAccountObserver != null) {
+            try {
+                NotificationCenter.getGlobalInstance().removeObserver(this.activeAccountObserver, NotificationCenter.activeAccountChanged);
+            } catch (Throwable ignored) {
+            }
+            this.activeAccountObserver = null;
+        }
         if (this.sendRequestHook != null) {
             try {
                 this.sendRequestHook.unhook();

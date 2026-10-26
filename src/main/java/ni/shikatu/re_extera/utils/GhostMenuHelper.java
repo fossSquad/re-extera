@@ -295,33 +295,37 @@ public final class GhostMenuHelper {
     }
 
     public static void syncOnlineStatus() {
+        syncOnlineStatus(UserConfig.selectedAccount);
+    }
+
+    public static void syncOnlineStatus(int account) {
+        if (!UserConfig.isValidAccount(account)) {
+            return;
+        }
+        UserConfig cfg = UserConfig.getInstance(account);
+        if (cfg == null || !cfg.isClientActivated()) {
+            return;
+        }
         boolean hideOnline = Settings.getHideOnlineWithGhost();
         boolean offline = hideOnline || ApplicationLoader.mainInterfacePaused;
-        int maxAccounts = UserConfig.getMaxAccountCount();
-        for (int i = 0; i < maxAccounts; i++) {
-            UserConfig cfg = UserConfig.getInstance(i);
-            if (cfg != null && cfg.isClientActivated()) {
-                final int account = i;
-                setIgnoreSetOnline(account, false);
-                TL_account.updateStatus req = new TL_account.updateStatus();
-                req.offline = offline;
-                ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {});
+        setIgnoreSetOnline(account, false);
+        TL_account.updateStatus req = new TL_account.updateStatus();
+        req.offline = offline;
+        ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {});
 
-                Utilities.stageQueue.postRunnable(() -> {
-                    try {
-                        MessagesController mc = MessagesController.getInstance(account);
-                        if (mcOfflineSentField != null) {
-                            mcOfflineSentField.setBoolean(mc, false);
-                        }
-                        if (mcLastStatusUpdateTimeField != null) {
-                            mcLastStatusUpdateTimeField.setLong(mc, System.currentTimeMillis());
-                        }
-                    } catch (Throwable t) {
-                        Main.log("GhostMenuHelper.syncOnlineStatus: error updating MessagesController: %s", t.getMessage());
-                    }
-                });
+        Utilities.stageQueue.postRunnable(() -> {
+            try {
+                MessagesController mc = MessagesController.getInstance(account);
+                if (mcOfflineSentField != null) {
+                    mcOfflineSentField.setBoolean(mc, offline);
+                }
+                if (mcLastStatusUpdateTimeField != null) {
+                    mcLastStatusUpdateTimeField.setLong(mc, System.currentTimeMillis());
+                }
+            } catch (Throwable t) {
+                Main.log("GhostMenuHelper.syncOnlineStatus: error updating MessagesController: %s", t.getMessage());
             }
-        }
+        });
     }
 
     private static void setIgnoreSetOnline(int account, boolean hideOnline) {

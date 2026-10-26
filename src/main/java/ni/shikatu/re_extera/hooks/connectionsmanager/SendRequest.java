@@ -35,43 +35,50 @@ public class SendRequest extends XC_MethodHook {
     }
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
-        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-        org.telegram.tgnet.TLObject request = (org.telegram.tgnet.TLObject) param.args[0];
-        if (Main.ignoredRequests.remove(request)) {
-            return;
-        }
-        if (request instanceof TL_account.updateStatus) {
-            TL_account.updateStatus statusUpdate = (TL_account.updateStatus) request;
-            if (Settings.getHideOnlineWithGhost()) {
-                statusUpdate.offline = true;
+        try {
+            if (param.args == null || param.args.length == 0 || param.args[0] == null) {
+                return;
             }
-        }
-        if (request instanceof TL_account.updateEmojiStatus && isPremium.isEnabledForAccount(currentAccount)) {
-            handleLocalEmojiStatus(param, currentAccount, (TL_account.updateEmojiStatus) request);
-            return;
-        }
-        if (Settings.getReadOnInteract() && isInteractionRequest(request)) {
-            dispatchReadOnInteract(currentAccount, request);
-            return;
-        }
-        if (Defaults.readingRequests.contains(request.getClass())) {
-            applyReadingPolicy(param, currentAccount, request);
-            return;
-        }
-        if (Defaults.typingRequests.contains(request.getClass())) {
-            applyTypingPolicy(param, currentAccount, request);
-        } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
-            RequestDelegate onCompleteOrig = (RequestDelegate) param.args[1];
-            if (onCompleteOrig != null) {
-                try {
-                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
-                        try {
-                            onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
-                        } catch (Exception ignored) {}
-                    });
-                } catch (Throwable ignored) {}
+            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+            org.telegram.tgnet.TLObject request = (org.telegram.tgnet.TLObject) param.args[0];
+            if (Main.ignoredRequests.remove(request)) {
+                return;
             }
-            param.setResult((Object) null);
+            if (request instanceof TL_account.updateStatus) {
+                TL_account.updateStatus statusUpdate = (TL_account.updateStatus) request;
+                if (Settings.getHideOnlineWithGhost()) {
+                    statusUpdate.offline = true;
+                }
+            }
+            if (request instanceof TL_account.updateEmojiStatus && isPremium.isEnabledForAccount(currentAccount)) {
+                handleLocalEmojiStatus(param, currentAccount, (TL_account.updateEmojiStatus) request);
+                return;
+            }
+            if (Settings.getReadOnInteract() && isInteractionRequest(request)) {
+                dispatchReadOnInteract(currentAccount, request);
+                return;
+            }
+            if (Defaults.readingRequests.contains(request.getClass())) {
+                applyReadingPolicy(param, currentAccount, request);
+                return;
+            }
+            if (Defaults.typingRequests.contains(request.getClass())) {
+                applyTypingPolicy(param, currentAccount, request);
+            } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
+                RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
+                if (onCompleteOrig != null) {
+                    try {
+                        org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                            try {
+                                onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
+                            } catch (Exception ignored) {}
+                        });
+                    } catch (Throwable ignored) {}
+                }
+                param.setResult((Object) null);
+            }
+        } catch (Throwable t) {
+            Main.log("SendRequest.beforeHookedMethod error: %s", t.getMessage());
         }
     }
 
@@ -94,18 +101,24 @@ public class SendRequest extends XC_MethodHook {
     }
 
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
-        if (Settings.getImmediateOfflineWithGhost()) {
-            TLObject request = (TLObject) param.args[0];
-            if (isMessageSendRequest(request)) {
-                int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-                try {
-                    org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
-                        ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, (tLObject, tL_error) -> {});
-                    }, 1000);
-                } catch (Throwable t) {
-                    ConnectionsManager.getInstance(currentAccount).sendRequest(OFFLINE_STATUS, (tLObject, tL_error) -> {});
+        try {
+            if (Settings.getImmediateOfflineWithGhost() && param.args != null && param.args.length > 0 && param.args[0] != null) {
+                TLObject request = (TLObject) param.args[0];
+                if (isMessageSendRequest(request)) {
+                    int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+                    TL_account.updateStatus offlineReq = new TL_account.updateStatus();
+                    offlineReq.offline = true;
+                    try {
+                        org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
+                            ConnectionsManager.getInstance(currentAccount).sendRequest(offlineReq, (tLObject, tL_error) -> {});
+                        }, 1000);
+                    } catch (Throwable t) {
+                        ConnectionsManager.getInstance(currentAccount).sendRequest(offlineReq, (tLObject, tL_error) -> {});
+                    }
                 }
             }
+        } catch (Throwable t) {
+            Main.log("SendRequest.afterHookedMethod error: %s", t.getMessage());
         }
     }
 
@@ -199,15 +212,37 @@ public class SendRequest extends XC_MethodHook {
         }
 
         if (shouldBlock) {
-            RequestDelegate onCompleteOrig = (RequestDelegate) param.args[1];
-            if (onCompleteOrig != null) {
-                TLRPC.TL_messages_affectedMessages fakeRes = new TLRPC.TL_messages_affectedMessages();
-                fakeRes.pts = -1;
-                fakeRes.pts_count = 0;
+            RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
+            org.telegram.tgnet.RequestDelegateTimestamp onCompleteTimestamp = param.args.length > 2 && param.args[2] instanceof org.telegram.tgnet.RequestDelegateTimestamp ? (org.telegram.tgnet.RequestDelegateTimestamp) param.args[2] : null;
+            TLObject fakeRes;
+            if (request instanceof TLRPC.TL_channels_readHistory || 
+                request instanceof TLRPC.TL_channels_readMessageContents ||
+                request instanceof TLRPC.TL_messages_readDiscussion ||
+                request instanceof TLRPC.TL_messages_markDialogUnread) {
+                fakeRes = new TLRPC.TL_boolTrue();
+            } else if (request instanceof TLRPC.TL_messages_readEncryptedHistory ||
+                       request instanceof TLRPC.TL_messages_readReactions) {
+                TLRPC.TL_messages_affectedHistory affHist = new TLRPC.TL_messages_affectedHistory();
+                affHist.pts = -1;
+                affHist.pts_count = 0;
+                fakeRes = affHist;
+            } else {
+                TLRPC.TL_messages_affectedMessages affMsg = new TLRPC.TL_messages_affectedMessages();
+                affMsg.pts = -1;
+                affMsg.pts_count = 0;
+                fakeRes = affMsg;
+            }
+            final TLObject resToRun = fakeRes;
+            if (onCompleteOrig != null || onCompleteTimestamp != null) {
                 try {
                     org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
                         try {
-                            onCompleteOrig.run(fakeRes, null);
+                            if (onCompleteOrig != null) {
+                                onCompleteOrig.run(resToRun, null);
+                            }
+                            if (onCompleteTimestamp != null) {
+                                onCompleteTimestamp.run(resToRun, null, System.currentTimeMillis() / 1000L);
+                            }
                         } catch (Exception ignored) {}
                     });
                 } catch (Throwable ignored) {}
