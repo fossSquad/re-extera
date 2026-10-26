@@ -51,7 +51,7 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
     }
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
-        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium()), "reExteraLocalPremium", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.LOCAL_PREMIUM_ID.getId(), Localization.LOCAL_PREMIUM).setChecked(Settings.getLocalPremium() && !isPremium.isRealPremium(getCurrentAccount())), "reExteraLocalPremium", this));
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(AdditionalIds.DISABLE_ADS_ID.getId(), Localization.DISABLE_ADS).setChecked(Settings.getDisableAds()), "reExteraDisableAds", this));
         items.add(UItemUtils.asShadow());
 
@@ -148,8 +148,13 @@ public class AdditionalFragment extends BasePreferencesActivityExtended {
                 break;
             case 5: {
                 int account = getCurrentAccount();
-                if (Settings.getRealPremium(account) == 1 && !Settings.getLocalPremium()) {
-                    BulletinFactory.of(this).createEmojiBulletin("❌", Localization.CANT_USE_WITH_PREMIUM).show();
+                if (isPremium.isRealPremium(account) && !Settings.getLocalPremium()) {
+                    refreshCheckBox(item, position, false);
+                    try {
+                        BulletinFactory.of(this).createErrorBulletin(Localization.CANT_USE_WITH_PREMIUM).show();
+                    } catch (Throwable t) {
+                        Main.log("LocalPremium error bulletin failed: %s", t.getMessage());
+                    }
                 } else {
                     boolean enable = !Settings.getLocalPremium();
                     Settings.setLocalPremium(enable);

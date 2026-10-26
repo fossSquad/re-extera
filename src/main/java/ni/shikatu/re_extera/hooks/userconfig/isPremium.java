@@ -30,7 +30,7 @@ public class isPremium extends XC_MethodHook {
             return;
         }
         int account = AccountUtils.getCurrentAccount(param.thisObject);
-        if (Settings.getRealPremium(account) == 1) {
+        if (isRealPremium(account)) {
             return;
         }
         try {
@@ -120,8 +120,29 @@ public class isPremium extends XC_MethodHook {
         }
     }
 
+    public static boolean isRealPremium(int account) {
+        if (Settings.getRealPremium(account) == 1) {
+            return true;
+        }
+        if (Settings.getRealPremium(account) == 0) {
+            return false;
+        }
+        try {
+            UserConfig cfg = UserConfig.getInstance(account);
+            if (cfg != null) {
+                TLRPC.User user = cfg.getCurrentUser();
+                if (user != null && user.premium && !fakePremiumUsers.contains(user.id)) {
+                    Settings.setRealPremium(account, true);
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
+    }
+
     public static boolean isEnabledForAccount(int account) {
-        return Settings.getLocalPremium() && Settings.getRealPremium(account) != 1;
+        return Settings.getLocalPremium() && !isRealPremium(account);
     }
 
     public static void cacheEmojiStatus(int account, TLRPC.EmojiStatus requestedStatus) {
@@ -182,7 +203,7 @@ public class isPremium extends XC_MethodHook {
         if (user == null || !Settings.getLocalPremium()) {
             return;
         }
-        if (Settings.getRealPremium(account) == 1) {
+        if (isRealPremium(account)) {
             return;
         }
         long myId;
