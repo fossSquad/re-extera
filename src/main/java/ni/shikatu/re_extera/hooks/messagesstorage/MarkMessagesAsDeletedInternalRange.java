@@ -22,19 +22,25 @@ public class MarkMessagesAsDeletedInternalRange extends XC_MethodHook {
         if (DeleteMessagesRangeFlag.ACTIVE.get()) {
             return;
         }
-        if (Settings.getSaveDeletedMessages()) {
-            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-            long did = ((Long) param.args[0]).longValue();
-            int maxMid = ((Integer) param.args[1]).intValue();
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+        long did = ((Long) param.args[0]).longValue();
+        int maxMid = ((Integer) param.args[1]).intValue();
 
-            if (did != 0 && !Settings.getSaveBotChats()) {
+        if (did != 0) {
+            if (!this.redb.shouldSaveDeletedMessages(did)) {
+                return;
+            }
+            if (!Settings.getSaveBotChats()) {
                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);
                 if (user != null && user.bot) {
                     return;
                 }
             }
+        } else if (!Settings.getSaveDeletedMessages()) {
+            return;
+        }
 
-            SQLiteDatabase db = null;
+        SQLiteDatabase db = null;
             try {
                 if (param.thisObject instanceof MessagesStorage) {
                     db = ((MessagesStorage) param.thisObject).getDatabase();
@@ -69,6 +75,5 @@ public class MarkMessagesAsDeletedInternalRange extends XC_MethodHook {
 
             // Return empty list of randoms to prevent Telegram from deleting them
             param.setResult(new ArrayList<Long>());
-        }
     }
 }

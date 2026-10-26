@@ -177,8 +177,8 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         String dialogName = getDialogName(exception.dialogId);
         BottomSheet.Builder builder = new BottomSheet.Builder(getParentActivity());
         builder.setTitle(dialogName);
-        CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.EDIT_FILTER, Localization.DELETE_FROM_EXCLUSIONS};
-        int[] icons = {Res.drawable("msg_openprofile", R.drawable.msg_openprofile), Res.drawable("msg_archive_hide", R.drawable.msg_archive_hide), Res.drawable("floating_pencil", R.drawable.floating_pencil), Res.drawable("msg_permissions", R.drawable.msg_permissions), Res.drawable("msg_delete", R.drawable.msg_delete)};
+        CharSequence[] items = {Localization.OPEN_CHAT, Localization.EDIT_READ, Localization.EDIT_TYPING, Localization.EDIT_FILTER, Localization.EDIT_DELETED, Localization.DELETE_FROM_EXCLUSIONS};
+        int[] icons = {Res.drawable("msg_openprofile", R.drawable.msg_openprofile), Res.drawable("msg_archive_hide", R.drawable.msg_archive_hide), Res.drawable("floating_pencil", R.drawable.floating_pencil), Res.drawable("msg_permissions", R.drawable.msg_permissions), Res.drawable("msg_delete", R.drawable.msg_delete), Res.drawable("msg_delete", R.drawable.msg_delete)};
         builder.setItems(items, icons, new DialogInterface.OnClickListener() { 
             @Override // android.content.DialogInterface.OnClickListener
             public final void onClick(DialogInterface dialogInterface, int i) {
@@ -204,6 +204,9 @@ public class ExclusionsFragment extends BasePreferencesActivity {
                 showEditFilterDialog(exception, position);
                 break;
             case 4:
+                showEditDeletedDialog(exception, position);
+                break;
+            case 5:
                 showDeleteConfirmation(exception, position);
                 break;
         }
@@ -279,6 +282,21 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
     }
 
+    private void showEditDeletedDialog(final DialogExclusion exception, final int position) {
+        new ExclusionUtils.ExclusionDeletedDialog(getContext(), exception.dialogId, new Runnable() {
+            @Override
+            public final void run() {
+                DialogExclusion updated = ReExteraDb.get().getException(exception.dialogId);
+                if (updated != null) {
+                    exceptions.set(position, updated);
+                    if (getAdapter() != null) {
+                        getAdapter().update(true);
+                    }
+                }
+            }
+        }).show();
+    }
+
     private void showDeleteConfirmation(final DialogExclusion exception, final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(Localization.DELETE_FROM_EXCLUSIONS);
@@ -295,6 +313,8 @@ public class ExclusionsFragment extends BasePreferencesActivity {
     public /* synthetic */ void lambda$showDeleteConfirmation$4(DialogExclusion exception, int position, AlertDialog dialog, int which) {
         ReExteraDb.get().lambda$setDialogReadingAsync$4(exception.dialogId, 0);
         ReExteraDb.get().lambda$setDialogTypingAsync$5(exception.dialogId, 0);
+        ReExteraDb.get().lambda$setDialogFilterAsync$6(exception.dialogId, 0);
+        ReExteraDb.get().lambda$setDialogDeletedAsync$7(exception.dialogId, 0);
         this.exceptions.remove(position);
         if (getAdapter() != null) {
             getAdapter().update(true);
@@ -326,6 +346,9 @@ public class ExclusionsFragment extends BasePreferencesActivity {
         }
         if (exception.filterExclusion != 0) {
             parts.add(Localization.FILTERS + " " + getExclusionText(exception.filterExclusion));
+        }
+        if (exception.deletedExclusion != 0) {
+            parts.add(Localization.SAVE_DELETED + " " + getExclusionText(exception.deletedExclusion));
         }
         if (parts.isEmpty()) {
             return Localization.NO_EXLCUSIONS;

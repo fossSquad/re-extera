@@ -23,115 +23,131 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
         if (DeleteMessagesRangeFlag.ACTIVE.get()) {
             return;
         }
-        if (Settings.getSaveDeletedMessages()) {
-            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-            long uid = ((Long) param.args[0]).longValue();
-            long channelId = ((Long) param.args[1]).longValue();
-            long did = channelId != 0 ? -channelId : uid;
-            
-            if (did != 0 && !Settings.getSaveBotChats()) {
+        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+        long uid = ((Long) param.args[0]).longValue();
+        long channelId = ((Long) param.args[1]).longValue();
+        long did = channelId != 0 ? -channelId : uid;
+
+        if (did != 0) {
+            if (!this.redb.shouldSaveDeletedMessages(did)) {
+                return;
+            }
+            if (!Settings.getSaveBotChats()) {
                 TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(did);
                 if (user != null && user.bot) {
                     return;
                 }
             }
-            
-            ArrayList<Integer> ids = (ArrayList) param.args[2];
-            if (ids == null || ids.isEmpty()) {
-                return;
+        } else if (!Settings.getSaveDeletedMessages()) {
+            return;
+        }
+
+        ArrayList<Integer> ids = (ArrayList) param.args[2];
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+
+        ArrayList<Integer> validIds = new ArrayList<>();
+        ArrayList<Integer> tempIds = new ArrayList<>();
+        for (Integer id : ids) {
+            if (id != null && id > 0) {
+                validIds.add(id);
+            } else if (id != null) {
+                tempIds.add(id);
             }
-            
-            ArrayList<Integer> validIds = new ArrayList<>();
-            ArrayList<Integer> tempIds = new ArrayList<>();
-            for (Integer id : ids) {
-                if (id != null && id > 0) {
-                    validIds.add(id);
-                } else if (id != null) {
-                    tempIds.add(id);
+        }
+
+        if (!validIds.isEmpty()) {
+            Map<Long, List<Integer>> messagesByDialog = new HashMap<>();
+            if (did != 0) {
+                messagesByDialog.put(did, validIds);
+            } else {
+                SQLiteDatabase db = null;
+                try {
+                    if (param.thisObject instanceof MessagesStorage) {
+                        db = ((MessagesStorage) param.thisObject).getDatabase();
+                    } else {
+                        db = MessagesStorage.getInstance(currentAccount).getDatabase();
+                    }
+                } catch (Throwable t) {
+                    Main.log("UpdateDialogsWithDeletedMessages: failed to get database: %s", t.getMessage());
                 }
-            }
 
-            if (!validIds.isEmpty()) {
-                Map<Long, List<Integer>> messagesByDialog = new HashMap<>();
-                if (did != 0) {
-                    messagesByDialog.put(did, validIds);
-                } else {
-                    SQLiteDatabase db = null;
+                List<Integer> unresolvedIds = new ArrayList<>(validIds);
+                if (db != null) {
                     try {
-                        if (param.thisObject instanceof MessagesStorage) {
-                            db = ((MessagesStorage) param.thisObject).getDatabase();
-                        } else {
-                            db = MessagesStorage.getInstance(currentAccount).getDatabase();
+                        StringBuilder sb = new StringBuilder();
+                        for (int i = 0; i < validIds.size(); i++) {
+                            if (i > 0) sb.append(",");
+                            sb.append(validIds.get(i));
                         }
-                    } catch (Throwable t) {
-                        Main.log("UpdateDialogsWithDeletedMessages: failed to get database: %s", t.getMessage());
-                    }
-
-                    List<Integer> unresolvedIds = new ArrayList<>(validIds);
-                    if (db != null) {
-                        try {
-                            StringBuilder sb = new StringBuilder();
-                            for (int i = 0; i < validIds.size(); i++) {
-                                if (i > 0) sb.append(",");
-                                sb.append(validIds.get(i));
+                        SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ") AND is_channel = 0");
+                        while (cursor.next()) {
+                            long msgUid = cursor.longValue(0);
+                            int msgMid = cursor.intValue(1);
+                            unresolvedIds.remove(Integer.valueOf(msgMid));
+                            if (!this.redb.shouldSaveDeletedMessages(msgUid)) {
+                                tempIds.add(msgMid);
+                                continue;
                             }
-                            SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ") AND is_channel = 0");
-                            while (cursor.next()) {
-                                long msgUid = cursor.longValue(0);
-                                int msgMid = cursor.intValue(1);
-                                unresolvedIds.remove(Integer.valueOf(msgMid));
-                                List<Integer> list = messagesByDialog.get(msgUid);
-                                if (list == null) {
-                                    list = new ArrayList<>();
-                                    messagesByDialog.put(msgUid, list);
-                                }
-                                list.add(msgMid);
-                            }
-                            cursor.dispose();
-                        } catch (Throwable t) {
-                            Main.log("UpdateDialogsWithDeletedMessages: error querying messages_v2: %s", t.getMessage());
-                        }
-                    }
-
-                    if (!unresolvedIds.isEmpty()) {
-                        for (Integer mid : unresolvedIds) {
-                            long foundDid = 0;
-                            try {
-                                org.telegram.messenger.MessageObject obj = MessageUtils.getMessage(currentAccount, 0, mid);
-                                if (obj != null) {
-                                    foundDid = obj.getDialogId();
-                                }
-                            } catch (Throwable ignored) {}
-                            List<Integer> list = messagesByDialog.get(foundDid);
+                            List<Integer> list = messagesByDialog.get(msgUid);
                             if (list == null) {
                                 list = new ArrayList<>();
-                                messagesByDialog.put(foundDid, list);
+                                messagesByDialog.put(msgUid, list);
                             }
-                            list.add(mid);
+                            list.add(msgMid);
                         }
+                        cursor.dispose();
+                    } catch (Throwable t) {
+                        Main.log("UpdateDialogsWithDeletedMessages: error querying messages_v2: %s", t.getMessage());
                     }
                 }
 
-                for (Map.Entry<Long, List<Integer>> entry : messagesByDialog.entrySet()) {
-                    long targetDid = entry.getKey();
-                    List<Integer> targetIds = entry.getValue();
-                    if (!Settings.getSaveBotChats() && targetDid != 0) {
-                        TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(targetDid);
-                        if (user != null && user.bot) {
+                if (!unresolvedIds.isEmpty()) {
+                    for (Integer mid : unresolvedIds) {
+                        long foundDid = 0;
+                        try {
+                            org.telegram.messenger.MessageObject obj = MessageUtils.getMessage(currentAccount, 0, mid);
+                            if (obj != null) {
+                                foundDid = obj.getDialogId();
+                            }
+                        } catch (Throwable ignored) {}
+                        if (!this.redb.shouldSaveDeletedMessages(foundDid)) {
+                            tempIds.add(mid);
                             continue;
                         }
+                        List<Integer> list = messagesByDialog.get(foundDid);
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            messagesByDialog.put(foundDid, list);
+                        }
+                        list.add(mid);
                     }
-                    Main.log("UpdateDialogsWithDeletedMessages: intercepting %d ids for did=%d (args=%d)", targetIds.size(), targetDid, param.args.length);
-                    this.redb.batchPutDeletedMessagesAsync(targetDid, targetIds);
-                    MessageUtils.forceUpdateViews(currentAccount, targetDid, targetIds);
                 }
             }
 
-            param.args[2] = tempIds;
-            boolean isInternalVariant = param.args.length == 4;
-            if (isInternalVariant && tempIds.isEmpty()) {
-                param.setResult((Object) null);
+            for (Map.Entry<Long, List<Integer>> entry : messagesByDialog.entrySet()) {
+                long targetDid = entry.getKey();
+                List<Integer> targetIds = entry.getValue();
+                if (!this.redb.shouldSaveDeletedMessages(targetDid)) {
+                    continue;
+                }
+                if (!Settings.getSaveBotChats() && targetDid != 0) {
+                    TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(targetDid);
+                    if (user != null && user.bot) {
+                        continue;
+                    }
+                }
+                Main.log("UpdateDialogsWithDeletedMessages: intercepting %d ids for did=%d (args=%d)", targetIds.size(), targetDid, param.args.length);
+                this.redb.batchPutDeletedMessagesAsync(targetDid, targetIds);
+                MessageUtils.forceUpdateViews(currentAccount, targetDid, targetIds);
             }
+        }
+
+        param.args[2] = tempIds;
+        boolean isInternalVariant = param.args.length == 4;
+        if (isInternalVariant && tempIds.isEmpty()) {
+            param.setResult((Object) null);
         }
     }
 }

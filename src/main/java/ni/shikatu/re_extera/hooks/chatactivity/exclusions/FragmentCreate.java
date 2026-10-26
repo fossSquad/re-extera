@@ -172,5 +172,10 @@ public class FragmentCreate extends XC_MethodHook {
                 }
             }).show();
         }
+
+        @Override // ni.shikatu.re_extera.utils.ExceptionsPopupWrapper.Callback
+        public void openDeletedExclusion() {
+            new ExclusionUtils.ExclusionDeletedDialog(this.val$context, this.val$dialog_id, null).show();
+        }
     }
 }

@@ -14,7 +14,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.Main;
+import ni.shikatu.re_extera.settings.Settings;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.SerializedData;
 import org.telegram.tgnet.TLRPC;
@@ -22,7 +24,7 @@ import org.telegram.tgnet.TLRPC;
 public final class ReExteraDb {
     private static final int BATCH_IN_SIZE = 500;
     public static final String DB_NAME = "re_extera.db";
-    public static final int DB_VERSION = 13;
+    public static final int DB_VERSION = 14;
     private static final long DELETED_KEYS_TTL_MS = TimeUnit.DAYS.toMillis(30);
     private static volatile ReExteraDb instance;
     private final Handler dbHandler;
@@ -30,6 +32,7 @@ public final class ReExteraDb {
     private final Helper helper;
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, Boolean> filterExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, Integer> deletedExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<Integer>> deletedKeysCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     private java.util.Set<Integer> getOrCreateDeletedSet(long did) {
@@ -69,9 +72,29 @@ public final class ReExteraDb {
             @Override
             public void run() {
                 loadFilterExceptionsCache();
+                loadDeletedExceptionsCache();
                 loadDeletedKeysCache();
             }
         });
+    }
+
+    private void loadDeletedExceptionsCache() {
+        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
+        android.database.Cursor c = null;
+        try {
+            c = db.rawQuery("SELECT did, exception_deleted FROM exception_users WHERE exception_deleted != 0", null);
+            if (c.moveToFirst()) {
+                do {
+                    deletedExceptionsCache.put(c.getLong(0), c.getInt(1));
+                } while (c.moveToNext());
+            }
+        } catch (Throwable e) {
+            ni.shikatu.re_extera.Main.log("Failed to load deletedExceptionsCache", e);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
     }
 
     private void loadDeletedKeysCache() {
@@ -516,10 +539,10 @@ public final class ReExteraDb {
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<DialogExclusion> result = new ArrayList<>();
         try {
-            Cursor c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter FROM exception_users WHERE exception_reading != 0 OR exception_typing != 0 OR exception_filter != 0", null);
+            Cursor c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter, exception_deleted FROM exception_users WHERE exception_reading != 0 OR exception_typing != 0 OR exception_filter != 0 OR exception_deleted != 0", null);
             while (c.moveToNext()) {
                 try {
-                    result.add(new DialogExclusion(c.getLong(0), c.getInt(1), c.getInt(2), c.getInt(3)));
+                    result.add(new DialogExclusion(c.getLong(0), c.getInt(1), c.getInt(2), c.getInt(3), c.getInt(4)));
                 } catch (Throwable th) {
                     if (c != null) {
                         try {
@@ -543,10 +566,10 @@ public final class ReExteraDb {
     public DialogExclusion getException(long dialogId) {
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter FROM exception_users WHERE did = ?", new String[]{String.valueOf(dialogId)});
+            Cursor c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter, exception_deleted FROM exception_users WHERE did = ?", new String[]{String.valueOf(dialogId)});
             try {
                 if (c.moveToFirst()) {
-                    DialogExclusion dialogExclusion = new DialogExclusion(c.getLong(0), c.getInt(1), c.getInt(2), c.getInt(3));
+                    DialogExclusion dialogExclusion = new DialogExclusion(c.getLong(0), c.getInt(1), c.getInt(2), c.getInt(3), c.getInt(4));
                     if (c != null) {
                         c.close();
                     }
@@ -585,6 +608,27 @@ public final class ReExteraDb {
         return getExceptionColumn(did, "exception_filter");
     }
 
+    public int getDialogDeleted(long did) {
+        Integer cached = deletedExceptionsCache.get(did);
+        if (cached != null) {
+            return cached.intValue();
+        }
+        return getExceptionColumn(did, "exception_deleted");
+    }
+
+    public boolean shouldSaveDeletedMessages(long did) {
+        if (did != 0) {
+            int status = getDialogDeleted(did);
+            if (status == Defaults.NEVER) {
+                return false;
+            }
+            if (status == Defaults.ALWAYS) {
+                return true;
+            }
+        }
+        return Settings.getSaveDeletedMessages();
+    }
+
     public boolean isFilterExcluded(long did) {
         return filterExceptionsCache.containsKey(did);
     }
@@ -617,7 +661,7 @@ public final class ReExteraDb {
 
     /* JADX INFO: renamed from: setDialogReading, reason: merged with bridge method [inline-methods] */
     public void lambda$setDialogReadingAsync$4(long did, int value) {
-        lambda$upsertExceptionAsync$4(did, "exception_reading", "exception_typing", "exception_filter", value);
+        lambda$upsertExceptionAsync(did, "exception_reading", value);
     }
 
     public void setDialogReadingAsync(final long did, final int value) {
@@ -631,7 +675,7 @@ public final class ReExteraDb {
 
     /* JADX INFO: renamed from: setDialogTyping, reason: merged with bridge method [inline-methods] */
     public void lambda$setDialogTypingAsync$5(long did, int value) {
-        lambda$upsertExceptionAsync$4(did, "exception_typing", "exception_reading", "exception_filter", value);
+        lambda$upsertExceptionAsync(did, "exception_typing", value);
     }
 
     public void setDialogTypingAsync(final long did, final int value) {
@@ -645,7 +689,7 @@ public final class ReExteraDb {
 
     /* JADX INFO: renamed from: setDialogFilter, reason: merged with bridge method [inline-methods] */
     public void lambda$setDialogFilterAsync$6(long did, int value) {
-        lambda$upsertExceptionAsync$4(did, "exception_filter", "exception_reading", "exception_typing", value);
+        lambda$upsertExceptionAsync(did, "exception_filter", value);
     }
 
     public void setDialogFilterAsync(final long did, final int value) {
@@ -662,24 +706,44 @@ public final class ReExteraDb {
         });
     }
 
-    public void lambda$upsertExceptionAsync$4(long did, String column, String siblingColumn1, String siblingColumn2, int value) {
+    /* JADX INFO: renamed from: setDialogDeleted, reason: merged with bridge method [inline-methods] */
+    public void lambda$setDialogDeletedAsync$7(long did, int value) {
+        lambda$upsertExceptionAsync(did, "exception_deleted", value);
+    }
+
+    public void setDialogDeletedAsync(final long did, final int value) {
+        if (value != 0) {
+            deletedExceptionsCache.put(did, Integer.valueOf(value));
+        } else {
+            deletedExceptionsCache.remove(did);
+        }
+        postToDbThread(new Runnable() { 
+            @Override
+            public final void run() {
+                lambda$setDialogDeletedAsync$7(did, value);
+            }
+        });
+    }
+
+    public void lambda$upsertExceptionAsync(long did, String column, int value) {
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
         try {
-            try {
-                ContentValues cv = new ContentValues();
+            ContentValues cv = new ContentValues();
+            cv.put(column, Integer.valueOf(value));
+            int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
+            if (upd == 0) {
+                cv.put("did", Long.valueOf(did));
+                cv.put("exception_reading", (Integer) 0);
+                cv.put("exception_typing", (Integer) 0);
+                cv.put("exception_filter", (Integer) 0);
+                cv.put("exception_deleted", (Integer) 0);
                 cv.put(column, Integer.valueOf(value));
-                int upd = db.update("exception_users", cv, "did = ?", new String[]{String.valueOf(did)});
-                if (upd == 0) {
-                    cv.put("did", Long.valueOf(did));
-                    cv.put(siblingColumn1, (Integer) 0);
-                    cv.put(siblingColumn2, (Integer) 0);
-                    db.insert("exception_users", null, cv);
-                }
-                db.setTransactionSuccessful();
-            } catch (Exception e) {
-                Main.log("upsertException(%s) error: %s", column, e.getMessage());
+                db.insert("exception_users", null, cv);
             }
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Main.log("upsertException(%s) error: %s", column, e.getMessage());
         } finally {
             db.endTransaction();
         }
@@ -1279,7 +1343,7 @@ public final class ReExteraDb {
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_deleted_did ON deleted_keys(did)");
             db.execSQL("CREATE TABLE IF NOT EXISTS message_edits(did INTEGER NOT NULL,mid INTEGER NOT NULL,ver INTEGER NOT NULL,date INTEGER NOT NULL,data BLOB NOT NULL,PRIMARY KEY(did, mid, ver))");
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_edits_did_mid ON message_edits(did, mid)");
-            db.execSQL("CREATE TABLE IF NOT EXISTS exception_users(did INTEGER NOT NULL,exception_reading INTEGER DEFAULT 0 NOT NULL,exception_typing INTEGER DEFAULT 0 NOT NULL,exception_filter INTEGER DEFAULT 0 NOT NULL,PRIMARY KEY(did))");
+            db.execSQL("CREATE TABLE IF NOT EXISTS exception_users(did INTEGER NOT NULL,exception_reading INTEGER DEFAULT 0 NOT NULL,exception_typing INTEGER DEFAULT 0 NOT NULL,exception_filter INTEGER DEFAULT 0 NOT NULL,exception_deleted INTEGER DEFAULT 0 NOT NULL,PRIMARY KEY(did))");
             db.execSQL("CREATE TABLE IF NOT EXISTS regex_filters(regex TEXT NOT NULL,PRIMARY KEY(regex))");
             db.execSQL("CREATE TABLE IF NOT EXISTS shadowban_users(user_id INTEGER PRIMARY KEY,hide_dialog INTEGER DEFAULT 1,hide_in_groups INTEGER DEFAULT 1,added_ts INTEGER NOT NULL)");
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_shadowban_added_ts ON shadowban_users(added_ts)");
@@ -1331,6 +1395,11 @@ public final class ReExteraDb {
             if (oldV < 13) {
                 try {
                     db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_filter INTEGER DEFAULT 0 NOT NULL");
+                } catch (Exception ignore) {}
+            }
+            if (oldV < 14) {
+                try {
+                    db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_deleted INTEGER DEFAULT 0 NOT NULL");
                 } catch (Exception ignore) {}
             }
         }

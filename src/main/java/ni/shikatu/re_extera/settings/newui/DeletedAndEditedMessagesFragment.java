@@ -14,6 +14,7 @@ import ni.shikatu.re_extera.Defaults;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.localization.Localization;
 import ni.shikatu.re_extera.settings.Settings;
+import ni.shikatu.re_extera.ui.DeletedExclusionsFragment;
 import ni.shikatu.re_extera.utils.UItemUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -29,6 +30,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     private enum DeletedAndEditedIds {
         SAVE_DELETED_MESSAGES_ID,
+        EXCLUSIONS_ID,
         SAVE_BOT_CHATS_ID,
         SAVE_READ_DATE_ID,
         SAVE_LAST_ONLINE_ID,
@@ -49,6 +51,7 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
 
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(UItemUtils.asCheck(DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.getId(), Localization.SAVE_DELETED_MESSAGES, Localization.HOLD_FOR_ADDITIONAL_SETTINGS, true).setChecked(Settings.getSaveDeletedMessages()), "reExteraSaveDeletedMessages", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(DeletedAndEditedIds.EXCLUSIONS_ID.getId(), Localization.EXCLUSIONS), "reExteraDeletedExclusions", this));
         items.add(UItemUtils.asShadow());
 
         items.add(UItemUtils.setLinkAlias(UItem.asCheck(DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.getId(), Localization.SAVE_ATTACHMENTS).setChecked(Settings.getSaveAttachments()), "reExteraSaveAttachments", this));
@@ -95,83 +98,44 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             return;
         }
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
-        switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
-            case Defaults.ALWAYS /* 1 */:
+        switch (clicked) {
+            case SAVE_DELETED_MESSAGES_ID:
                 Settings.setSaveDeletedMessages(!Settings.getSaveDeletedMessages());
                 refreshCheckBox(item, position, Settings.getSaveDeletedMessages());
                 break;
-            case 2:
+            case EXCLUSIONS_ID:
+                presentFragment(new DeletedExclusionsFragment());
+                break;
+            case SAVE_BOT_CHATS_ID:
                 Settings.setSaveBotChats(!Settings.getSaveBotChats());
                 refreshCheckBox(item, position, Settings.getSaveBotChats());
                 break;
-            case 3:
+            case SAVE_READ_DATE_ID:
                 Settings.setSaveReadDate(!Settings.getSaveReadDate());
                 refreshCheckBox(item, position, Settings.getSaveReadDate());
                 break;
-            case 4:
+            case SAVE_LAST_ONLINE_ID:
                 Settings.setSaveLastOnline(!Settings.getSaveLastOnline());
                 refreshCheckBox(item, position, Settings.getSaveLastOnline());
                 break;
-            case 5:
+            case SAVE_ONE_TIME_MESSAGES_ID:
                 Settings.setSaveOneTimeMessages(!Settings.getSaveOneTimeMessages());
                 refreshCheckBox(item, position, Settings.getSaveOneTimeMessages());
                 break;
-            case 6:
+            case SAVE_MESSAGE_HISTORY_ID:
                 Settings.setSaveEditedMessages(!Settings.getSaveEditedMessages());
                 refreshCheckBox(item, position, Settings.getSaveEditedMessages());
                 break;
-            case 7:
+            case SAVE_ATTACHMENTS_ID:
                 Settings.setSaveAttachments(!Settings.getSaveAttachments());
                 refreshCheckBox(item, position, Settings.getSaveAttachments());
                 break;
-            case 9:
+            case TRANSPARENT_DELETED_MESSAGES_ID:
                 Settings.setTransparentDeletedMessages(!Settings.getTransparentDeletedMessages());
                 refreshCheckBox(item, position, Settings.getTransparentDeletedMessages());
                 break;
-        }
-    }
-
-    /* JADX INFO: renamed from: ni.shikatu.re_extera.settings.newui.DeletedAndEditedMessagesFragment$2, reason: invalid class name */
-    static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds = new int[DeletedAndEditedIds.values().length];
-
-        static {
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_DELETED_MESSAGES_ID.ordinal()] = 1;
-            } catch (NoSuchFieldError e) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_BOT_CHATS_ID.ordinal()] = 2;
-            } catch (NoSuchFieldError e) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_READ_DATE_ID.ordinal()] = 3;
-            } catch (NoSuchFieldError e) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_LAST_ONLINE_ID.ordinal()] = 4;
-            } catch (NoSuchFieldError e) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ONE_TIME_MESSAGES_ID.ordinal()] = 5;
-            } catch (NoSuchFieldError e2) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_MESSAGE_HISTORY_ID.ordinal()] = 6;
-            } catch (NoSuchFieldError e3) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ATTACHMENTS_ID.ordinal()] = 7;
-            } catch (NoSuchFieldError e4) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.SAVE_ATTACHMENTS_SIZE_ID.ordinal()] = 8;
-            } catch (NoSuchFieldError e5) {
-            }
-            try {
-                $SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[DeletedAndEditedIds.TRANSPARENT_DELETED_MESSAGES_ID.ordinal()] = 9;
-            } catch (NoSuchFieldError e6) {
-            }
+            default:
+                break;
         }
     }
 
@@ -180,8 +144,8 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             return false;
         }
         DeletedAndEditedIds clicked = DeletedAndEditedIds.values()[item.id - 1];
-        switch (AnonymousClass2.$SwitchMap$ni$shikatu$re_extera$settings$newui$DeletedAndEditedMessagesFragment$DeletedAndEditedIds[clicked.ordinal()]) {
-            case Defaults.ALWAYS /* 1 */:
+        switch (clicked) {
+            case SAVE_DELETED_MESSAGES_ID:
                 final String settingLink = SettingsRegistryHelper.getFirstSettingLink(getClass(), item);
                 ItemOptions options = ItemOptions.makeOptions(this, view);
                 if (!TextUtils.isEmpty(settingLink)) {

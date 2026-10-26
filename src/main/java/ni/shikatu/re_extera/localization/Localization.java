@@ -37,6 +37,7 @@ public class Localization {
     public static String DISABLE_BLUR;
     public static String EDIT_READ;
     public static String EDIT_FILTER;
+    public static String EDIT_DELETED;
     public static String EDIT_REGEX_FILTER;
     public static String EDIT_REGEX_PATTERN;
     public static String EDIT_SHADOWBAN;
@@ -45,6 +46,7 @@ public class Localization {
     public static String ENABLE_FILTERS;
     public static String EXCEPTION_READING_TEXT;
     public static String EXCEPTION_TYPING_TEXT;
+    public static String EXCEPTION_DELETED_TEXT;
     public static String EXCLUSIONS;
     public static String FILTERED_MESSAGE;
     public static String FILTERED_POSTS_MENU;
@@ -140,6 +142,7 @@ public class Localization {
     public static String SAVE_ATTACHMENTS_DESC;
     public static String SAVE_BOT_CHATS;
     public static String SAVE_DELETED_MESSAGES;
+    public static String SAVE_DELETED;
     public static String SAVE_READ_DATE;
     public static String SAVE_LAST_ONLINE;
     public static String EXPORT_DB;
@@ -222,6 +225,7 @@ public class Localization {
             EXCLUSIONS = "Исключения";
             EXCEPTION_READING_TEXT = "Исключение нечиталки";
             EXCEPTION_TYPING_TEXT = "Исключение неписалки";
+            EXCEPTION_DELETED_TEXT = "Исключение удалённых";
             GHOST_EXCLUDE_GROUPS = "Не применять для групп";
             GHOST_EXCLUDE_CHANNELS = "Не применять для каналов";
             GHOST_EXCLUDE_PMS = "Не применять для личных сообщений";
@@ -257,6 +261,8 @@ public class Localization {
             EDIT_TYPING = "Изменить исключение неписалки";
             EDIT_READ = "Изменить исключение нечиталки";
             EDIT_FILTER = "Изменить исключение фильтров";
+            EDIT_DELETED = "Изменить исключение удалённых";
+            SAVE_DELETED = "сохранять удалённые";
             DELETE_FROM_EXCLUSIONS = "Удалить из исключений";
             UNKNOWN_DIALOG = "Неизвестный диалог";
             NO_EXLCUSIONS = "Нет исключений";
@@ -392,6 +398,7 @@ public class Localization {
             EXCLUSIONS = "Винятки";
             EXCEPTION_READING_TEXT = "Виняток нечиталки";
             EXCEPTION_TYPING_TEXT = "Виняток неписалки";
+            EXCEPTION_DELETED_TEXT = "Виняток видалених";
             GHOST_EXCLUDE_GROUPS = "Не застосовувати для груп";
             GHOST_EXCLUDE_CHANNELS = "Не застосовувати для каналів";
             GHOST_EXCLUDE_PMS = "Не застосовувати для особистих повідомлень";
@@ -427,6 +434,8 @@ public class Localization {
             EDIT_TYPING = "Змінити виняток неписалки";
             EDIT_READ = "Змінити виняток нечиталки";
             EDIT_FILTER = "Змінити виняток фільтрів";
+            EDIT_DELETED = "Змінити виняток видалених";
+            SAVE_DELETED = "зберігати видалені";
             DELETE_FROM_EXCLUSIONS = "Видалити з винятків";
             UNKNOWN_DIALOG = "Невідомий діалог";
             NO_EXLCUSIONS = "Немає винятків";
@@ -562,6 +571,7 @@ public class Localization {
         EXCLUSIONS = "Exclusions";
         EXCEPTION_READING_TEXT = "Exclusion reading";
         EXCEPTION_TYPING_TEXT = "Typing Exception";
+        EXCEPTION_DELETED_TEXT = "Deleted messages exclusion";
         GHOST_EXCLUDE_GROUPS = "Do not apply to groups";
         GHOST_EXCLUDE_CHANNELS = "Do not apply to channels";
         GHOST_EXCLUDE_PMS = "Do not apply to PMs";
@@ -594,6 +604,8 @@ public class Localization {
         EDIT_TYPING = "Edit typing exclusion";
         EDIT_READ = "Edit read exclusion";
         EDIT_FILTER = "Edit filter exclusion";
+        EDIT_DELETED = "Edit deleted messages exclusion";
+        SAVE_DELETED = "save deleted messages";
         DELETE_FROM_EXCLUSIONS = "Delete from exclusions";
         UNKNOWN_DIALOG = "Unknown dialog";
         NO_EXLCUSIONS = "No exclusions";

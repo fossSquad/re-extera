@@ -31,6 +31,8 @@ public class ExceptionsPopupWrapper {
 
         void openTyping();
 
+        void openDeletedExclusion();
+
         void showDeletedMessages();
 
         void showFilteredPosts();
@@ -93,6 +95,14 @@ public class ExceptionsPopupWrapper {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 ExceptionsPopupWrapper.lambda$new$2(callback, view);
+            }
+        });
+        ActionBarMenuSubItem itemDeleted = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("msg_delete", R.drawable.msg_delete), Localization.EXCEPTION_DELETED_TEXT, false, resourcesProvider);
+        itemDeleted.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public final void onClick(View view) {
+                callback.dismiss();
+                callback.openDeletedExclusion();
             }
         });
         ActionBarMenuSubItem itemViewDeleted = ActionBarMenuItem.addItem(this.windowLayout, Res.drawable("chats_archive", R.drawable.chats_archive), Localization.VIEW_DELETED, false, resourcesProvider);
