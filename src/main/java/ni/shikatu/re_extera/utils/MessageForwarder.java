@@ -63,6 +63,10 @@ public class MessageForwarder {
     }
 
     public static void sendMessageCopy(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+        sendMessageCopy(accountInstance, messages, peer, notify, scheduleDate, replyToTopMsg, false);
+    }
+
+    public static void sendMessageCopy(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, boolean hideCaption) {
         if (messages.isEmpty()) {
             return;
         }
@@ -88,14 +92,14 @@ public class MessageForwarder {
             batch.add(msg2);
             batches.add(batch);
         }
-        sendBatchSequentially(accountInstance, batches, 0, peer, notify, scheduleDate, replyToTopMsg);
+        sendBatchSequentially(accountInstance, batches, 0, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
     }
 
     static /* synthetic */ ArrayList lambda$sendMessageCopy$0(Long k) {
         return new ArrayList();
     }
 
-    private static void sendBatchSequentially(final AccountInstance accountInstance, final ArrayList<ArrayList<MessageObject>> batches, final int index, final long peer, final boolean notify, final int scheduleDate, final MessageObject replyToTopMsg) {
+    private static void sendBatchSequentially(final AccountInstance accountInstance, final ArrayList<ArrayList<MessageObject>> batches, final int index, final long peer, final boolean notify, final int scheduleDate, final MessageObject replyToTopMsg, final boolean hideCaption) {
         if (index >= batches.size()) {
             return;
         }
@@ -103,14 +107,14 @@ public class MessageForwarder {
         ensureMediaReady(accountInstance, batch, new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
-                MessageForwarder.lambda$sendBatchSequentially$1(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg, batches, index);
+                MessageForwarder.lambda$sendBatchSequentially$1(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg, batches, index, hideCaption);
             }
         });
     }
 
-    static /* synthetic */ void lambda$sendBatchSequentially$1(AccountInstance accountInstance, ArrayList batch, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, ArrayList batches, int index) {
-        sendBatch(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg);
-        sendBatchSequentially(accountInstance, batches, index + 1, peer, notify, scheduleDate, replyToTopMsg);
+    static /* synthetic */ void lambda$sendBatchSequentially$1(AccountInstance accountInstance, ArrayList batch, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, ArrayList batches, int index, boolean hideCaption) {
+        sendBatch(accountInstance, batch, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
+        sendBatchSequentially(accountInstance, batches, index + 1, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
     }
 
     private static File resolveMediaFile(AccountInstance accountInstance, TLRPC.Message message) {
@@ -374,7 +378,7 @@ public class MessageForwarder {
         }
     }
 
-    private static void sendBatch(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+    private static void sendBatch(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, boolean hideCaption) {
         if (messages.isEmpty()) {
             return;
         }
@@ -388,14 +392,14 @@ public class MessageForwarder {
             if (isPhoto || isVideo) {
                 SendMessagesHelper.SendingMediaInfo info = createMediaInfo(accountInstance, original, isVideo);
                 if (info != null) {
-                    if (i == 0 && original.message != null) {
+                    if (i == 0 && original.message != null && !hideCaption) {
                         info.caption = original.message;
                         info.entities = original.entities;
                     }
                     mediaInfos.add(info);
                 }
             } else {
-                sendNonMediaMessage(accountInstance, msgObj, peer, notify, scheduleDate, replyToTopMsg);
+                sendNonMediaMessage(accountInstance, msgObj, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
             }
         }
         if (!mediaInfos.isEmpty()) {
@@ -403,7 +407,7 @@ public class MessageForwarder {
         }
     }
 
-    private static void sendNonMediaMessage(AccountInstance accountInstance, MessageObject msgObj, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+    private static void sendNonMediaMessage(AccountInstance accountInstance, MessageObject msgObj, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, boolean hideCaption) {
         AccountInstance accountInstance2;
         String path;
         TLRPC.Message original;
@@ -489,7 +493,7 @@ public class MessageForwarder {
         }
         TLRPC.Document document = original2.media.document;
         if (isGifLike(original2)) {
-            sendDocumentCopy(accountInstance2, msgObj, document, path, peer, notify, scheduleDate, replyToTopMsg);
+            sendDocumentCopy(accountInstance2, msgObj, document, path, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
             original = original2;
         } else if (MessageObject.isStickerMessage(original2) || MessageObject.isAnimatedStickerMessage(original2) || MessageObject.isVideoSticker(document)) {
             original = original2;
@@ -502,19 +506,27 @@ public class MessageForwarder {
             SendMessagesHelper.prepareSendingVideo(accountInstance, path, videoInfo, (String) null, (TLRPC.Photo) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (ArrayList) null, 0, (MessageObject) null, notify, 0, 0, false, false, (CharSequence) null, (SendMessageChatArguments) null, 0L, 0L);
             original = original2;
         } else {
-            SendMessagesHelper.prepareSendingDocument(accountInstance, path, path, (Uri) null, original2.message, (String) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (MessageObject) null, notify, scheduleDate, (InputContentInfoCompat) null, (SendMessageChatArguments) null, false);
+            String caption = hideCaption ? null : original2.message;
+            ArrayList<TLRPC.MessageEntity> entities = hideCaption ? null : original2.entities;
+            ArrayList<String> paths = new ArrayList<>();
+            paths.add(path);
+            ArrayList<String> originalPaths = new ArrayList<>();
+            originalPaths.add(path);
+            SendMessagesHelper.prepareSendingDocuments(accountInstance, paths, originalPaths, (ArrayList<Uri>) null, caption, entities, (String) null, peer, replyToTopMsg, replyToTopMsg, (TL_stories.StoryItem) null, (ChatActivity.ReplyQuote) null, (MessageObject) null, notify, scheduleDate, 0, (InputContentInfoCompat) null, (SendMessageChatArguments) null, 0L, false, 0L, 0L, (MessageSuggestionParams) null);
             original = original2;
         }
     }
 
-    private static void sendDocumentCopy(AccountInstance accountInstance, MessageObject msgObj, TLRPC.Document document, String path, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg) {
+    private static void sendDocumentCopy(AccountInstance accountInstance, MessageObject msgObj, TLRPC.Document document, String path, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, boolean hideCaption) {
         if (document == null || path == null || path.isEmpty()) {
             return;
         }
         File mediaFile = new File(path);
         if (mediaFile.exists() && mediaFile.length() > 0) {
             TLRPC.TL_document uploadDocument = copyDocumentForUpload(accountInstance, document, mediaFile);
-            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(uploadDocument, (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, msgObj.messageOwner.message, msgObj.messageOwner.entities, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, msgObj.messageOwner.media != null ? msgObj.messageOwner.media.ttl_seconds : 0, msgObj, (MessageObject.SendAnimationData) null, false, msgObj.messageOwner.media != null && msgObj.messageOwner.media.spoiler);
+            String caption = hideCaption ? null : msgObj.messageOwner.message;
+            ArrayList<TLRPC.MessageEntity> entities = hideCaption ? null : msgObj.messageOwner.entities;
+            SendMessagesHelper.SendMessageParams params = SendMessagesHelper.SendMessageParams.of(uploadDocument, (VideoEditedInfo) null, path, peer, replyToTopMsg, replyToTopMsg, caption, entities, (TLRPC.ReplyMarkup) null, (HashMap) null, notify, scheduleDate, 0, msgObj.messageOwner.media != null ? msgObj.messageOwner.media.ttl_seconds : 0, msgObj, (MessageObject.SendAnimationData) null, false, msgObj.messageOwner.media != null && msgObj.messageOwner.media.spoiler);
             accountInstance.getSendMessagesHelper().sendMessage(params);
         }
     }

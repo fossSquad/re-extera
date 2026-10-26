@@ -34,6 +34,7 @@ public class SendMessageForwardHook extends XC_MethodHook {
             return;
         }
         long peer = ((Long) param.args[1]).longValue();
+        boolean hideCaption = param.args.length > 3 && param.args[3] instanceof Boolean && ((Boolean) param.args[3]).booleanValue();
         boolean notify = ((Boolean) param.args[4]).booleanValue();
         int scheduleDate = ((Integer) param.args[5]).intValue();
         MessageObject replyToTopMsg = (MessageObject) param.args[7];
@@ -52,7 +53,7 @@ public class SendMessageForwardHook extends XC_MethodHook {
         }
         if (needsCopy) {
             AccountInstance accountInstance = AccountInstance.getInstance(currentAccount);
-            MessageForwarder.sendMessageCopy(accountInstance, objects, peer, notify, scheduleDate, replyToTopMsg);
+            MessageForwarder.sendMessageCopy(accountInstance, objects, peer, notify, scheduleDate, replyToTopMsg, hideCaption);
             param.setResult(0);
         }
     }
