@@ -1320,9 +1320,11 @@ public final class ReExteraDb {
         return args;
     }
 
+    public static final int DATABASE_VERSION = 14;
+
     private static final class Helper extends SQLiteOpenHelper {
         Helper(Context context, String path) {
-            super(context, path, (SQLiteDatabase.CursorFactory) null, 9);
+            super(context, path, (SQLiteDatabase.CursorFactory) null, DATABASE_VERSION);
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
@@ -1356,6 +1358,16 @@ public final class ReExteraDb {
         public void onOpen(SQLiteDatabase db) {
             super.onOpen(db);
             onCreate(db);
+            ensureColumns(db);
+        }
+
+        private void ensureColumns(SQLiteDatabase db) {
+            try {
+                db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_filter INTEGER DEFAULT 0 NOT NULL");
+            } catch (Exception ignore) {}
+            try {
+                db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_deleted INTEGER DEFAULT 0 NOT NULL");
+            } catch (Exception ignore) {}
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
