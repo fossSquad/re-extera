@@ -1,9 +1,12 @@
 package ni.shikatu.re_extera.utils;
 
 import android.content.Context;
-import ni.shikatu.re_extera.utils.Res;
+import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.MainMenuItem;
 import com.exteragram.messenger.drawer.DrawerMenuItemView;
@@ -53,6 +56,7 @@ public final class GhostMenuHelper {
     private static Field mcOfflineSentField;
     private static Field mcLastStatusUpdateTimeField;
     private static Field mcIgnoreSetOnlineField;
+    private static Field drawerMenuItemIconViewField;
 
     static {
         try {
@@ -72,6 +76,13 @@ public final class GhostMenuHelper {
             mcIgnoreSetOnlineField.setAccessible(true);
         } catch (Throwable t) {
             Main.log("GhostMenuHelper: ignoreSetOnline field not found: %s", t.getMessage());
+        }
+        try {
+            Class<?> itemClass = Class.forName("com.exteragram.messenger.drawer.DrawerMenuItemView");
+            drawerMenuItemIconViewField = itemClass.getDeclaredField("iconView");
+            drawerMenuItemIconViewField.setAccessible(true);
+        } catch (Throwable t) {
+            Main.log("GhostMenuHelper: DrawerMenuItemView.iconView field not found: %s", t.getMessage());
         }
     }
 
@@ -261,6 +272,7 @@ public final class GhostMenuHelper {
         }
         DrawerMenuItemView itemView = new DrawerMenuItemView(drawerView.getContext());
         itemView.setMenuItem(GHOST_MENU_ITEM_ID, currentAccount, Res.drawable("ghost", R.drawable.ghost), getDrawerTitle());
+        fixGhostIconScale(itemView);
         final Runnable onItemClick = getDrawerOnItemClick(drawerMenuView);
         itemView.setOnClickListener(new View.OnClickListener() { 
             @Override // android.view.View.OnClickListener
@@ -269,6 +281,55 @@ public final class GhostMenuHelper {
             }
         });
         container.addView((View) itemView, childIndex);
+    }
+
+    public static void fixGhostIconScale(View itemView) {
+        if (itemView == null) {
+            return;
+        }
+        ImageView iconView = null;
+        if (drawerMenuItemIconViewField != null) {
+            try {
+                iconView = (ImageView) drawerMenuItemIconViewField.get(itemView);
+            } catch (Throwable ignored) {
+            }
+        }
+        if (iconView == null && itemView instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) itemView;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                View child = vg.getChildAt(i);
+                if (child instanceof ImageView) {
+                    iconView = (ImageView) child;
+                    break;
+                }
+            }
+        }
+        if (iconView != null) {
+            iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            Drawable d = getGhostDrawable(itemView.getContext(), AndroidUtilities.dp(24));
+            if (d != null) {
+                iconView.setImageDrawable(d);
+            }
+        }
+    }
+
+    public static Drawable getGhostDrawable(Context context, int sizePx) {
+        if (context == null) {
+            return null;
+        }
+        int iconRes = Res.drawable("ghost", R.drawable.ghost);
+        try {
+            Class<?> iconManagerClass = Class.forName("com.exteragram.messenger.icons.IconManager");
+            Object instance = iconManagerClass.getField("INSTANCE").get(null);
+            Method getIconMethod = iconManagerClass.getMethod("getIcon", Integer.TYPE);
+            iconRes = (Integer) getIconMethod.invoke(instance, iconRes);
+        } catch (Throwable ignored) {
+        }
+        Drawable original = ContextCompat.getDrawable(context, iconRes);
+        if (original == null) {
+            return null;
+        }
+        return DrawableUtils.resize(context.getResources(), original.mutate(), sizePx, sizePx);
     }
 
     static /* synthetic */ void lambda$injectIntoDrawer$3(Runnable onItemClick, BaseFragment fragment, View v) {

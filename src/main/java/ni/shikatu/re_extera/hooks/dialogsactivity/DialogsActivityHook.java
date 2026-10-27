@@ -145,12 +145,22 @@ public class DialogsActivityHook extends XC_MethodHook {
         Main.log("DialogsActivityHook: onBeforeAddItem id 910001! enabled=%s", enabled);
         final BaseFragment finalFragment = fragment;
         
-        io.add(Res.drawable("ghost", R.drawable.ghost), enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
-            @Override // java.lang.Runnable
-            public final void run() {
-                DialogsActivityHook.lambda$onBeforeAddItem$1(io, finalFragment);
-            }
-        });
+        android.graphics.drawable.Drawable ghostDrawable = GhostMenuHelper.getGhostDrawable(io.getContext(), org.telegram.messenger.AndroidUtilities.dp(24));
+        if (ghostDrawable != null) {
+            io.add(ghostDrawable, enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() {
+                @Override
+                public final void run() {
+                    DialogsActivityHook.lambda$onBeforeAddItem$1(io, finalFragment);
+                }
+            });
+        } else {
+            io.add(Res.drawable("ghost", R.drawable.ghost), enabled ? Localization.GHOST_MODE_DISABLE : Localization.GHOST_MODE_ENABLE, new Runnable() { 
+                @Override // java.lang.Runnable
+                public final void run() {
+                    DialogsActivityHook.lambda$onBeforeAddItem$1(io, finalFragment);
+                }
+            });
+        }
         param.setResult(true);
     }
 

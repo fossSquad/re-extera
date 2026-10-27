@@ -308,6 +308,23 @@ public final class HookInit {
         }
 
         try {
+            Class<?> drawerMenuItemViewClass = Class.forName("com.exteragram.messenger.drawer.DrawerMenuItemView");
+            tryHook("DrawerMenuItemView.setMenuItem", drawerMenuItemViewClass, "setMenuItem", new XC_MethodHook() {
+                @Override
+                public void afterHookedMethod(MethodHookParam param) {
+                    try {
+                        int id = (Integer) param.args[0];
+                        if (id == GhostMenuHelper.GHOST_MENU_ITEM_ID) {
+                            GhostMenuHelper.fixGhostIconScale((View) param.thisObject);
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }, Integer.TYPE, Integer.TYPE, Integer.TYPE, CharSequence.class);
+        } catch (ClassNotFoundException ignored) {
+        }
+
+        try {
             Class<?> appNavClass = Class.forName("com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity");
             tryHook("AppNavigationPreferencesActivity.initItemDetails", appNavClass, "initItemDetails", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.INIT_ITEM_DETAILS), new Class[0]);
             tryHook("AppNavigationPreferencesActivity.addMenuSection", appNavClass, "addMenuSection", new AppNavigationGhostEditorHook(AppNavigationGhostEditorHook.Mode.ADD_MENU_SECTION), ArrayList.class, UniversalAdapter.class, String.class, ArrayList.class, Boolean.TYPE);
