@@ -112,7 +112,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
                                 foundDid = obj.getDialogId();
                             }
                         } catch (Throwable ignored) {}
-                        if (!this.redb.shouldSaveDeletedMessages(foundDid)) {
+                        if (foundDid == 0 || !this.redb.shouldSaveDeletedMessages(foundDid)) {
                             tempIds.add(mid);
                             continue;
                         }

@@ -204,10 +204,8 @@ public final class HookInit {
         // Telegram 12.9.0 changed method signatures and obfuscated internal methods.
         // markMessagesAsDeleted: (long, ArrayList, boolean, boolean, int, int)
         tryHook("MessagesStorage.markMessagesAsDeleted", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        // Fallbacks for older Telegram versions and channel single-message variants
+        // Fallbacks for older Telegram versions
         tryHook("MessagesStorage.markMessagesAsDeletedInternal", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, ArrayList.class, Boolean.TYPE, Integer.TYPE, Integer.TYPE);
-        tryHook("MessagesStorage.markMessagesAsDeleted(channel)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
-        tryHook("MessagesStorage.markMessagesAsDeletedInternal(channel)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternal(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
         // Range deletions: markMessagesAsDeleted(long did, int maxMid, boolean isChannel, boolean isTopic)
         tryHook("MessagesStorage.markMessagesAsDeleted(range)", MessagesStorage.class, "markMessagesAsDeleted", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("MessagesStorage.markMessagesAsDeletedInternal(range)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
@@ -293,6 +291,11 @@ public final class HookInit {
         tryHook("ChatMessageCell.setMessageObject", org.telegram.ui.Cells.ChatMessageCell.class, "setMessageObject", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessages(), MessageObject.class, MessageObject.GroupedMessages.class, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.onMeasure", org.telegram.ui.Cells.ChatMessageCell.class, "onMeasure", new ni.shikatu.re_extera.hooks.chatmessagecell.HideFilteredCell(), Integer.TYPE, Integer.TYPE);
         tryHook("ChatMessageCell.setAlpha", org.telegram.ui.Cells.ChatMessageCell.class, "setAlpha", new ni.shikatu.re_extera.hooks.chatmessagecell.TransparentDeletedMessagesAlpha(), Float.TYPE);
+        
+        tryHookByArgCount("StoryViewer.open(9)", org.telegram.ui.Stories.StoryViewer.class, "open", 9, new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.OpenHook());
+        tryHookByArgCount("StoryViewer.open(8)", org.telegram.ui.Stories.StoryViewer.class, "open", 8, new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.OpenHook());
+        tryHook("StoryViewer.close", org.telegram.ui.Stories.StoryViewer.class, "close", new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.CloseHook(), Boolean.TYPE);
+        tryHook("StoryViewer.instantClose", org.telegram.ui.Stories.StoryViewer.class, "instantClose", new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.CloseHook(), new Class[0]);
         
         tryHook("MessagesController.markDialogAsRead", MessagesController.class, "markDialogAsRead", new ni.shikatu.re_extera.hooks.messagescontroller.MarkDialogAsRead(), Long.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
         

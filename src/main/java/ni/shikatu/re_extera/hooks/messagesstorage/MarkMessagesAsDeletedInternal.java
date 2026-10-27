@@ -24,6 +24,18 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
         if (DeleteMessagesRangeFlag.ACTIVE.get()) {
             return;
         }
+
+        // Ignore scheduled messages, quick replies, and welcome messages
+        int mode = 0;
+        if (param.args.length >= 6 && param.args[4] instanceof Integer) {
+            mode = ((Integer) param.args[4]).intValue();
+        } else if (param.args.length >= 5 && param.args[3] instanceof Integer) {
+            mode = ((Integer) param.args[3]).intValue();
+        }
+        if (mode != 0) {
+            return;
+        }
+
         int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
         long did = ((Long) param.args[0]).longValue();
 
@@ -124,7 +136,7 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
                                 foundDid = obj.getDialogId();
                             }
                         } catch (Throwable ignored) {}
-                        if (!this.redb.shouldSaveDeletedMessages(foundDid)) {
+                        if (foundDid == 0 || !this.redb.shouldSaveDeletedMessages(foundDid)) {
                             tempIds.add(mid);
                             continue;
                         }
