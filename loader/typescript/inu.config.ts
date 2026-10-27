@@ -14,7 +14,7 @@ export default defineConfig({
         id: 're_extera_loader',
         name: "aartzz's re:extera",
         author: '@fossSquad | @shikaatuxplugins',
-        version: '2.9.0',
+        version: '2.9.1',
         description: 'Actively maintained FOSS fork. Enable ghost mode, save deleted messages and more!',
         icon: 'inu://eyeOff',
         grants: [
