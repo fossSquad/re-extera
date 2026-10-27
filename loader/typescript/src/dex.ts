@@ -11,6 +11,8 @@ import {
   USER_AGENT,
 } from './constants'
 import { configManager } from './config'
+import { showBulletin } from './bulletin'
+import { t } from './i18n'
 
 export interface GitHubRelease {
   tag_name?: string
@@ -91,6 +93,9 @@ export class DexLoader {
           if (cachedVer) {
             this.loadedVersion = cachedVer
           }
+          this.checkAsyncUpdate().catch((e) => {
+            console.error(TAG, 'Async update check failed:', e)
+          })
           return true
         }
       }
@@ -206,6 +211,104 @@ export class DexLoader {
     }
   }
 
+  versionCandidates(raw: string): string[] {
+    const candidates: string[] = []
+    const add = (val: string) => {
+      const v = (val || '').trim()
+      if (v && !candidates.includes(v)) {
+        candidates.push(v)
+      }
+    }
+    add(raw)
+    if (raw.includes('-')) {
+      add(raw.split('-')[0])
+    }
+    if (raw.includes(' ')) {
+      add(raw.split(' ')[0])
+    }
+    const match = raw.match(/\d+(?:\.\d+)+/)
+    if (match) {
+      add(match[0])
+    }
+    return candidates
+  }
+
+  findTargetRelease(releases: GitHubRelease[]): GitHubRelease | null {
+    const currentTg = this.getTelegramVersion().trim()
+    for (const candidate of this.versionCandidates(currentTg)) {
+      const suffix = `-${candidate}`
+      const match = releases.find((r) => (r.tag_name || '').endsWith(suffix))
+      if (match) {
+        return match
+      }
+    }
+    return releases.length > 0 ? releases[0] : null
+  }
+
+  needsUpdate(remoteVersion: string): boolean {
+    const cached = this.getCachedVersion()
+    console.log(TAG, `Remote version: ${remoteVersion}, cached: ${cached}`)
+    if (!cached || cached === '0') {
+      return true
+    }
+    return String(remoteVersion).trim() !== String(cached).trim()
+  }
+
+  async checkAsyncUpdate(force = false): Promise<boolean> {
+    if (!force && !configManager.canCheck()) {
+      console.log(TAG, 'Update check skipped (cooldown)')
+      return false
+    }
+
+    configManager.markChecked()
+    await configManager.save()
+
+    try {
+      if (configManager.channel === 'dev') {
+        const runs = await this.fetchRuns('master')
+        if (!runs || runs.length === 0) {
+          return false
+        }
+        const latestId = String(runs[0].id)
+        if (this.needsUpdate(latestId)) {
+          console.log(TAG, `New dev build available: #${latestId}, downloading...`)
+          const success = await this.downloadDevRun(latestId)
+          if (success) {
+            showBulletin(t('update_avail'), {
+              icon: inu.icons.animation('success'),
+              duration: 'long',
+            })
+            return true
+          }
+        }
+      } else {
+        const releases = await this.fetchReleases()
+        if (!releases || releases.length === 0) {
+          return false
+        }
+        const target = this.findTargetRelease(releases)
+        if (!target) {
+          return false
+        }
+        const tag = target.tag_name || ''
+        if (this.needsUpdate(tag)) {
+          console.log(TAG, `New release available: ${tag}, downloading...`)
+          const success = await this.downloadRelease(target)
+          if (success) {
+            showBulletin(t('update_avail'), {
+              icon: inu.icons.animation('success'),
+              duration: 'long',
+            })
+            return true
+          }
+        }
+      }
+    } catch (e) {
+      console.error(TAG, 'checkAsyncUpdate error:', e)
+    }
+    return false
+  }
+
   async downloadLatestRelease(): Promise<boolean> {
     console.log(TAG, 'Fetching latest release...')
     const releases = await this.fetchReleases()
@@ -214,14 +317,10 @@ export class DexLoader {
       return false
     }
 
-    const currentTg = this.getTelegramVersion()
-    let targetRelease = releases.find((r) => {
-      const tag = r.tag_name || ''
-      return currentTg && tag.endsWith(`-${currentTg}`)
-    })
-
+    const targetRelease = this.findTargetRelease(releases)
     if (!targetRelease) {
-      targetRelease = releases[0]
+      console.error(TAG, 'No target release found')
+      return false
     }
 
     return await this.downloadRelease(targetRelease)

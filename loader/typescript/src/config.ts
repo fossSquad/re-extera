@@ -70,6 +70,18 @@ export class ConfigManager {
   set lastCheck(val: number | undefined) {
     this.config.lastCheck = val
   }
+
+  canCheck(cooldownSec = 60): boolean {
+    if (!this.config.lastCheck) {
+      return true
+    }
+    const elapsed = (Date.now() - this.config.lastCheck) / 1000
+    return elapsed >= cooldownSec
+  }
+
+  markChecked(): void {
+    this.config.lastCheck = Date.now()
+  }
 }
 
 export const configManager = new ConfigManager()

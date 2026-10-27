@@ -2,18 +2,19 @@ import { configManager } from './config'
 import { dexLoader } from './dex'
 import { t } from './i18n'
 import { TAG } from './constants'
+import { showBulletin } from './bulletin'
 
 async function pickReleaseVersion(page: inu.ui.UIPage): Promise<void> {
   const releases = await dexLoader.fetchReleases()
   if (!releases || releases.length === 0) {
-    inu.ui.toast(t('no_releases'))
+    showBulletin(t('no_releases'), { icon: inu.icons.animation('info'), duration: 'short' })
     return
   }
 
   const grouped = dexLoader.groupReleasesByTgVersion(releases)
   const tgVersions = Array.from(grouped.keys())
   if (tgVersions.length === 0) {
-    inu.ui.toast(t('no_releases'))
+    showBulletin(t('no_releases'), { icon: inu.icons.animation('info'), duration: 'short' })
     return
   }
 
@@ -49,20 +50,20 @@ async function pickReleaseVersion(page: inu.ui.UIPage): Promise<void> {
   })
   if (buildIdx == null) return
 
-  inu.ui.toast(t('downloading'))
+  showBulletin(t('downloading'), { icon: inu.icons.animation('loading'), duration: 'short' })
   const success = await dexLoader.downloadRelease(list[buildIdx])
   if (success) {
-    inu.ui.toast(t('update_avail'))
+    showBulletin(t('update_avail'), { icon: inu.icons.animation('success'), duration: 'long' })
     page.invalidate()
   } else {
-    inu.ui.toast(t('download_failed'))
+    showBulletin(t('download_failed'), { icon: inu.icons.animation('error'), duration: 'short' })
   }
 }
 
 async function pickDevBuild(page: inu.ui.UIPage): Promise<void> {
   const branches = await dexLoader.fetchBranches()
   if (!branches || branches.length === 0) {
-    inu.ui.toast(t('no_branches'))
+    showBulletin(t('no_branches'), { icon: inu.icons.animation('info'), duration: 'short' })
     return
   }
 
@@ -74,7 +75,7 @@ async function pickDevBuild(page: inu.ui.UIPage): Promise<void> {
 
   const runs = await dexLoader.fetchRuns(branches[branchIdx])
   if (!runs || runs.length === 0) {
-    inu.ui.toast(t('no_runs'))
+    showBulletin(t('no_runs'), { icon: inu.icons.animation('info'), duration: 'short' })
     return
   }
 
@@ -89,13 +90,13 @@ async function pickDevBuild(page: inu.ui.UIPage): Promise<void> {
   })
   if (runIdx == null) return
 
-  inu.ui.toast(t('downloading'))
+  showBulletin(t('downloading'), { icon: inu.icons.animation('loading'), duration: 'short' })
   const success = await dexLoader.downloadDevRun(runs[runIdx].id)
   if (success) {
-    inu.ui.toast(t('update_avail'))
+    showBulletin(t('update_avail'), { icon: inu.icons.animation('success'), duration: 'long' })
     page.invalidate()
   } else {
-    inu.ui.toast(t('download_failed'))
+    showBulletin(t('download_failed'), { icon: inu.icons.animation('error'), duration: 'short' })
   }
 }
 
@@ -114,13 +115,15 @@ export function setupSettingsUI(): void {
         ui.button({
           text: verText,
           subtitle: statusText,
+          icon: inu.icons.common('info'),
           onClick: () => {
-            ui.toast(`${verText} (${statusText})`)
+            showBulletin(`${verText} (${statusText})`, { icon: inu.icons.common('info'), duration: 'short' })
           },
         }),
         ui.separator(),
         ui.select({
           text: t('update_channel'),
+          icon: inu.android.resourceIcon('msg_channel'),
           items: ['Release', 'Dev'],
           selected: channelIndex,
           onChange: async (index: number) => {
@@ -128,26 +131,27 @@ export function setupSettingsUI(): void {
             if (configManager.channel !== newChannel) {
               configManager.channel = newChannel
               await configManager.save()
-              ui.toast(t('channel_switch'))
+              showBulletin(t('channel_switch'), { icon: inu.android.resourceIcon('msg_channel'), duration: 'long' })
               page.invalidate()
             }
           },
         }),
         ui.button({
           text: t('check_updates'),
+          icon: inu.android.resourceIcon('msg_retry'),
           onClick: async () => {
-            ui.toast(t('downloading'))
-            const success = await dexLoader.downloadLatest()
-            if (success) {
-              ui.toast(t('update_avail'))
+            showBulletin(t('downloading'), { icon: inu.icons.animation('loading'), duration: 'short' })
+            const updated = await dexLoader.checkAsyncUpdate(true)
+            if (updated) {
               page.invalidate()
             } else {
-              ui.toast(t('up_to_date'))
+              showBulletin(t('up_to_date'), { icon: inu.icons.animation('info'), duration: 'short' })
             }
           },
         }),
         ui.button({
           text: t('select_version'),
+          icon: inu.android.resourceIcon('msg_download'),
           onClick: async () => {
             if (configManager.channel === 'dev') {
               await pickDevBuild(page)
@@ -158,34 +162,37 @@ export function setupSettingsUI(): void {
         }),
         ui.button({
           text: t('install_file'),
+          icon: inu.android.resourceIcon('msg_folders'),
           onClick: async () => {
             const success = await dexLoader.loadFromLocalFile()
             if (success) {
-              ui.toast(t('updated_cache'))
+              showBulletin(t('updated_cache'), { icon: inu.icons.animation('success'), duration: 'short' })
               page.invalidate()
             } else {
-              ui.toast(t('file_not_found'))
+              showBulletin(t('file_not_found'), { icon: inu.icons.animation('error'), duration: 'short' })
             }
           },
         }),
         ui.separator(),
         ui.button({
           text: t('copy_logs'),
+          icon: inu.android.resourceIcon('msg_copy'),
           onClick: async () => {
             try {
               const javaLogs = dexLoader.getLogs()
               const fullLogs = `=== Inugram Loader Logs ===\n[TS Loader] Channel: ${configManager.channel}, Version: ${dexLoader.version}\n\n=== Hook Logs ===\n${javaLogs}`
               await inu.clipboard.write(fullLogs)
-              ui.toast(t('logs_copied'))
+              showBulletin(t('logs_copied'), { icon: inu.icons.common('copy'), duration: 'short' })
             } catch (e) {
               console.error(TAG, 'Failed to copy logs:', e)
-              ui.toast(`Error: ${e}`)
+              showBulletin(`Error: ${e}`, { icon: inu.icons.animation('error'), duration: 'short' })
             }
           },
         }),
         ui.separator(),
         ui.button({
           text: t('dex_settings'),
+          icon: inu.android.resourceIcon('msg_settings'),
           onClick: () => {
             dexLoader.showSettingsExternal()
           },
