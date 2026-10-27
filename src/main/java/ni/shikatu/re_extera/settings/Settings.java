@@ -179,6 +179,14 @@ public final class Settings {
         putBool("client_side_read", v);
     }
 
+    public static int getStoryGhostMode() {
+        return getInt("story_ghost_mode", 0);
+    }
+
+    public static void setStoryGhostMode(int v) {
+        putInt("story_ghost_mode", v);
+    }
+
     public static int getSendSilence() {
         return getInt("send_silence", SendSilence.NO.getType());
     }

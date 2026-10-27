@@ -11,6 +11,11 @@ public class Localization {
     public static String ADD_TO_SHADOWBAN;
     public static String ALPHA_WARNING;
     public static String ALWAYS;
+    public static String ASK;
+    public static String STORY_GHOST_MODE;
+    public static String ASK_BEFORE_OPENING_STORY_TITLE;
+    public static String ASK_BEFORE_OPENING_STORY_GHOST;
+    public static String ASK_BEFORE_OPENING_STORY_NORMAL;
     public static String BASED_ON_GLOBAL;
     public static String BROKE_HOOKS_DESCRIPTION;
     public static String CANCEL;
@@ -231,6 +236,11 @@ public class Localization {
             GHOST_EXCLUDE_PMS = "Не применять для личных сообщений";
             BASED_ON_GLOBAL = "В зависимости от глобальных";
             ALWAYS = "Всегда";
+            ASK = "Спрашивать";
+            STORY_GHOST_MODE = "Режим призрака для историй";
+            ASK_BEFORE_OPENING_STORY_TITLE = "Открыть историю?";
+            ASK_BEFORE_OPENING_STORY_GHOST = "Смотреть в режиме призрака";
+            ASK_BEFORE_OPENING_STORY_NORMAL = "Смотреть";
             NEVER = "Никогда";
             NOT = " не ";
             READ = "читать";
@@ -404,6 +414,11 @@ public class Localization {
             GHOST_EXCLUDE_PMS = "Не застосовувати для особистих повідомлень";
             BASED_ON_GLOBAL = "Залежно від глобальних";
             ALWAYS = "Завжди";
+            ASK = "Запитувати";
+            STORY_GHOST_MODE = "Режим привида для історій";
+            ASK_BEFORE_OPENING_STORY_TITLE = "Відкрити історію?";
+            ASK_BEFORE_OPENING_STORY_GHOST = "Дивитися в режимі привида";
+            ASK_BEFORE_OPENING_STORY_NORMAL = "Дивитися";
             NEVER = "Ніколи";
             NOT = " не ";
             READ = "читати";
@@ -577,6 +592,11 @@ public class Localization {
         GHOST_EXCLUDE_PMS = "Do not apply to PMs";
         BASED_ON_GLOBAL = "Based on Global";
         ALWAYS = "Always";
+        ASK = "Ask";
+        STORY_GHOST_MODE = "Ghost mode for stories";
+        ASK_BEFORE_OPENING_STORY_TITLE = "Open story?";
+        ASK_BEFORE_OPENING_STORY_GHOST = "View in ghost mode";
+        ASK_BEFORE_OPENING_STORY_NORMAL = "View";
         NEVER = "Never";
         READ = "read";
         TYPE = "type";

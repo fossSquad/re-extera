@@ -42,7 +42,8 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         SERVER_READ_STATUS_ID,
         SERVER_READ_STATUS_STYLE_ID,
         EXCLUSIONS_BUTTON_ID,
-        CLIENT_SIDE_READ_ID;
+        CLIENT_SIDE_READ_ID,
+        STORY_GHOST_MODE_ID;
 
         public int getId() {
             return ordinal() + 1;
@@ -133,6 +134,17 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
     }
 
+    public static String getStoryGhostModeString() {
+        switch (Settings.getStoryGhostMode()) {
+            case 1:
+                return Localization.ASK;
+            case 2:
+                return Localization.ALWAYS;
+            default:
+                return Localization.NEVER;
+        }
+    }
+
     public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         items.add(UItemUtils.setLinkAlias(ghostUItem(), "reExteraGhostMode", this));
         if (this.isGhostExpanded) {
@@ -169,6 +181,7 @@ public class GhostFragment extends BasePreferencesActivityExtended {
         }
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.USE_SCHEDULE_ID.getId(), Localization.USE_SCHEDULE, getScheduleString()), "reExteraUseSchedule", this));
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.SEND_SILENCE_ID.getId(), Localization.SEND_SILENCE, getSilenceString()), "reExteraSendSilence", this));
+        items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.STORY_GHOST_MODE_ID.getId(), Localization.STORY_GHOST_MODE, getStoryGhostModeString()), "reExteraStoryGhostMode", this));
         items.add(UItemUtils.asShadow());
         items.add(UItemUtils.setLinkAlias(UItem.asButton(GhostIds.EXCLUSIONS_BUTTON_ID.getId(), Localization.EXCLUSIONS), "reExteraExclusions", this));
     }
@@ -253,6 +266,14 @@ public class GhostFragment extends BasePreferencesActivityExtended {
                 Settings.setClientSideRead(!Settings.getClientSideRead());
                 refreshCheckBox(item, position, Settings.getClientSideRead());
                 break;
+            case 15:
+                new StoryGhostModeDialog(getParentActivity(), new Runnable() {
+                    @Override
+                    public final void run() {
+                        lambda$onClick$2();
+                    }
+                }).show();
+                break;
         }
     }
 
@@ -316,6 +337,10 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             try {
                 $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.CLIENT_SIDE_READ_ID.ordinal()] = 14;
             } catch (NoSuchFieldError e14) {
+            }
+            try {
+                $SwitchMap$ni$shikatu$re_extera$settings$newui$GhostFragment$GhostIds[GhostIds.STORY_GHOST_MODE_ID.ordinal()] = 15;
+            } catch (NoSuchFieldError e15) {
             }
         }
     }
@@ -659,6 +684,77 @@ public class GhostFragment extends BasePreferencesActivityExtended {
             AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
             builder.setView(this.layout);
             builder.setTitle(Localization.SERVER_READ_STATUS_STYLE);
+            builder.show();
+        }
+    }
+
+    static class StoryGhostModeDialog {
+        private RadioColorCell never;
+        private RadioColorCell ask;
+        private RadioColorCell always;
+        private Context context;
+        private LinearLayout layout;
+        private Runnable onSelect;
+
+        StoryGhostModeDialog(Context context, Runnable onSelect) {
+            this.context = context;
+            this.onSelect = onSelect;
+            prepare();
+        }
+
+        private void prepare() {
+            this.layout = new LinearLayout(this.context);
+            this.layout.setOrientation(1);
+            int current = Settings.getStoryGhostMode();
+
+            this.never = new RadioColorCell(this.context);
+            this.never.setTextAndValue(Localization.NEVER, current == 0);
+            this.never.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setStoryGhostMode(0);
+                    never.setChecked(true, true);
+                    ask.setChecked(false, true);
+                    always.setChecked(false, true);
+                    if (onSelect != null) onSelect.run();
+                }
+            });
+
+            this.ask = new RadioColorCell(this.context);
+            this.ask.setTextAndValue(Localization.ASK, current == 1);
+            this.ask.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setStoryGhostMode(1);
+                    never.setChecked(false, true);
+                    ask.setChecked(true, true);
+                    always.setChecked(false, true);
+                    if (onSelect != null) onSelect.run();
+                }
+            });
+
+            this.always = new RadioColorCell(this.context);
+            this.always.setTextAndValue(Localization.ALWAYS, current == 2);
+            this.always.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public final void onClick(View view) {
+                    Settings.setStoryGhostMode(2);
+                    never.setChecked(false, true);
+                    ask.setChecked(false, true);
+                    always.setChecked(true, true);
+                    if (onSelect != null) onSelect.run();
+                }
+            });
+
+            this.layout.addView(this.never);
+            this.layout.addView(this.ask);
+            this.layout.addView(this.always);
+        }
+
+        public void show() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+            builder.setView(this.layout);
+            builder.setTitle(Localization.STORY_GHOST_MODE);
             builder.show();
         }
     }

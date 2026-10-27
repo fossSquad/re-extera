@@ -64,7 +64,7 @@ public class SendRequest extends XC_MethodHook {
             }
             if (Defaults.typingRequests.contains(request.getClass())) {
                 applyTypingPolicy(param, currentAccount, request);
-            } else if (Defaults.storiesRequests.contains(request.getClass()) && Settings.getNoReadStoriesWithGhost()) {
+            } else if (Defaults.storiesRequests.contains(request.getClass()) && (Settings.getNoReadStoriesWithGhost() || ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.isStoryGhostSession())) {
                 RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
                 if (onCompleteOrig != null) {
                     try {
