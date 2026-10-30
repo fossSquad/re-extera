@@ -12,11 +12,14 @@ import de.robv.android.xposed.XposedBridge;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import ni.shikatu.re_extera.Main;
+import ni.shikatu.re_extera.hooks.chatactivity.AddToSelectedMessagesHook;
 import ni.shikatu.re_extera.hooks.chatactivity.HasSelectedNoForwardsMessage;
+import ni.shikatu.re_extera.hooks.chatactivity.IsPeerNoForwards;
 import ni.shikatu.re_extera.hooks.chatactivity.NotificationCenterDidLoad;
 import ni.shikatu.re_extera.hooks.chatactivity.ProcessDeletedMessages;
 import ni.shikatu.re_extera.hooks.chatactivity.ProcessNewMessages;
 import ni.shikatu.re_extera.hooks.chatactivity.exclusions.FragmentCreate;
+import ni.shikatu.re_extera.hooks.chatactivity.menuhook.CreateMenuHook;
 import ni.shikatu.re_extera.hooks.chatactivity.menuhook.FillMessageMenu;
 import ni.shikatu.re_extera.hooks.chatactivity.menuhook.ProcessSelectedOption;
 import ni.shikatu.re_extera.hooks.chatactivity.secretmedia.SendSecretMediaDelete;
@@ -28,6 +31,9 @@ import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
+import ni.shikatu.re_extera.hooks.messagesstorage.DeleteDialogHook;
+import ni.shikatu.re_extera.hooks.messagescontroller.DeleteDialogControllerHook;
+import ni.shikatu.re_extera.hooks.connectionsmanager.UpdatingWatchdog;
 import ni.shikatu.re_extera.hooks.messagesstorage.DeleteMessagesRangeHook;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternalRange;
@@ -195,6 +201,8 @@ public final class HookInit {
         tryHook("MessagesController.isChatNoForwards(Chat)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), TLRPC.Chat.class);
         tryHook("MessagesController.isChatNoForwards(long)", MessagesController.class, "isChatNoForwards", new IsChatNoForwards(), Long.TYPE);
         tryHook("MessagesController.isUserNoForwards", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), TLRPC.UserFull.class);
+        tryHook("MessagesController.isUserNoForwards(long)", MessagesController.class, "isUserNoForwards", new IsUserNoForwards(), Long.TYPE);
+        tryHook("MessagesController.isPeerNoForwards(long)", MessagesController.class, "isPeerNoForwards", new IsPeerNoForwards(), Long.TYPE);
         tryHook("MessagesController.checkDeletingTask", MessagesController.class, "checkDeletingTask", new CheckDeletingTask(), Boolean.TYPE);
         tryHookByMinArgCount("MessagesController.deleteMessages", MessagesController.class, "deleteMessages", 7, new DeleteMessages());
         tryHook("MessagesController.getDialogs", MessagesController.class, "getDialogs", new FilterShadowbannedDialogs(), Integer.TYPE);
@@ -211,6 +219,9 @@ public final class HookInit {
         tryHook("MessagesStorage.markMessagesAsDeletedInternal(range)", MessagesStorage.class, "markMessagesAsDeletedInternal", new MarkMessagesAsDeletedInternalRange(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
         // Set ThreadLocal flag for entire deleteMessagesRange call to skip stack trace scanning in range hooks
         tryHook("MessagesController.deleteMessagesRange", MessagesController.class, "deleteMessagesRange", new DeleteMessagesRangeHook(), Long.TYPE, Long.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Runnable.class);
+        tryHook("MessagesController.deleteDialog", MessagesController.class, "deleteDialog", new DeleteDialogControllerHook(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
+        tryHook("MessagesStorage.deleteDialog", MessagesStorage.class, "deleteDialog", new DeleteDialogHook(), Long.TYPE, Integer.TYPE);
+        tryHook("ConnectionsManager.setIsUpdating", org.telegram.tgnet.ConnectionsManager.class, "setIsUpdating", new UpdatingWatchdog(), Boolean.TYPE);
 
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
@@ -247,6 +258,9 @@ public final class HookInit {
         tryHook("NotificationsController.processNewMessages", NotificationsController.class, "processNewMessages", new FilterShadowbannedNotifications(), ArrayList.class, Boolean.TYPE, Boolean.TYPE, CountDownLatch.class);
         tryHook("MessageObject.canDeleteMessage", MessageObject.class, "canDeleteMessage", new CanDeleteMessage(), Boolean.TYPE, TLRPC.Chat.class);
         tryHook("MessageObject.canForwardMessage", MessageObject.class, "canForwardMessage", new CanForwardMessage(), new Class[0]);
+        tryHook("ChatActivity.isPeerNoForwards", ChatActivity.class, "isPeerNoForwards", new IsPeerNoForwards(), new Class[0]);
+        tryHookByMinArgCount("ChatActivity.createMenu", ChatActivity.class, "createMenu", 6, new CreateMenuHook());
+        tryHookByMinArgCount("ChatActivity.addToSelectedMessages", ChatActivity.class, "addToSelectedMessages", 2, new AddToSelectedMessagesHook());
         tryHook("ChatActivity.fillMessageMenu", ChatActivity.class, "fillMessageMenu", new FillMessageMenu(), MessageObject.class, ArrayList.class, ArrayList.class, ArrayList.class);
         tryHook("ChatActivity.processSelectedOption", ChatActivity.class, "processSelectedOption", new ProcessSelectedOption(), Integer.TYPE);
         tryHook("LocaleController.formatUserStatus", LocaleController.class, "formatUserStatus", new ni.shikatu.re_extera.hooks.localecontroller.FormatUserStatus(), Integer.TYPE, TLRPC.User.class, boolean[].class, boolean[].class, boolean[].class);

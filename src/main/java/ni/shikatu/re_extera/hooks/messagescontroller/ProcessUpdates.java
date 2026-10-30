@@ -23,58 +23,65 @@ public class ProcessUpdates extends XC_MethodHook {
     public static final java.util.Set<Integer> serverDeletedMessageIds = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Integer, Boolean>());
 
     public void beforeHookedMethod(XC_MethodHook.MethodHookParam param) {
-        int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
-        TLRPC.Updates updates = (TLRPC.Updates) param.args[0];
-        ArrayList<TLRPC.Update> filtered = new ArrayList<>();
-        LongSparseArray<ArrayList<Integer>> channelDeleted = new LongSparseArray<>();
-        if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortMessage) {
-            org.telegram.tgnet.TLRPC.TL_updateShortMessage shortMsg = (org.telegram.tgnet.TLRPC.TL_updateShortMessage) updates;
-            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortMsg.user_id > 0 && shortMsg.date > 0) {
-                ReExteraDb.get().saveLastOnlineAsync(shortMsg.user_id, shortMsg.date);
-                triggerUIUpdate(currentAccount);
+        try {
+            if (param.args == null || param.args.length == 0 || !(param.args[0] instanceof TLRPC.Updates)) {
+                return;
             }
-        } else if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) {
-            org.telegram.tgnet.TLRPC.TL_updateShortChatMessage shortChatMsg = (org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) updates;
-            if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortChatMsg.from_id > 0 && shortChatMsg.date > 0) {
-                ReExteraDb.get().saveLastOnlineAsync(shortChatMsg.from_id, shortChatMsg.date);
-                triggerUIUpdate(currentAccount);
-            }
-        } else if (updates.update != null) {
-            processSingleUpdate(updates.update, channelDeleted, currentAccount, null);
-        } else if (updates.updates != null) {
-            android.util.SparseArray<Long> midToDid = new android.util.SparseArray<>();
-            for (TLRPC.Update update : updates.updates) {
-                if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-                    if (nm.message != null) {
-                        preserveOneTimeMessage(nm.message);
-                        midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
-                    }
-                } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
-                    org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-                    if (ncm.message != null) {
-                        preserveOneTimeMessage(ncm.message);
-                        midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
+            int currentAccount = AccountUtils.getCurrentAccount(param.thisObject);
+            TLRPC.Updates updates = (TLRPC.Updates) param.args[0];
+            LongSparseArray<ArrayList<Integer>> channelDeleted = new LongSparseArray<>();
+            if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortMessage) {
+                org.telegram.tgnet.TLRPC.TL_updateShortMessage shortMsg = (org.telegram.tgnet.TLRPC.TL_updateShortMessage) updates;
+                if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortMsg.user_id > 0 && shortMsg.date > 0) {
+                    ReExteraDb.get().saveLastOnlineAsync(shortMsg.user_id, shortMsg.date);
+                    triggerUIUpdate(currentAccount);
+                }
+            } else if (updates instanceof org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) {
+                org.telegram.tgnet.TLRPC.TL_updateShortChatMessage shortChatMsg = (org.telegram.tgnet.TLRPC.TL_updateShortChatMessage) updates;
+                if (ni.shikatu.re_extera.settings.Settings.getSaveLastOnline() && shortChatMsg.from_id > 0 && shortChatMsg.date > 0) {
+                    ReExteraDb.get().saveLastOnlineAsync(shortChatMsg.from_id, shortChatMsg.date);
+                    triggerUIUpdate(currentAccount);
+                }
+            } else if (updates.update != null) {
+                processSingleUpdate(updates.update, channelDeleted, currentAccount, null);
+            } else if (updates.updates != null) {
+                android.util.SparseArray<Long> midToDid = new android.util.SparseArray<>();
+                for (TLRPC.Update update : updates.updates) {
+                    if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
+                        org.telegram.tgnet.tl.TL_update.TL_updateNewMessage nm = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
+                        if (nm.message != null) {
+                            preserveOneTimeMessage(nm.message);
+                            midToDid.put(nm.message.id, MessageUtils.getDialogIdFromMessage(nm.message));
+                        }
+                    } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
+                        org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage ncm = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
+                        if (ncm.message != null) {
+                            preserveOneTimeMessage(ncm.message);
+                            midToDid.put(ncm.message.id, MessageUtils.getDialogIdFromMessage(ncm.message));
+                        }
                     }
                 }
-            }
-            for (TLRPC.Update update : updates.updates) {
-                if (processSingleUpdate(update, channelDeleted, currentAccount, midToDid)) {
-                    filtered.add(update);
+                for (TLRPC.Update update : updates.updates) {
+                    processSingleUpdate(update, channelDeleted, currentAccount, midToDid);
                 }
             }
-            updates.updates = filtered;
+            flushChannelDeleted(channelDeleted, currentAccount);
+            param.args[0] = updates;
+        } catch (Throwable t) {
+            Main.log("ProcessUpdates.beforeHookedMethod error: %s", t.getMessage());
         }
-        flushChannelDeleted(channelDeleted, currentAccount);
-        param.args[0] = updates;
     }
 
     @Override
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
-        if (!ni.shikatu.re_extera.settings.Settings.getLocalPremium()) {
-            return;
+        try {
+            if (!ni.shikatu.re_extera.settings.Settings.getLocalPremium()) {
+                return;
+            }
+            isPremium.refresh(AccountUtils.getCurrentAccount(param.thisObject));
+        } catch (Throwable t) {
+            Main.log("ProcessUpdates.afterHookedMethod error: %s", t.getMessage());
         }
-        isPremium.refresh(AccountUtils.getCurrentAccount(param.thisObject));
     }
 
     public static void preserveOneTimeMessage(Object update) {
@@ -122,7 +129,6 @@ public class ProcessUpdates extends XC_MethodHook {
     }
 
     private boolean processSingleUpdate(TLRPC.Update update, LongSparseArray<ArrayList<Integer>> channelDeleted, int currentAccount, android.util.SparseArray<Long> midToDid) {
-        boolean keep = true;
         if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateEditMessage edit = (org.telegram.tgnet.tl.TL_update.TL_updateEditMessage) update;
             processEditedMessage(edit.message, currentAccount);
@@ -137,14 +143,24 @@ public class ProcessUpdates extends XC_MethodHook {
             processDeleteChannelMessages(del2, channelDeleted);
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewMessage newMsg = (org.telegram.tgnet.tl.TL_update.TL_updateNewMessage) update;
-            keep = !shadowbanFilterHideDialog(newMsg.message);
+            if (shadowbanFilterHideDialog(newMsg.message)) {
+                TLRPC.TL_messageEmpty empty = new TLRPC.TL_messageEmpty();
+                if (newMsg.message != null) {
+                    empty.id = newMsg.message.id;
+                    empty.peer_id = newMsg.message.peer_id;
+                }
+                newMsg.message = empty;
+            }
         } else if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) {
             org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage newMsg2 = (org.telegram.tgnet.tl.TL_update.TL_updateNewChannelMessage) update;
-            keep = !shadowbanFilterHideInGroups(newMsg2.message);
-        }
-        
-        if (!keep) {
-            return false;
+            if (shadowbanFilterHideInGroups(newMsg2.message)) {
+                TLRPC.TL_messageEmpty empty2 = new TLRPC.TL_messageEmpty();
+                if (newMsg2.message != null) {
+                    empty2.id = newMsg2.message.id;
+                    empty2.peer_id = newMsg2.message.peer_id;
+                }
+                newMsg2.message = empty2;
+            }
         }
 
         if (update instanceof org.telegram.tgnet.tl.TL_update.TL_updateReadHistoryInbox) {

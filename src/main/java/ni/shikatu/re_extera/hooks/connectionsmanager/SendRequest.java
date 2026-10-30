@@ -265,18 +265,33 @@ public class SendRequest extends XC_MethodHook {
     private void applyTypingPolicy(XC_MethodHook.MethodHookParam param, int currentAccount, TLObject request) {
         long dialogId = getDialogIdFromRequest(request);
         int status = dialogId != 0 ? ReExteraDb.get().getDialogTyping(dialogId) : currentTypingStatus;
+        boolean shouldBlock = false;
         switch (status) {
             case Defaults.NEVER /* -1 */:
-                param.setResult((Object) null);
+                shouldBlock = true;
                 break;
             case Defaults.GLOBAL_VALUE /* 0 */:
             default:
                 if (!isExcludedGlobally(currentAccount, dialogId) && Settings.getHideTypingWithGhost()) {
-                    param.setResult((Object) null);
+                    shouldBlock = true;
                 }
                 break;
             case Defaults.ALWAYS /* 1 */:
                 break;
+        }
+
+        if (shouldBlock) {
+            RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
+            if (onCompleteOrig != null) {
+                try {
+                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                        try {
+                            onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
+                        } catch (Exception ignored) {}
+                    });
+                } catch (Throwable ignored) {}
+            }
+            param.setResult((Object) null);
         }
     }
 }

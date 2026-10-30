@@ -1006,7 +1006,8 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
             loadedItems.sort(Comparator.comparingInt(new ToIntFunction() { 
                 @Override // java.util.function.ToIntFunction
                 public final int applyAsInt(Object obj) {
-                    return ((MessageObject) obj).messageOwner.date;
+                    MessageObject mo = (MessageObject) obj;
+                    return mo != null && mo.messageOwner != null ? mo.messageOwner.date : 0;
                 }
             }));
             final ArrayList<MessageObject> loadedRows = buildRows(loadedItems);

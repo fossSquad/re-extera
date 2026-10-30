@@ -17,6 +17,29 @@ class Loader:
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
 
+    def _ensure_db_compatibility(self):
+        try:
+            if self.channel != "release":
+                return
+            db_path = os.path.join(
+                ApplicationLoader.applicationContext.getFilesDir().getAbsolutePath(),
+                "re_extera.db"
+            )
+            if not os.path.exists(db_path):
+                return
+            import sqlite3
+            conn = sqlite3.connect(db_path)
+            cur = conn.cursor()
+            cur.execute("PRAGMA user_version")
+            row = cur.fetchone()
+            if row and row[0] > 9:
+                self.plugin.log(f"Fixing DB user_version {row[0]} -> 9 for release channel")
+                cur.execute("PRAGMA user_version = 9")
+                conn.commit()
+            conn.close()
+        except Exception as e:
+            self.plugin.log(f"DB compat check error: {e}")
+
     def _switch_cache(self, channel):
         self.channel = channel
         base_cache = os.path.join(
@@ -27,6 +50,7 @@ class Loader:
         self.cache_file = os.path.join(self.cache_dir, "cached.dat")
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
+        self._ensure_db_compatibility()
 
     def getInstance(self):
         if self.instance is None:
@@ -362,6 +386,7 @@ class Loader:
         return None
 
     def load_and_start(self):
+        self._ensure_db_compatibility()
         self.plugin.log(f"Loading (channel: {self.channel})")
 
         local_bytes = self._load_from_local_path()

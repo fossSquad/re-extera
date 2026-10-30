@@ -60,6 +60,9 @@ public final class MessageUtils {
             }
         }
         TLRPC.Message stored = MessagesStorage.getInstance(currentAccount).getMessage(did, mid);
+        if (stored == null && did != 0) {
+            stored = MessagesStorage.getInstance(currentAccount).getMessage(-did, mid);
+        }
         if (stored != null) {
             return new MessageObject(currentAccount, stored, false, false);
         }

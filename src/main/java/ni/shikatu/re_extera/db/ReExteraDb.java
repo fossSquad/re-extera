@@ -243,9 +243,15 @@ public final class ReExteraDb {
         if (set != null && set.contains(mid)) {
             return true;
         }
+        if (did != 0) {
+            java.util.Set<Integer> altSet = deletedKeysCache.get(-did);
+            if (altSet != null && altSet.contains(mid)) {
+                return true;
+            }
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
-            Cursor c = db.rawQuery("SELECT 1 FROM deleted_keys WHERE did=? AND mid=? LIMIT 1", new String[]{String.valueOf(did), String.valueOf(mid)});
+            Cursor c = db.rawQuery("SELECT 1 FROM deleted_keys WHERE (did=? OR did=?) AND mid=? LIMIT 1", new String[]{String.valueOf(did), String.valueOf(-did), String.valueOf(mid)});
             try {
                 boolean zMoveToFirst = c.moveToFirst();
                 if (zMoveToFirst) {
@@ -311,26 +317,26 @@ public final class ReExteraDb {
         if (set != null && !set.isEmpty()) {
             return new ArrayList<>(set);
         }
+        if (did != 0) {
+            java.util.Set<Integer> altSet = deletedKeysCache.get(-did);
+            if (altSet != null && !altSet.isEmpty()) {
+                return new ArrayList<>(altSet);
+            }
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<Integer> result = new ArrayList<>();
         try {
             Cursor c = db.rawQuery("SELECT mid FROM deleted_keys WHERE did=?", new String[]{String.valueOf(did)});
             while (c.moveToNext()) {
-                try {
-                    result.add(Integer.valueOf(c.getInt(0)));
-                } catch (Throwable th) {
-                    if (c != null) {
-                        try {
-                            c.close();
-                        } catch (Throwable th2) {
-                            Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                        }
-                    }
-                    throw th;
-                }
+                result.add(Integer.valueOf(c.getInt(0)));
             }
-            if (c != null) {
-                c.close();
+            c.close();
+            if (result.isEmpty() && did != 0) {
+                Cursor c2 = db.rawQuery("SELECT mid FROM deleted_keys WHERE did=?", new String[]{String.valueOf(-did)});
+                while (c2.moveToNext()) {
+                    result.add(Integer.valueOf(c2.getInt(0)));
+                }
+                c2.close();
             }
         } catch (Exception e) {
             Main.log("allMessageIdsByDid error: %s", e.getMessage());
@@ -1414,6 +1420,12 @@ public final class ReExteraDb {
                     db.execSQL("ALTER TABLE exception_users ADD COLUMN exception_deleted INTEGER DEFAULT 0 NOT NULL");
                 } catch (Exception ignore) {}
             }
+        }
+
+        @Override // android.database.sqlite.SQLiteOpenHelper
+        public void onDowngrade(SQLiteDatabase db, int oldV, int newV) {
+            Main.log("ReExteraDb: downgrade from %d to %d", oldV, newV);
+            ensureColumns(db);
         }
     }
 }

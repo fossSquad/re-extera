@@ -41,39 +41,52 @@ public class MarkMessagesAsDeletedInternalRange extends XC_MethodHook {
         }
 
         SQLiteDatabase db = null;
+        try {
+            if (param.thisObject instanceof MessagesStorage) {
+                db = ((MessagesStorage) param.thisObject).getDatabase();
+            } else {
+                db = MessagesStorage.getInstance(currentAccount).getDatabase();
+            }
+        } catch (Throwable t) {
+            Main.log("MarkMessagesAsDeletedInternalRange: failed to get database: %s", t.getMessage());
+        }
+
+        if (db != null) {
+            java.util.Map<Long, List<Integer>> midsByUid = new java.util.HashMap<>();
             try {
-                if (param.thisObject instanceof MessagesStorage) {
-                    db = ((MessagesStorage) param.thisObject).getDatabase();
-                } else {
-                    db = MessagesStorage.getInstance(currentAccount).getDatabase();
+                SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE (uid = ? OR uid = ?) AND mid <= ?", did, -did, maxMid);
+                while (cursor.next()) {
+                    long msgUid = cursor.longValue(0);
+                    int msgMid = cursor.intValue(1);
+                    if (msgMid > 0) {
+                        List<Integer> list = midsByUid.get(msgUid);
+                        if (list == null) {
+                            list = new ArrayList<>();
+                            midsByUid.put(msgUid, list);
+                        }
+                        list.add(msgMid);
+                    }
                 }
+                cursor.dispose();
             } catch (Throwable t) {
-                Main.log("MarkMessagesAsDeletedInternalRange: failed to get database: %s", t.getMessage());
+                Main.log("MarkMessagesAsDeletedInternalRange: error querying messages_v2: %s", t.getMessage());
             }
 
-            if (db != null) {
-                List<Integer> foundMids = new ArrayList<>();
-                try {
-                    SQLiteCursor cursor = db.queryFinalized("SELECT mid FROM messages_v2 WHERE uid = ? AND mid <= ?", did, maxMid);
-                    while (cursor.next()) {
-                        foundMids.add(cursor.intValue(0));
-                    }
-                    cursor.dispose();
-                } catch (Throwable t) {
-                    Main.log("MarkMessagesAsDeletedInternalRange: error querying messages_v2: %s", t.getMessage());
-                }
-
+            for (java.util.Map.Entry<Long, List<Integer>> entry : midsByUid.entrySet()) {
+                long targetUid = entry.getKey();
+                List<Integer> foundMids = entry.getValue();
                 if (!foundMids.isEmpty()) {
-                    Main.log("MarkMessagesAsDeletedInternalRange: found %d messages to save for did=%d maxMid=%d", foundMids.size(), did, maxMid);
-                    this.redb.lambda$batchPutDeletedMessagesAsync$1(did, foundMids);
-                    MessageUtils.forceUpdateViews(currentAccount, did, foundMids);
+                    Main.log("MarkMessagesAsDeletedInternalRange: found %d messages to save for uid=%d maxMid=%d", foundMids.size(), targetUid, maxMid);
+                    this.redb.batchPutDeletedMessagesAsync(targetUid, foundMids);
+                    MessageUtils.forceUpdateViews(currentAccount, targetUid, foundMids);
                     if (Settings.getSaveAttachments()) {
-                        AttachmentSaver.saveAttachments(currentAccount, did, new ArrayList<>(foundMids));
+                        AttachmentSaver.saveAttachments(currentAccount, targetUid, new ArrayList<>(foundMids));
                     }
                 }
             }
+        }
 
-            // Return empty list of randoms to prevent Telegram from deleting them
-            param.setResult(new ArrayList<Long>());
+        // Return empty list of randoms to prevent Telegram from deleting them
+        param.setResult(new ArrayList<Long>());
     }
 }
