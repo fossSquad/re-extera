@@ -313,7 +313,7 @@ public class MessageForwarder {
                         nc.removeObserver(this, NotificationCenter.fileLoadFailed);
                         nc.removeObserver(this, NotificationCenter.fileLoadProgressChanged);
                         MessageForwarder.dismissProgress();
-                        onComplete.run();
+                        AndroidUtilities.runOnUIThread(onComplete);
                     }
                 }
             }
@@ -329,30 +329,32 @@ public class MessageForwarder {
 
     /* JADX INFO: Access modifiers changed from: private */
     public static void updateProgress(int progress, final NotificationCenter nc, final NotificationCenter.NotificationCenterDelegate observer, final int currentAccount, final Collection<String> cancelFileNames) {
-        if (progressDialog != null) {
-            progressDialog.setProgress(progress);
-            return;
-        }
-        try {
-            BaseFragment lastFragment = LaunchActivity.getLastFragment();
-            if (lastFragment != null && lastFragment.getContext() != null) {
-                Context context = lastFragment.getContext();
-                progressDialog = new AlertDialog(context, 2);
-                progressDialog.setMessage(Localization.FORWARDED);
+        AndroidUtilities.runOnUIThread(() -> {
+            if (progressDialog != null) {
                 progressDialog.setProgress(progress);
-                progressDialog.setCanCancel(false);
-                progressDialog.setCancelDialog(false);
-                progressDialog.setCanceledOnTouchOutside(false);
-                progressDialog.setCancelable(false);
-                progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { 
-                    public final void onClick(AlertDialog alertDialog, int i) {
-                        MessageForwarder.lambda$updateProgress$3(currentAccount, cancelFileNames, nc, observer, alertDialog, i);
-                    }
-                });
-                progressDialog.show();
+                return;
             }
-        } catch (Exception e) {
-        }
+            try {
+                BaseFragment lastFragment = LaunchActivity.getLastFragment();
+                if (lastFragment != null && lastFragment.getContext() != null) {
+                    Context context = lastFragment.getContext();
+                    progressDialog = new AlertDialog(context, 2);
+                    progressDialog.setMessage(Localization.FORWARDED);
+                    progressDialog.setProgress(progress);
+                    progressDialog.setCanCancel(false);
+                    progressDialog.setCancelDialog(false);
+                    progressDialog.setCanceledOnTouchOutside(false);
+                    progressDialog.setCancelable(false);
+                    progressDialog.setNegativeButton(Localization.CANCEL, new AlertDialog.OnButtonClickListener() { 
+                        public final void onClick(AlertDialog alertDialog, int i) {
+                            MessageForwarder.lambda$updateProgress$3(currentAccount, cancelFileNames, nc, observer, alertDialog, i);
+                        }
+                    });
+                    progressDialog.show();
+                }
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     static /* synthetic */ void lambda$updateProgress$3(int currentAccount, Collection cancelFileNames, NotificationCenter nc, NotificationCenter.NotificationCenterDelegate observer, AlertDialog dialog, int which) {
@@ -369,13 +371,15 @@ public class MessageForwarder {
 
     /* JADX INFO: Access modifiers changed from: private */
     public static void dismissProgress() {
-        if (progressDialog != null) {
-            try {
-                progressDialog.cancel();
-            } catch (Exception e) {
+        AndroidUtilities.runOnUIThread(() -> {
+            if (progressDialog != null) {
+                try {
+                    progressDialog.cancel();
+                } catch (Exception ignored) {
+                }
+                progressDialog = null;
             }
-            progressDialog = null;
-        }
+        });
     }
 
     private static void sendBatch(AccountInstance accountInstance, ArrayList<MessageObject> messages, long peer, boolean notify, int scheduleDate, MessageObject replyToTopMsg, boolean hideCaption) {

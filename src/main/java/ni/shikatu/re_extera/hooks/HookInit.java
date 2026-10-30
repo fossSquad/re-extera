@@ -358,7 +358,7 @@ public final class HookInit {
                 public void didReceivedNotification(int id, int account, Object... args) {
                     if (id == NotificationCenter.activeAccountChanged) {
                         try {
-                            int newAccount = account;
+                            int newAccount = account >= 0 ? account : UserConfig.selectedAccount;
                             ConnectionsManager cm = ConnectionsManager.getInstance(newAccount);
                             if (cm != null) {
                                 cm.checkConnection();
