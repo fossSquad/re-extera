@@ -28,6 +28,7 @@ import ni.shikatu.re_extera.hooks.chatmessagecell.DidPressButton;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.hooks.chatmessagecell.SecretVoicePlayerDismiss;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
+import ni.shikatu.re_extera.hooks.connectionsmanager.ConnectionWatchdog;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
@@ -98,6 +99,7 @@ public final class HookInit {
     private NotificationCenter.NotificationCenterDelegate activeAccountObserver;
     private NotificationCenter.NotificationCenterDelegate fileLoadedObserver;
     private final ArrayList<Integer> fileLoadedAccounts = new ArrayList<>();
+    private ConnectionWatchdog connectionWatchdog;
 
     /* JADX INFO: Access modifiers changed from: private */
     @FunctionalInterface
@@ -197,6 +199,8 @@ public final class HookInit {
 
     public void startIntercepting() {
         startSendRequestHook();
+        connectionWatchdog = new ConnectionWatchdog();
+        connectionWatchdog.init();
         tryHook("MessagesController.processUpdates", MessagesController.class, "processUpdates", new ProcessUpdates(), TLRPC.Updates.class, Boolean.TYPE);
         tryHook("MessagesController.processUpdateArray", MessagesController.class, "processUpdateArray", new PreserveOneTimeMessages(), ArrayList.class, ArrayList.class, ArrayList.class, Boolean.TYPE, Integer.TYPE);
         tryHook("MessagesController.putUsers", MessagesController.class, "putUsers", new ni.shikatu.re_extera.hooks.messagescontroller.PutUsers(), ArrayList.class, Boolean.TYPE);
@@ -431,6 +435,10 @@ public final class HookInit {
     public void onUnload() {
         isActive = false;
         unregisterFileLoadedObserver();
+        if (connectionWatchdog != null) {
+            connectionWatchdog.stop();
+            connectionWatchdog = null;
+        }
         if (this.activeAccountObserver != null) {
             try {
                 NotificationCenter.getGlobalInstance().removeObserver(this.activeAccountObserver, NotificationCenter.activeAccountChanged);
