@@ -82,12 +82,35 @@ public class UpdateProfileData extends XC_MethodHook {
         }
     }
 
+    private static SimpleTextView[] resolveOnlineTextViews(Object raw) {
+        if (raw instanceof SimpleTextView[]) {
+            return (SimpleTextView[]) raw;
+        }
+        if (raw instanceof SimpleTextView) {
+            return new SimpleTextView[]{(SimpleTextView) raw};
+        }
+        return null;
+    }
+
     public void afterHookedMethod(XC_MethodHook.MethodHookParam param) {
+        try {
+            afterUpdateProfileData(param);
+        } catch (Throwable t) {
+            Main.log("UpdateProfileData: hook failed: %s", t.getMessage());
+        }
+    }
+
+    private static long readUserId(ProfileActivity activity) {
+        Object value = ReflectionUtils.get(USER_ID, activity);
+        return value instanceof Long ? ((Long) value).longValue() : 0;
+    }
+
+    private void afterUpdateProfileData(XC_MethodHook.MethodHookParam param) {
         if (USER_ID != null && ONLINE_TEXT_VIEW != null) {
             final ProfileActivity activity = (ProfileActivity) param.thisObject;
             final int currentAccount = activity.getCurrentAccount();
-            long user = ((Long) ReflectionUtils.get(USER_ID, activity)).longValue();
-            final SimpleTextView[] onlineView = (SimpleTextView[]) ReflectionUtils.get(ONLINE_TEXT_VIEW, activity);
+            long user = readUserId(activity);
+            final SimpleTextView[] onlineView = resolveOnlineTextViews(ReflectionUtils.get(ONLINE_TEXT_VIEW, activity));
             if (onlineView == null || onlineView.length == 0 || user != UserConfig.getInstance(currentAccount).clientUserId) {
                 return;
             }
@@ -145,7 +168,9 @@ public class UpdateProfileData extends XC_MethodHook {
             }
         }
         blockUpdates = true;
-        ReflectionUtils.invoke(NEED_LAYOUT, profileActivity, true);
+        if (NEED_LAYOUT != null) {
+            ReflectionUtils.invoke(NEED_LAYOUT, profileActivity, true);
+        }
     }
 
     private void getRealLastSeenTime(int currentAccount, long userId, final TimeCallback callback) {
