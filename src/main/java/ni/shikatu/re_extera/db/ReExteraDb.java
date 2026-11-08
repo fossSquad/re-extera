@@ -33,6 +33,11 @@ public final class ReExteraDb {
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> lastOnlineCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, Boolean> filterExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
     private final java.util.concurrent.ConcurrentHashMap<Long, Integer> deletedExceptionsCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, DialogExclusion> exceptionCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Set<Long> dirtyExceptionKeys = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Object exceptionCacheLock = new Object();
+    private volatile boolean exceptionCacheLoaded;
+    private volatile boolean deletedKeysLoaded;
     private final java.util.concurrent.ConcurrentHashMap<Long, java.util.Set<Integer>> deletedKeysCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     private java.util.Set<Integer> getOrCreateDeletedSet(long did) {
@@ -71,28 +76,46 @@ public final class ReExteraDb {
         this.dbHandler.post(new Runnable() {
             @Override
             public void run() {
-                loadFilterExceptionsCache();
-                loadDeletedExceptionsCache();
+                loadExceptionCache();
                 loadDeletedKeysCache();
             }
         });
     }
 
-    private void loadDeletedExceptionsCache() {
-        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
-        android.database.Cursor c = null;
-        try {
-            c = db.rawQuery("SELECT did, exception_deleted FROM exception_users WHERE exception_deleted != 0", null);
-            if (c.moveToFirst()) {
-                do {
-                    deletedExceptionsCache.put(c.getLong(0), c.getInt(1));
-                } while (c.moveToNext());
-            }
-        } catch (Throwable e) {
-            ni.shikatu.re_extera.Main.log("Failed to load deletedExceptionsCache", e);
-        } finally {
-            if (c != null) {
-                c.close();
+    private void loadExceptionCache() {
+        synchronized (exceptionCacheLock) {
+            android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
+            android.database.Cursor c = null;
+            boolean loaded = false;
+            try {
+                c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter, exception_deleted FROM exception_users WHERE exception_reading != 0 OR exception_typing != 0 OR exception_filter != 0 OR exception_deleted != 0", null);
+                if (c.moveToFirst()) {
+                    do {
+                        long did = c.getLong(0);
+                        // A setter already wrote a newer value while the cache was
+                        // loading. Do not overwrite it with the stale DB snapshot.
+                        if (dirtyExceptionKeys.contains(Long.valueOf(did))) {
+                            continue;
+                        }
+                        DialogExclusion entry = new DialogExclusion(did, c.getInt(1), c.getInt(2), c.getInt(3), c.getInt(4));
+                        exceptionCache.put(did, entry);
+                        if (entry.filterExclusion != 0) {
+                            filterExceptionsCache.put(did, Boolean.TRUE);
+                        }
+                        if (entry.deletedExclusion != 0) {
+                            deletedExceptionsCache.put(did, entry.deletedExclusion);
+                        }
+                    } while (c.moveToNext());
+                }
+                loaded = true;
+            } catch (Throwable e) {
+                ni.shikatu.re_extera.Main.log("Failed to load exceptionCache", e);
+            } finally {
+                if (c != null) {
+                    c.close();
+                }
+                dirtyExceptionKeys.clear();
+                exceptionCacheLoaded = loaded;
             }
         }
     }
@@ -100,6 +123,7 @@ public final class ReExteraDb {
     private void loadDeletedKeysCache() {
         android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
         android.database.Cursor c = null;
+        boolean loaded = false;
         try {
             c = db.rawQuery("SELECT did, mid FROM deleted_keys", null);
             if (c.moveToFirst()) {
@@ -109,31 +133,14 @@ public final class ReExteraDb {
                     getOrCreateDeletedSet(did).add(mid);
                 } while (c.moveToNext());
             }
+            loaded = true;
         } catch (Throwable e) {
             ni.shikatu.re_extera.Main.log("Failed to load deletedKeysCache: %s", e.getMessage());
         } finally {
             if (c != null) {
                 c.close();
             }
-        }
-    }
-
-    private void loadFilterExceptionsCache() {
-        android.database.sqlite.SQLiteDatabase db = this.helper.getReadableDatabase();
-        android.database.Cursor c = null;
-        try {
-            c = db.rawQuery("SELECT did FROM exception_users WHERE exception_filter != 0", null);
-            if (c.moveToFirst()) {
-                do {
-                    filterExceptionsCache.put(c.getLong(0), Boolean.TRUE);
-                } while (c.moveToNext());
-            }
-        } catch (Throwable e) {
-            ni.shikatu.re_extera.Main.log("Failed to load filterExceptionsCache", e);
-        } finally {
-            if (c != null) {
-                c.close();
-            }
+            deletedKeysLoaded = loaded;
         }
     }
 
@@ -248,6 +255,9 @@ public final class ReExteraDb {
             if (altSet != null && altSet.contains(mid)) {
                 return true;
             }
+        }
+        if (deletedKeysLoaded) {
+            return false;
         }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
@@ -542,6 +552,9 @@ public final class ReExteraDb {
     }
 
     public List<DialogExclusion> getActiveExceptions() {
+        if (exceptionCacheLoaded) {
+            return new ArrayList<>(exceptionCache.values());
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         ArrayList<DialogExclusion> result = new ArrayList<>();
         try {
@@ -570,6 +583,9 @@ public final class ReExteraDb {
     }
 
     public DialogExclusion getException(long dialogId) {
+        if (exceptionCacheLoaded) {
+            return exceptionCache.get(dialogId);
+        }
         SQLiteDatabase db = this.helper.getReadableDatabase();
         try {
             Cursor c = db.rawQuery("SELECT did, exception_reading, exception_typing, exception_filter, exception_deleted FROM exception_users WHERE did = ?", new String[]{String.valueOf(dialogId)});
@@ -640,28 +656,62 @@ public final class ReExteraDb {
     }
 
     private int getExceptionColumn(long did, String column) {
-        SQLiteDatabase db = this.helper.getReadableDatabase();
-        try {
-            Cursor c = db.rawQuery("SELECT " + column + " FROM exception_users WHERE did = ?", new String[]{String.valueOf(did)});
-            try {
-                int i = c.moveToFirst() ? c.getInt(0) : 0;
-                if (c != null) {
-                    c.close();
-                }
-                return i;
-            } catch (Throwable th) {
-                if (c != null) {
-                    try {
-                        c.close();
-                    } catch (Throwable th2) {
-                        Throwable.class.getDeclaredMethod("addSuppressed", Throwable.class).invoke(th, th2);
-                    }
-                }
-                throw th;
-            }
-        } catch (Exception e) {
-            Main.log("getExceptionColumn(%s) error: %s", column, e.getMessage());
+        DialogExclusion entry = exceptionCache.get(did);
+        if (entry == null) {
             return 0;
+        }
+        if ("exception_reading".equals(column)) {
+            return entry.readExclusion;
+        }
+        if ("exception_typing".equals(column)) {
+            return entry.typeExclusion;
+        }
+        if ("exception_filter".equals(column)) {
+            return entry.filterExclusion;
+        }
+        if ("exception_deleted".equals(column)) {
+            return entry.deletedExclusion;
+        }
+        return 0;
+    }
+
+    private void updateExceptionCache(long did, String column, int value) {
+        synchronized (exceptionCacheLock) {
+            if (!exceptionCacheLoaded) {
+                dirtyExceptionKeys.add(Long.valueOf(did));
+            }
+            exceptionCache.compute(did, (dialogId, old) -> {
+                int reading = old != null ? old.readExclusion : 0;
+                int typing = old != null ? old.typeExclusion : 0;
+                int filter = old != null ? old.filterExclusion : 0;
+                int deleted = old != null ? old.deletedExclusion : 0;
+                if ("exception_reading".equals(column)) {
+                    reading = value;
+                } else if ("exception_typing".equals(column)) {
+                    typing = value;
+                } else if ("exception_filter".equals(column)) {
+                    filter = value;
+                } else if ("exception_deleted".equals(column)) {
+                    deleted = value;
+                }
+                if (reading == 0 && typing == 0 && filter == 0 && deleted == 0) {
+                    return null;
+                }
+                return new DialogExclusion(dialogId, reading, typing, filter, deleted);
+            });
+            if ("exception_filter".equals(column)) {
+                if (value != 0) {
+                    filterExceptionsCache.put(did, Boolean.TRUE);
+                } else {
+                    filterExceptionsCache.remove(did);
+                }
+            } else if ("exception_deleted".equals(column)) {
+                if (value != 0) {
+                    deletedExceptionsCache.put(did, Integer.valueOf(value));
+                } else {
+                    deletedExceptionsCache.remove(did);
+                }
+            }
         }
     }
 
@@ -671,6 +721,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogReadingAsync(final long did, final int value) {
+        updateExceptionCache(did, "exception_reading", value);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -685,6 +736,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogTypingAsync(final long did, final int value) {
+        updateExceptionCache(did, "exception_typing", value);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -699,11 +751,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogFilterAsync(final long did, final int value) {
-        if (value != 0) {
-            filterExceptionsCache.put(did, Boolean.TRUE);
-        } else {
-            filterExceptionsCache.remove(did);
-        }
+        updateExceptionCache(did, "exception_filter", value);
         postToDbThread(new Runnable() { 
             @Override // java.lang.Runnable
             public final void run() {
@@ -718,11 +766,7 @@ public final class ReExteraDb {
     }
 
     public void setDialogDeletedAsync(final long did, final int value) {
-        if (value != 0) {
-            deletedExceptionsCache.put(did, Integer.valueOf(value));
-        } else {
-            deletedExceptionsCache.remove(did);
-        }
+        updateExceptionCache(did, "exception_deleted", value);
         postToDbThread(new Runnable() { 
             @Override
             public final void run() {
@@ -732,6 +776,7 @@ public final class ReExteraDb {
     }
 
     public void lambda$upsertExceptionAsync(long did, String column, int value) {
+        updateExceptionCache(did, column, value);
         SQLiteDatabase db = this.helper.getWritableDatabase();
         db.beginTransaction();
         try {
@@ -1263,6 +1308,7 @@ public final class ReExteraDb {
                 int removed = st.executeUpdateDelete();
                 if (removed > 0) {
                     Main.log("pruneStaleEntries: removed %d old deleted_keys entries", Integer.valueOf(removed));
+                    deletedKeysLoaded = false;
                     deletedKeysCache.clear();
                     loadDeletedKeysCache();
                 }
@@ -1331,16 +1377,12 @@ public final class ReExteraDb {
     private static final class Helper extends SQLiteOpenHelper {
         Helper(Context context, String path) {
             super(context, path, (SQLiteDatabase.CursorFactory) null, DATABASE_VERSION);
+            setWriteAheadLoggingEnabled(true);
         }
 
         @Override // android.database.sqlite.SQLiteOpenHelper
         public void onConfigure(SQLiteDatabase db) {
             super.onConfigure(db);
-            try {
-                db.enableWriteAheadLogging();
-            } catch (Exception e) {
-                Main.log("enableWriteAheadLogging error: %s", e.getMessage());
-            }
             db.setForeignKeyConstraintsEnabled(true);
         }
 
@@ -1425,6 +1467,7 @@ public final class ReExteraDb {
         @Override // android.database.sqlite.SQLiteOpenHelper
         public void onDowngrade(SQLiteDatabase db, int oldV, int newV) {
             Main.log("ReExteraDb: downgrade from %d to %d", oldV, newV);
+            onCreate(db);
             ensureColumns(db);
         }
     }

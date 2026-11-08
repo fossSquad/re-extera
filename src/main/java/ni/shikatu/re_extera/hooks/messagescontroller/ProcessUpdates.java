@@ -310,7 +310,7 @@ public class ProcessUpdates extends XC_MethodHook {
         this.redb.postToDbThread(new Runnable() {
             @Override
             public void run() {
-                MessageObject oldObj = MessageUtils.getMessage(currentAccount, did, message.id);
+                MessageObject oldObj = MessageUtils.getStoredMessage(currentAccount, did, message.id);
                 if (oldObj != null && !oldObj.isOut() && oldObj.messageOwner != null) {
                     String oldText = oldObj.messageOwner.message != null ? oldObj.messageOwner.message : "";
                     String newText = message.message != null ? message.message : "";

@@ -39,7 +39,7 @@ public class AttachmentSaver {
             public void run() {
                 for (Integer mid : mids) {
                     if (mid == null || mid <= 0) continue;
-                    MessageObject msg = MessageUtils.getMessage(currentAccount, did, mid);
+                    MessageObject msg = MessageUtils.getStoredMessage(currentAccount, did, mid);
                     if (msg != null && msg.messageOwner != null) {
                         saveAttachment(currentAccount, msg);
                     }

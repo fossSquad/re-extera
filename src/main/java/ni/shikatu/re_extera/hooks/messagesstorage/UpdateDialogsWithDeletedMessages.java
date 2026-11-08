@@ -81,7 +81,7 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
                             if (i > 0) sb.append(",");
                             sb.append(validIds.get(i));
                         }
-                        SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ") AND is_channel = 0");
+                        SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ")");
                         while (cursor.next()) {
                             long msgUid = cursor.longValue(0);
                             int msgMid = cursor.intValue(1);
@@ -103,27 +103,10 @@ public class UpdateDialogsWithDeletedMessages extends XC_MethodHook {
                     }
                 }
 
-                if (!unresolvedIds.isEmpty()) {
-                    for (Integer mid : unresolvedIds) {
-                        long foundDid = 0;
-                        try {
-                            org.telegram.messenger.MessageObject obj = MessageUtils.getMessage(currentAccount, 0, mid);
-                            if (obj != null) {
-                                foundDid = obj.getDialogId();
-                            }
-                        } catch (Throwable ignored) {}
-                        if (foundDid == 0 || !this.redb.shouldSaveDeletedMessages(foundDid)) {
-                            tempIds.add(mid);
-                            continue;
-                        }
-                        List<Integer> list = messagesByDialog.get(foundDid);
-                        if (list == null) {
-                            list = new ArrayList<>();
-                            messagesByDialog.put(foundDid, list);
-                        }
-                        list.add(mid);
-                    }
-                }
+                // IDs not present in messages_v2 have no dialog to attribute them to.
+                // Let Telegram delete them normally instead of guessing a dialog from
+                // another thread's in-memory collections.
+                tempIds.addAll(unresolvedIds);
             }
 
             for (Map.Entry<Long, List<Integer>> entry : messagesByDialog.entrySet()) {

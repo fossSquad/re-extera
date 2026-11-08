@@ -41,6 +41,37 @@ public final class MessageUtils {
     }
 
     public static MessageObject getMessage(int currentAccount, long did, int mid) {
+        MessageObject obj = getMessageInMemory(currentAccount, did, mid);
+        if (obj != null) {
+            return obj;
+        }
+        return getStoredMessage(currentAccount, did, mid);
+    }
+
+    /**
+     * Reads a persisted message directly from Telegram storage. Safe to call
+     * from any thread, including the plugin DB thread.
+     */
+    public static MessageObject getStoredMessage(int currentAccount, long did, int mid) {
+        TLRPC.Message stored = MessagesStorage.getInstance(currentAccount).getMessage(did, mid);
+        if (stored == null && did != 0) {
+            stored = MessagesStorage.getInstance(currentAccount).getMessage(-did, mid);
+        }
+        if (stored != null) {
+            return new MessageObject(currentAccount, stored, false, false);
+        }
+        return null;
+    }
+
+    /**
+     * Looks a message up in the already loaded in-memory stores only.
+     *
+     * Never call the synchronous MessagesStorage helpers from the storage
+     * queue or from threads that the storage queue may be waiting on: those
+     * helpers post to the same queue and wait for the result, which deadlocks
+     * the whole storage pipeline.
+     */
+    public static MessageObject getMessageInMemory(int currentAccount, long did, int mid) {
         MessageObject obj;
         MessagesController controller = MessagesController.getInstance(currentAccount);
         if (did == 0 && (obj = (MessageObject) controller.dialogMessagesByIds.get(mid)) != null) {
@@ -59,12 +90,20 @@ public final class MessageUtils {
             } catch (Exception ignored) {
             }
         }
-        TLRPC.Message stored = MessagesStorage.getInstance(currentAccount).getMessage(did, mid);
-        if (stored == null && did != 0) {
-            stored = MessagesStorage.getInstance(currentAccount).getMessage(-did, mid);
-        }
-        if (stored != null) {
-            return new MessageObject(currentAccount, stored, false, false);
+        if (did != 0) {
+            list = (ArrayList) controller.dialogMessage.get(-did);
+            if (list != null) {
+                try {
+                    int size = list.size();
+                    for (int i = 0; i < size && i < list.size(); i++) {
+                        MessageObject obj2 = list.get(i);
+                        if (obj2 != null && obj2.getId() == mid && obj2.getDialogId() == did) {
+                            return obj2;
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
         }
         try {
             org.telegram.ui.ActionBar.BaseFragment lastFragment = LaunchActivity.getLastFragment();
@@ -84,9 +123,7 @@ public final class MessageUtils {
                             }
                         }
                     }
-                    return null;
                 }
-                return null;
             }
         } catch (Exception ignored) {
         }
