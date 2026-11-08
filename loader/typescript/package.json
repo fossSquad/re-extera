@@ -1,6 +1,6 @@
 {
   "name": "re-extera-inugram-loader",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "description": "Inugram TypeScript loader for re:extera plugin",
   "type": "module",
   "scripts": {

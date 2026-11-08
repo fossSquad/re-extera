@@ -34,7 +34,7 @@ import org.telegram.ui.LaunchActivity;
 public final class Main {
     private static final String LOG_TAG = "re:extera";
     public static final String VERSION = ni.shikatu.re_extera.BuildConfig.RE_EXTERA_VERSION;
-    public static final int VERSION_CODE = 12;
+    public static final int VERSION_CODE = 13;
     public static HookInit hooks;
     private static final Method initiateFragmentMethod;
     private static volatile Main instance;
