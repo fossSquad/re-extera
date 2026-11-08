@@ -18,6 +18,9 @@ class Loader:
             os.makedirs(self.cache_dir)
 
     def _ensure_db_compatibility(self):
+        # Only used when switching channels: a release DEX may be older than
+        # the dev database schema. Regular launches must not rewrite the
+        # version, otherwise every start forces a migration.
         try:
             if self.channel != "release":
                 return
@@ -386,7 +389,6 @@ class Loader:
         return None
 
     def load_and_start(self):
-        self._ensure_db_compatibility()
         self.plugin.log(f"Loading (channel: {self.channel})")
 
         local_bytes = self._load_from_local_path()

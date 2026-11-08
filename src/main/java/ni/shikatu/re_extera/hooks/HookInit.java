@@ -28,13 +28,11 @@ import ni.shikatu.re_extera.hooks.chatmessagecell.DidPressButton;
 import ni.shikatu.re_extera.hooks.chatmessagecell.MeasureTime;
 import ni.shikatu.re_extera.hooks.chatmessagecell.SecretVoicePlayerDismiss;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
-import ni.shikatu.re_extera.hooks.connectionsmanager.ConnectionWatchdog;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
 import ni.shikatu.re_extera.hooks.messagesstorage.DeleteDialogHook;
 import ni.shikatu.re_extera.hooks.messagescontroller.DeleteDialogControllerHook;
-import ni.shikatu.re_extera.hooks.connectionsmanager.UpdatingWatchdog;
 import ni.shikatu.re_extera.hooks.messagesstorage.DeleteMessagesRangeHook;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternal;
 import ni.shikatu.re_extera.hooks.messagesstorage.MarkMessagesAsDeletedInternalRange;
@@ -99,7 +97,6 @@ public final class HookInit {
     private NotificationCenter.NotificationCenterDelegate activeAccountObserver;
     private NotificationCenter.NotificationCenterDelegate fileLoadedObserver;
     private final ArrayList<Integer> fileLoadedAccounts = new ArrayList<>();
-    private ConnectionWatchdog connectionWatchdog;
 
     /* JADX INFO: Access modifiers changed from: private */
     @FunctionalInterface
@@ -199,8 +196,6 @@ public final class HookInit {
 
     public void startIntercepting() {
         startSendRequestHook();
-        connectionWatchdog = new ConnectionWatchdog();
-        connectionWatchdog.init();
         tryHook("MessagesController.processUpdates", MessagesController.class, "processUpdates", new ProcessUpdates(), TLRPC.Updates.class, Boolean.TYPE);
         tryHook("MessagesController.processUpdateArray", MessagesController.class, "processUpdateArray", new PreserveOneTimeMessages(), ArrayList.class, ArrayList.class, ArrayList.class, Boolean.TYPE, Integer.TYPE);
         tryHook("MessagesController.putUsers", MessagesController.class, "putUsers", new ni.shikatu.re_extera.hooks.messagescontroller.PutUsers(), ArrayList.class, Boolean.TYPE);
@@ -227,7 +222,6 @@ public final class HookInit {
         tryHook("MessagesController.deleteMessagesRange", MessagesController.class, "deleteMessagesRange", new DeleteMessagesRangeHook(), Long.TYPE, Long.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Runnable.class);
         tryHook("MessagesController.deleteDialog", MessagesController.class, "deleteDialog", new DeleteDialogControllerHook(), Long.TYPE, Integer.TYPE, Boolean.TYPE);
         tryHook("MessagesStorage.deleteDialog", MessagesStorage.class, "deleteDialog", new DeleteDialogHook(), Long.TYPE, Integer.TYPE);
-        tryHook("ConnectionsManager.setIsUpdating", org.telegram.tgnet.ConnectionsManager.class, "setIsUpdating", new UpdatingWatchdog(), Boolean.TYPE);
 
         // updateDialogsWithDeletedMessages: (long, long, ArrayList, ArrayList)
         tryHook("MessagesStorage.updateDialogsWithDeletedMessages", MessagesStorage.class, "updateDialogsWithDeletedMessages", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
@@ -435,10 +429,6 @@ public final class HookInit {
     public void onUnload() {
         isActive = false;
         unregisterFileLoadedObserver();
-        if (connectionWatchdog != null) {
-            connectionWatchdog.stop();
-            connectionWatchdog = null;
-        }
         if (this.activeAccountObserver != null) {
             try {
                 NotificationCenter.getGlobalInstance().removeObserver(this.activeAccountObserver, NotificationCenter.activeAccountChanged);

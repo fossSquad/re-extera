@@ -218,10 +218,10 @@ public class SendRequest extends XC_MethodHook {
             if (request instanceof TLRPC.TL_channels_readHistory || 
                 request instanceof TLRPC.TL_channels_readMessageContents ||
                 request instanceof TLRPC.TL_messages_readDiscussion ||
-                request instanceof TLRPC.TL_messages_markDialogUnread) {
+                request instanceof TLRPC.TL_messages_markDialogUnread ||
+                request instanceof TLRPC.TL_messages_readEncryptedHistory) {
                 fakeRes = new TLRPC.TL_boolTrue();
-            } else if (request instanceof TLRPC.TL_messages_readEncryptedHistory ||
-                       request instanceof TLRPC.TL_messages_readReactions) {
+            } else if (request instanceof TLRPC.TL_messages_readReactions) {
                 TLRPC.TL_messages_affectedHistory affHist = new TLRPC.TL_messages_affectedHistory();
                 affHist.pts = -1;
                 affHist.pts_count = 0;
