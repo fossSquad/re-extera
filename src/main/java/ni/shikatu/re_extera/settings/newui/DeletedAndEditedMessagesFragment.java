@@ -229,6 +229,18 @@ public class DeletedAndEditedMessagesFragment extends BasePreferencesActivityExt
             }
         });
         layout.addView(saveManuallyDeletedMessages);
+
+        final TextCheckCell saveProtectedStories = new TextCheckCell(getContext());
+        setTextAndValueAndCheck(saveProtectedStories, Localization.SAVE_PROTECTED_STORIES, "", Settings.getSaveProtectedStories(), false, true);
+        saveProtectedStories.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Settings.setSaveProtectedStories(!Settings.getSaveProtectedStories());
+                saveProtectedStories.setChecked(Settings.getSaveProtectedStories());
+            }
+        });
+        layout.addView(saveProtectedStories);
+
         final TextCheckCell useExpandableBlockQuote = new TextCheckCell(getContext());
         setTextAndValueAndCheck(useExpandableBlockQuote, Localization.USE_COLLAPSED_BLOCKQUOTE, Localization.USE_COLLAPSED_BLOCKQUOTE_DESCRIPTION, Settings.getUseExpandableBlockQuote(), true, false);
         useExpandableBlockQuote.setOnClickListener(new View.OnClickListener() { 

@@ -96,6 +96,8 @@ public final class HookInit {
     private final ArrayList<XC_MethodHook.Unhook> hooks = new ArrayList<>();
     public XC_MethodHook.Unhook sendRequestHook;
     private NotificationCenter.NotificationCenterDelegate activeAccountObserver;
+    private NotificationCenter.NotificationCenterDelegate fileLoadedObserver;
+    private final ArrayList<Integer> fileLoadedAccounts = new ArrayList<>();
 
     /* JADX INFO: Access modifiers changed from: private */
     @FunctionalInterface
@@ -310,6 +312,10 @@ public final class HookInit {
         tryHookByArgCount("StoryViewer.open(8)", org.telegram.ui.Stories.StoryViewer.class, "open", 8, new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.OpenHook());
         tryHook("StoryViewer.close", org.telegram.ui.Stories.StoryViewer.class, "close", new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.CloseHook(), Boolean.TYPE);
         tryHook("StoryViewer.instantClose", org.telegram.ui.Stories.StoryViewer.class, "instantClose", new ni.shikatu.re_extera.hooks.storyviewer.StoryViewerHook.CloseHook(), new Class[0]);
+        tryHook("StoryViewer.allowScreenshots", org.telegram.ui.Stories.StoryViewer.class, "allowScreenshots", new ni.shikatu.re_extera.hooks.storyviewer.StorySaveHooks.AllowScreenshotsHook(), Boolean.TYPE);
+        tryHook("StoryItemHolder.allowScreenshots", org.telegram.ui.Stories.PeerStoriesView.StoryItemHolder.class, "allowScreenshots", new ni.shikatu.re_extera.hooks.storyviewer.StorySaveHooks.HolderAllowScreenshotsHook(), new Class[0]);
+        tryHook("PeerStoriesView.saveToGallery", org.telegram.ui.Stories.PeerStoriesView.class, "saveToGallery", new ni.shikatu.re_extera.hooks.storyviewer.StorySaveHooks.SaveToGalleryHook(), new Class[0]);
+        registerFileLoadedObserver();
         
         tryHook("MessagesController.markDialogAsRead", MessagesController.class, "markDialogAsRead", new ni.shikatu.re_extera.hooks.messagescontroller.MarkDialogAsRead(), Long.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, Boolean.TYPE, Long.TYPE, Integer.TYPE, Boolean.TYPE, Integer.TYPE);
         
@@ -379,8 +385,52 @@ public final class HookInit {
         }
     }
 
+    private void registerFileLoadedObserver() {
+        try {
+            fileLoadedObserver = new NotificationCenter.NotificationCenterDelegate() {
+                @Override
+                public void didReceivedNotification(int id, int account, Object... args) {
+                    if (id != NotificationCenter.fileLoaded || args == null || args.length < 2) {
+                        return;
+                    }
+                    if (args[0] instanceof String && args[1] instanceof java.io.File) {
+                        ni.shikatu.re_extera.hooks.storyviewer.StorySaveHooks.onFileLoaded(
+                                (String) args[0], (java.io.File) args[1]);
+                    }
+                }
+            };
+            for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; account++) {
+                if (!UserConfig.getInstance(account).isClientActivated()) {
+                    continue;
+                }
+                try {
+                    NotificationCenter.getInstance(account).addObserver(fileLoadedObserver, NotificationCenter.fileLoaded);
+                    fileLoadedAccounts.add(account);
+                } catch (Throwable t) {
+                    Main.log("registerFileLoadedObserver(%d) failed: %s", account, t.getMessage());
+                }
+            }
+        } catch (Throwable t) {
+            Main.log("registerFileLoadedObserver failed: %s", t.getMessage());
+        }
+    }
+
+    private void unregisterFileLoadedObserver() {
+        if (fileLoadedObserver != null) {
+            for (Integer account : fileLoadedAccounts) {
+                try {
+                    NotificationCenter.getInstance(account).removeObserver(fileLoadedObserver, NotificationCenter.fileLoaded);
+                } catch (Throwable ignored) {
+                }
+            }
+            fileLoadedObserver = null;
+        }
+        fileLoadedAccounts.clear();
+    }
+
     public void onUnload() {
         isActive = false;
+        unregisterFileLoadedObserver();
         if (this.activeAccountObserver != null) {
             try {
                 NotificationCenter.getGlobalInstance().removeObserver(this.activeAccountObserver, NotificationCenter.activeAccountChanged);

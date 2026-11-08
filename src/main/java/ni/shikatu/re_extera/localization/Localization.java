@@ -148,6 +148,7 @@ public class Localization {
     public static String SAVE_BOT_CHATS;
     public static String SAVE_DELETED_MESSAGES;
     public static String SAVE_DELETED;
+    public static String SAVE_PROTECTED_STORIES;
     public static String SAVE_READ_DATE;
     public static String SAVE_LAST_ONLINE;
     public static String EXPORT_DB;
@@ -193,6 +194,7 @@ public class Localization {
             THANKS = "Спасибо @bleizix";
             RE_EXTERA_SETTINGS = "Настройки re:extera";
             SAVE_DELETED_MESSAGES = "Сохранять удаленные сообщения";
+            SAVE_PROTECTED_STORIES = "Сохранять защищённые истории и скриншоты";
             SAVE_BOT_CHATS = "Сохранять в чатах с ботами";
             SAVE_READ_DATE = "Сохранять дату чтения";
             SAVE_LAST_ONLINE = "Сохранять последний онлайн";
@@ -371,6 +373,7 @@ public class Localization {
             THANKS = "Дякуємо @bleizix";
             RE_EXTERA_SETTINGS = "Налаштування re:extera";
             SAVE_DELETED_MESSAGES = "Зберігати видалені повідомлення";
+            SAVE_PROTECTED_STORIES = "Зберігати захищені історії та скриншоти";
             SAVE_BOT_CHATS = "Зберігати в чатах з ботами";
             SAVE_READ_DATE = "Зберігати дату прочитання";
             SAVE_LAST_ONLINE = "Зберігати останній онлайн";
@@ -549,6 +552,7 @@ public class Localization {
         ALPHA_WARNING = "This function eats a lot of cpu";
         RE_EXTERA_SETTINGS = "re:extera Settings";
         SAVE_DELETED_MESSAGES = "Save deleted messages";
+        SAVE_PROTECTED_STORIES = "Save protected stories and screenshots";
         SAVE_BOT_CHATS = "Save in bot chats";
         SAVE_READ_DATE = "Save read date";
         SAVE_LAST_ONLINE = "Save last online";

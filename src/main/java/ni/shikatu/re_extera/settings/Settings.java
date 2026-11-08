@@ -421,6 +421,14 @@ public final class Settings {
         putBool("remove_flag_secure", v);
     }
 
+    public static boolean getSaveProtectedStories() {
+        return getBool("save_protected_stories", false);
+    }
+
+    public static void setSaveProtectedStories(boolean v) {
+        putBool("save_protected_stories", v);
+    }
+
     public static int getUseSchedule() {
         return getInt("use_schedule_mode", UseScheduleMode.NO.getType());
     }
