@@ -28,7 +28,7 @@ public class ProcessDeletedMessages extends XC_MethodHook {
         }
 
         // 2. Ignore if ChatActivity is currently displaying scheduled messages
-        if (thisObject.getChatMode() == ChatActivity.MODE_SCHEDULED) {
+        if (thisObject.isInScheduleMode()) {
             return;
         }
 
