@@ -6,6 +6,7 @@ import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.AccountUtils;
+import ni.shikatu.re_extera.utils.CompatQueues;
 import ni.shikatu.re_extera.utils.InternalUtils;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.ServerReadTracker;
@@ -68,7 +69,7 @@ public class SendRequest extends XC_MethodHook {
                 RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
                 if (onCompleteOrig != null) {
                     try {
-                        org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                        CompatQueues.postStage(() -> {
                             try {
                                 onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
                             } catch (Exception ignored) {}
@@ -88,7 +89,7 @@ public class SendRequest extends XC_MethodHook {
         RequestDelegate delegate = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
         if (delegate != null) {
             try {
-                org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                CompatQueues.postStage(() -> {
                     try {
                         delegate.run(new TLRPC.TL_boolTrue(), null);
                     } catch (Throwable ignored) {
@@ -109,7 +110,7 @@ public class SendRequest extends XC_MethodHook {
                     TL_account.updateStatus offlineReq = new TL_account.updateStatus();
                     offlineReq.offline = true;
                     try {
-                        org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
+                        CompatQueues.postGlobal(() -> {
                             ConnectionsManager.getInstance(currentAccount).sendRequest(offlineReq, (tLObject, tL_error) -> {});
                         }, 1000);
                     } catch (Throwable t) {
@@ -235,7 +236,7 @@ public class SendRequest extends XC_MethodHook {
             final TLObject resToRun = fakeRes;
             if (onCompleteOrig != null || onCompleteTimestamp != null) {
                 try {
-                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                    CompatQueues.postStage(() -> {
                         try {
                             if (onCompleteOrig != null) {
                                 onCompleteOrig.run(resToRun, null);
@@ -284,7 +285,7 @@ public class SendRequest extends XC_MethodHook {
             RequestDelegate onCompleteOrig = param.args.length > 1 && param.args[1] instanceof RequestDelegate ? (RequestDelegate) param.args[1] : null;
             if (onCompleteOrig != null) {
                 try {
-                    org.telegram.messenger.Utilities.stageQueue.postRunnable(() -> {
+                    CompatQueues.postStage(() -> {
                         try {
                             onCompleteOrig.run(new TLRPC.TL_boolTrue(), null);
                         } catch (Exception ignored) {}

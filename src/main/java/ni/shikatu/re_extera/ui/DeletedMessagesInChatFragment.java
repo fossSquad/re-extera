@@ -26,6 +26,7 @@ import java.util.GregorianCalendar;
 import java.util.function.ToIntFunction;
 import ni.shikatu.re_extera.db.ReExteraDb;
 import ni.shikatu.re_extera.localization.Localization;
+import ni.shikatu.re_extera.utils.CompatQueues;
 import ni.shikatu.re_extera.utils.MessageUtils;
 import ni.shikatu.re_extera.utils.RestrictedMessageUtils;
 import org.telegram.messenger.AndroidUtilities;
@@ -38,7 +39,6 @@ import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -983,7 +983,7 @@ public class DeletedMessagesInChatFragment extends BaseFragment implements ChatM
         void reloadAsync(final long did, final Runnable onDone) {
             final int currentGeneration = this.loadGeneration + 1;
             this.loadGeneration = currentGeneration;
-            Utilities.globalQueue.postRunnable(new Runnable() { 
+            CompatQueues.postGlobal(new Runnable() { 
                 @Override // java.lang.Runnable
                 public final void run() {
                     lambda$reloadAsync$2(did, currentGeneration, onDone);

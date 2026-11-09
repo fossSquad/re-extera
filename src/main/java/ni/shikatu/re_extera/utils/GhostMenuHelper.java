@@ -29,7 +29,6 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
-import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.tl.TL_account;
 import org.telegram.ui.ActionBar.BaseFragment;
@@ -374,7 +373,7 @@ public final class GhostMenuHelper {
         req.offline = offline;
         ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> {});
 
-        Utilities.stageQueue.postRunnable(() -> {
+        CompatQueues.postStage(() -> {
             try {
                 MessagesController mc = MessagesController.getInstance(account);
                 if (mcOfflineSentField != null) {
