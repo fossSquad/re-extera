@@ -104,7 +104,9 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
                             if (i > 0) sb.append(",");
                             sb.append(validIds.get(i));
                         }
-                        SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ")");
+                        // Same disambiguation Telegram uses for cross-dialog lookups:
+                        // message ids collide between private chats and channels.
+                        SQLiteCursor cursor = db.queryFinalized("SELECT uid, mid FROM messages_v2 WHERE mid IN (" + sb.toString() + ") AND is_channel = 0");
                         while (cursor.next()) {
                             long msgUid = cursor.longValue(0);
                             int msgMid = cursor.intValue(1);
@@ -126,10 +128,29 @@ public class MarkMessagesAsDeletedInternal extends XC_MethodHook {
                     }
                 }
 
-                // IDs not present in messages_v2 have no dialog to attribute them to.
-                // Let Telegram delete them normally instead of guessing a dialog from
-                // another thread's in-memory collections.
-                tempIds.addAll(unresolvedIds);
+                // The database query only covers persisted messages. Loaded messages
+                // may not be written to messages_v2 yet, so resolve those from the
+                // in-memory caches (never from the storage queue, which would deadlock).
+                for (Integer mid : unresolvedIds) {
+                    long foundDid = 0;
+                    try {
+                        org.telegram.messenger.MessageObject obj = MessageUtils.getMessageInMemory(currentAccount, 0, mid.intValue());
+                        if (obj != null) {
+                            foundDid = obj.getDialogId();
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                    if (foundDid == 0 || !this.redb.shouldSaveDeletedMessages(foundDid)) {
+                        tempIds.add(mid);
+                        continue;
+                    }
+                    List<Integer> list = messagesByDialog.get(foundDid);
+                    if (list == null) {
+                        list = new ArrayList<>();
+                        messagesByDialog.put(foundDid, list);
+                    }
+                    list.add(mid);
+                }
 
                 param.args[1] = tempIds;
                 if (tempIds.isEmpty()) {
