@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.view.View;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.localization.Localization;
@@ -29,6 +32,8 @@ import org.telegram.ui.ChatActivity;
 public class FragmentCreate extends XC_MethodHook {
     private static final Field ARGUMENTS_FIELD;
     private static final Field HEADER_ITEM_FIELD;
+    private static final Set<ActionBarMenuItem> processedHeaderItems =
+            Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     static {
         Field headerField = null;
@@ -72,6 +77,9 @@ public class FragmentCreate extends XC_MethodHook {
         long dialog_id = thisObject.getDialogId();
         int currentAccount = thisObject.getCurrentAccount();
         if (HEADER_ITEM_FIELD == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(HEADER_ITEM_FIELD, thisObject)) == null) {
+            return;
+        }
+        if (!processedHeaderItems.add(headerItem)) {
             return;
         }
         Context context = thisObject.getContext();
