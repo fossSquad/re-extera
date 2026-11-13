@@ -109,50 +109,175 @@ android {
     }
 }
 
-tasks.register("aarToDex", Exec) {
-    dependsOn "assembleRelease"
-    group = "build"
-    description = "Собирает DEX из AAR модуля"
+abstract class AarToDexTask extends DefaultTask {
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getAarFile()
 
-    // Task.project at execution time is deprecated: capture everything at configuration time.
-    def rootDir = project.rootDir
-    def projBuildDir = project.layout.buildDirectory.get().asFile
-    def projName = project.name
+    @OutputDirectory
+    abstract DirectoryProperty getDexDir()
 
-    doFirst {
-        def aarPath = new File(projBuildDir, "outputs/aar/${projName}-release.aar")
-        def dexOut = new File(projBuildDir, "dex/")
-        mkdir dexOut
+    @Input
+    abstract Property<String> getD8Path()
 
-        // android.sdkDirectory was removed from the AGP DSL, resolve like AGP does:
-        // local.properties sdk.dir -> ANDROID_HOME -> ANDROID_SDK_ROOT
-        def sdkDir = null
-        def localProps = new File(rootDir, "local.properties")
-        if (localProps.exists()) {
-            def props = new Properties()
-            localProps.withInputStream { props.load(it) }
-            sdkDir = props.getProperty("sdk.dir")
+    @Input
+    abstract Property<String> getBuildToolsVersion()
+
+    @Input
+    abstract Property<Integer> getMinSdk()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getAndroidJar()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @Inject
+    abstract ArchiveOperations getArchiveOperations()
+
+    @Inject
+    abstract FileSystemOperations getFileSystemOperations()
+
+    @TaskAction
+    def convert() {
+        def aar = aarFile.get().asFile
+        def outputDir = dexDir.get().asFile
+        def d8 = d8Path.get()
+        def androidJarFile = androidJar.get().asFile
+        def minSdkVer = minSdk.get()
+
+        def tempDir = new File(temporaryDir, "unpacked_aar")
+        if (tempDir.exists()) {
+            tempDir.deleteDir()
         }
-        if (!sdkDir) {
-            sdkDir = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        }
-        if (!sdkDir) {
-            throw new GradleException("Android SDK not found: set sdk.dir in local.properties or ANDROID_HOME")
+        tempDir.mkdirs()
+
+        fileSystemOperations.copy {
+            from archiveOperations.zipTree(aar)
+            into tempDir
         }
 
-        commandLine "${sdkDir}/build-tools/36.0.0/d8",
-                aarPath,
-                "--lib", "${sdkDir}/platforms/android-35/android.jar",
-                "--output", dexOut
+        def classesJar = new File(tempDir, "classes.jar")
+        if (!classesJar.exists()) {
+            throw new GradleException("classes.jar not found inside ${aar.name}")
+        }
+
+        if (!outputDir.exists()) {
+            outputDir.mkdirs()
+        }
+
+        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        def args = [
+            "--output", outputDir.absolutePath,
+            "--lib", androidJarFile.absolutePath,
+            "--min-api", minSdkVer.toString(),
+            classesJar.absolutePath
+        ]
+
+        execOperations.exec {
+            if (isWindows) {
+                commandLine(["cmd", "/c", "\"${d8}\""] + args)
+            } else {
+                commandLine([d8] + args)
+            }
+        }
     }
 }
 
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(":aarToDex") || taskGraph.hasTask(":buildDex") || taskGraph.hasTask(":assembleRelease")) {
+        def telegramSubmodule = file("libs/Telegram")
+        if (!telegramSubmodule.exists() || !new File(telegramSubmodule, "build.gradle").exists()) {
+            throw new GradleException("Submodule 'libs/Telegram' is not initialized. Run 'git submodule update --init --recursive --depth=1'.")
+        }
+    }
+}
+
+tasks.register("aarToDex", AarToDexTask) {
+    dependsOn "assembleRelease"
+    group = "build"
+    description = "Assembles DEX from AAR module"
+
+    def projName = project.name
+    def layout = project.layout
+    aarFile.set(layout.buildDirectory.file("outputs/aar/${projName}-release.aar"))
+    dexDir.set(layout.buildDirectory.dir("dex"))
+
+    def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+    def d8BinaryName = isWindows ? "d8.bat" : "d8"
+    def sdkDir = null
+    try {
+        sdkDir = project.extensions.findByName("android")?.sdkDirectory
+    } catch (Exception ignored) {}
+    if (!sdkDir || !sdkDir.exists()) {
+        def localProps = new File(project.rootDir, "local.properties")
+        if (localProps.exists()) {
+            def props = new Properties()
+            localProps.withInputStream { props.load(it) }
+            def p = props.getProperty("sdk.dir")
+            if (p) sdkDir = new File(p)
+        }
+    }
+    if (!sdkDir || !sdkDir.exists()) {
+        def envHome = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        if (envHome) sdkDir = new File(envHome)
+    }
+    if (!sdkDir || !sdkDir.exists()) {
+        throw new GradleException("Android SDK not found. Set sdk.dir in local.properties or ANDROID_HOME.")
+    }
+
+    def resolvedD8 = null
+    def resolvedBuildToolsVersion = null
+    def btVer = android.buildToolsVersion
+    if (btVer) {
+        def candidate = new File(sdkDir, "build-tools/${btVer}/${d8BinaryName}")
+        if (candidate.exists()) {
+            resolvedD8 = candidate.absolutePath
+            resolvedBuildToolsVersion = btVer
+        }
+    }
+    if (!resolvedD8) {
+        def buildToolsDir = new File(sdkDir, "build-tools")
+        if (buildToolsDir.isDirectory()) {
+            def parseVersion = { String v ->
+                v.tokenize(".-").collect { it.isInteger() ? it.toInteger() : 0 }
+            }
+            def latestDir = buildToolsDir.listFiles()
+                ?.findAll { it.isDirectory() && new File(it, d8BinaryName).exists() }
+                ?.max { a, b ->
+                    def va = parseVersion(a.name)
+                    def vb = parseVersion(b.name)
+                    for (int i = 0; i < Math.max(va.size(), vb.size()); i++) {
+                        int pa = i < va.size() ? va[i] : 0
+                        int pb = i < vb.size() ? vb[i] : 0
+                        if (pa != pb) return pa <=> pb
+                    }
+                    return 0
+                }
+            if (latestDir) {
+                resolvedD8 = new File(latestDir, d8BinaryName).absolutePath
+                resolvedBuildToolsVersion = latestDir.name
+            }
+        }
+    }
+    if (!resolvedD8) {
+        throw new GradleException("No valid d8 executable found in ${sdkDir}/build-tools. Install Android SDK Build-Tools.")
+    }
+
+    def compileSdkVer = android.compileSdk ?: 35
+    def minSdkVer = android.defaultConfig.minSdk ?: 26
+
+    d8Path.set(resolvedD8)
+    buildToolsVersion.set(resolvedBuildToolsVersion)
+    androidJar.set(project.file("${sdkDir}/platforms/android-${compileSdkVer}/android.jar"))
+    minSdk.set(minSdkVer)
+}
 
 tasks.register("buildDex") {
-
     group = "build"
-    description = "Собирает модуль и конвертирует его в DEX"
-    dependsOn "assembleRelease", "aarToDex"
+    description = "Builds DEX artifact"
+    dependsOn "aarToDex"
 }
 
 tasks.register("buildPluginPython", Exec) {
