@@ -20,7 +20,7 @@ def build():
     for f in files:
         if not os.path.exists(f):
             print(f"Error: Required file not found: {f}")
-            return
+            sys.exit(1)
             
     print("Found files:")
     for f in files:
@@ -34,7 +34,7 @@ def build():
         except py_compile.PyCompileError as e:
             print(f"\n[!] Syntax error in {os.path.basename(f)}:")
             print(e)
-            return
+            sys.exit(1)
 
     print("\nAssembling loader.plugin...")
     content = ""
@@ -57,7 +57,7 @@ def build():
     except py_compile.PyCompileError as e:
         print("\n[!] Syntax error in final loader.plugin:")
         print(e)
-        return
+        sys.exit(1)
 
     print(f"\nSuccess! Generated loader.plugin in {os.path.relpath(output_dir, PROJECT_ROOT)}")
 

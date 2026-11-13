@@ -2,6 +2,16 @@ name: Build Dex and Plugins
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Plugin build target'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - python
+          - typescript
   push:
     branches: [ "master", "main" ]
     tags: [ "v*" ]
@@ -18,8 +28,35 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
+    - name: Get Telegram submodule SHA
+      id: tg_submodule
+      run: echo "sha=$(git rev-parse HEAD:libs/Telegram)" >> $GITHUB_OUTPUT
+
+    - name: Cache Telegram source
+      id: cache_telegram
+      uses: actions/cache@v6
+      with:
+        # Only the working tree is needed: submodule init is skipped on a cache hit.
+        path: libs/Telegram
+        key: telegram-submodule-${{ steps.tg_submodule.outputs.sha }}
+
     - name: Initialize Telegram source
+      if: steps.cache_telegram.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive --depth=1
+
+    - name: Get Telegram NDK version
+      id: tg_ndk
+      run: |
+        NDK_VER=$(grep -m1 'ndkVersion' libs/Telegram/TMessagesProj/build.gradle | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+        echo "version=$NDK_VER" >> $GITHUB_OUTPUT
+
+    # Caching avoids re-downloading the Android NDK (~1.5 GB) during AGP configuration.
+    - name: Cache Android NDK
+      if: steps.tg_ndk.outputs.version != ''
+      uses: actions/cache@v6
+      with:
+        path: /usr/local/lib/android/sdk/ndk/${{ steps.tg_ndk.outputs.version }}
+        key: ndk-${{ steps.tg_ndk.outputs.version }}
 
     - name: Set up JDK 21
       uses: actions/setup-java@v6
@@ -29,6 +66,8 @@ jobs:
 
     - name: Set up Gradle caching
       uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-read-only: false
 
     - name: Set up Node.js
       uses: actions/setup-node@v7
@@ -38,7 +77,7 @@ jobs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 10
+        version: 12
 
     - name: Set up Python
       uses: actions/setup-python@v7
@@ -53,20 +92,21 @@ jobs:
         cd loader/typescript
         pnpm install --frozen-lockfile
 
-    - name: Build with Gradle
+    - name: Build Dex and Plugins
       run: |
-        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
+        TARGET="${{ inputs.target }}"
+        if [ -z "$TARGET" ]; then
+          TARGET="all"
+        fi
+        ./gradlew --no-daemon --no-watch-fs --max-workers=2 --build-cache \
           -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
-          buildDex
-        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
-          -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
-          buildPlugin
+          buildDex buildPlugin -Ptarget=$TARGET
 
     - name: Copy build artifacts to root
       run: |
         cp build/dex/classes.dex .
-        cp build/plugin/loader.plugin .
-        cp build/plugin/loader.inu.js .
+        [ -f build/plugin/loader.plugin ] && cp build/plugin/loader.plugin . || true
+        [ -f build/plugin/loader.inu.js ] && cp build/plugin/loader.inu.js . || true
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v7
@@ -76,6 +116,7 @@ jobs:
           classes.dex
           loader.plugin
           loader.inu.js
+        if-no-files-found: ignore
 
     - name: Parse tag for release name
       id: parse_tag
@@ -83,16 +124,19 @@ jobs:
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
         WITHOUT_V=${TAG_NAME#v}
-        PLUGIN_VER=${WITHOUT_V%-*}
-        TG_VER=${WITHOUT_V#*-}
-        echo "plugin=$PLUGIN_VER" >> $GITHUB_OUTPUT
-        echo "tg=$TG_VER" >> $GITHUB_OUTPUT
+        if [[ "$WITHOUT_V" == *-* ]]; then
+          PLUGIN_VER=${WITHOUT_V%-*}
+          TG_VER=${WITHOUT_V##*-}
+          echo "release_name=v$PLUGIN_VER for $TG_VER" >> $GITHUB_OUTPUT
+        else
+          echo "release_name=v$WITHOUT_V" >> $GITHUB_OUTPUT
+        fi
 
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v3
       with:
-        name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
+        name: ${{ steps.parse_tag.outputs.release_name }}
         files: |
           classes.dex
           loader.plugin

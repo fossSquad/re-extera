@@ -17,15 +17,15 @@ Plugin for exteraGram that adds ghost mode, deleted message recovery, and variou
 - **Filters** — advanced message filtering
 
 ### Screenshots
-| | | | |
+| Main menu | Ghost mode | Spy | Other |
 |---|---|---|---|
 | <img src="images/1.jpg" width="140"/> | <img src="images/2.jpg" width="140"/> | <img src="images/3.jpg" width="140"/> | <img src="images/4.jpg" width="140"/> |
-| Main menu | Ghost mode | Spy | Other |
 
 ### Building
 
 **Requirements**
 - Android SDK
+- Android NDK
 - JDK 21
 - Python 3.x
 - Node.js + pnpm
@@ -35,17 +35,20 @@ git clone https://github.com/fossSquad/re-extera.git
 cd re-extera
 git submodule update --init --recursive --depth=1
 
-# build .plugin (both. use -Ptarget parameter to build for ts or python.)
+# (Optional) Install TypeScript loader dependencies (required once for Inugram before building loader)
+pnpm --dir loader/typescript install
+
+# Build both loader plugins (or use -Ptarget=python / -Ptarget=typescript to build individually)
 ./gradlew buildPlugin
 
-# build .dex
+# Build DEX
 ./gradlew buildDex
 ```
 
-Output DEX will be at `build/dex/classes.dex`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
+Output will be at `build/dex/classes.dex`, `build/plugin/loader.plugin`, and `build/plugin/loader.inu.js`. The CI also produces builds automatically — grab latest from [Actions](https://github.com/fossSquad/re-extera/actions) (dev) or [Releases](https://github.com/fossSquad/re-extera/releases) (stable).
 
 ### Installing
-1. Install the [loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin)
+1. Install the loader ([exteraGram Python loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.plugin) or [Inugram TypeScript loader](https://github.com/fossSquad/re-extera/releases/latest/download/loader.inu.js))
 2. The plugin will download and load the DEX automatically
 3. Switch between dev (nightly) and release (stable) channels in plugin settings
 
