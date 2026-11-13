@@ -10,39 +10,6 @@ import org.gradle.process.ExecOperations
 
 import javax.inject.Inject
 
-// Task.exec() was removed in Gradle 9, use injected ExecOperations instead.
-abstract class BuildTypescriptTask extends DefaultTask {
-    @Inject
-    protected abstract ExecOperations getExecOperations()
-
-    @InputDirectory
-    abstract DirectoryProperty getWorkDir()
-
-    @TaskAction
-    void build() {
-        def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
-        def hasPnpm = false
-        try {
-            def checkCmd = isWindows ? ["cmd", "/c", "where pnpm"] : ["which", "pnpm"]
-            def proc = checkCmd.execute()
-            proc.waitFor()
-            hasPnpm = proc.exitValue() == 0
-        } catch (Exception ignored) {
-        }
-
-        def packageManager = hasPnpm ? "pnpm" : "npm"
-        logger.lifecycle("Using ${packageManager} to build TypeScript loader")
-
-        getExecOperations().exec {
-            workingDir = workDir.get().asFile
-            if (isWindows) {
-                commandLine("cmd", "/c", "${packageManager} run build")
-            } else {
-                commandLine(packageManager, "run", "build")
-            }
-        }
-    }
-}
 
 def runGit(Project project, List<String> args) {
     try {
@@ -283,18 +250,43 @@ tasks.register("buildDex") {
 tasks.register("buildPluginPython", Exec) {
     group = "build"
     description = "Builds Python loader plugin for exteraGram"
-    commandLine "python3", "loader/python/build.py"
+
+    inputs.files(fileTree("loader/python") {
+        exclude("__pycache__/**")
+        exclude("*.pyc")
+    })
+    outputs.file(project.layout.buildDirectory.file("plugin/loader.plugin"))
+
+    def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+    commandLine isWindows ? "python" : "python3", "loader/python/build.py"
 }
 
-tasks.register("buildPluginTypescript", BuildTypescriptTask) {
+tasks.register("buildPluginTypescript", Exec) {
     group = "build"
     description = "Builds TypeScript loader plugin for Inugram"
-    workDir.set(project.layout.projectDirectory.dir("loader/typescript"))
+
+    doFirst {
+        def nodeModules = file("loader/typescript/node_modules")
+        if (!nodeModules.exists()) {
+            throw new GradleException("loader/typescript/node_modules is missing. Run 'pnpm --dir loader/typescript install' first.")
+        }
+    }
+
+    workingDir = file("loader/typescript")
+    inputs.files(fileTree("loader/typescript") {
+        exclude("node_modules/**")
+        exclude(".inu/**")
+        exclude(".inu.config.*")
+    })
+    outputs.file(project.layout.buildDirectory.file("plugin/loader.inu.js"))
+
+    def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+    commandLine isWindows ? ["cmd", "/c", "pnpm run build"] : ["pnpm", "run", "build"]
 }
 
 tasks.register("buildPlugin") {
     group = "build"
-    description = "Builds loader plugins (specify -Ptarget=python or -Ptarget=typescript to build only one)"
+    description = "Builds loader plugins (exteraGram Python and Inugram TypeScript)"
 
     def target = project.findProperty("target") ?: project.findProperty("plugin") ?: "all"
     if (target == "python") {
