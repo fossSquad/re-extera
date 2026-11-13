@@ -74,7 +74,7 @@ def getVersionName(Project project) {
         return tag
     }
 
-    def date = new Date().format("yyyyMMddHHmmss")
+    def date = runGit(project, ["log", "-1", "--format=%cd", "--date=format:%Y%m%d%H%M%S"]) ?: new Date().format("yyyyMMddHHmmss")
     def commit = runGit(project, ["rev-parse", "--short", "HEAD"]) ?: "unknown"
 
     return "${date}-${commit}"
