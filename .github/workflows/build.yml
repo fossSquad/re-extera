@@ -36,9 +36,8 @@ jobs:
       id: cache_telegram
       uses: actions/cache@v6
       with:
-        path: |
-          libs/Telegram
-          .git/modules/libs/Telegram
+        # Only the working tree is needed: submodule init is skipped on a cache hit.
+        path: libs/Telegram
         key: telegram-submodule-${{ steps.tg_submodule.outputs.sha }}
 
     - name: Initialize Telegram source

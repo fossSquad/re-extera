@@ -11,6 +11,27 @@ import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
 
+def findAndroidSdkDir(Project project) {
+    def sdkDir = null
+    try {
+        sdkDir = project.extensions.findByName("android")?.sdkDirectory
+    } catch (Exception ignored) {}
+    if (!sdkDir || !sdkDir.exists()) {
+        def localProps = new File(project.rootDir, "local.properties")
+        if (localProps.exists()) {
+            def props = new Properties()
+            localProps.withInputStream { props.load(it) }
+            def p = props.getProperty("sdk.dir")
+            if (p) sdkDir = new File(p)
+        }
+    }
+    if (!sdkDir || !sdkDir.exists()) {
+        def envHome = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+        if (envHome) sdkDir = new File(envHome)
+    }
+    return (sdkDir && sdkDir.exists()) ? sdkDir : null
+}
+
 def runGit(Project project, List<String> args) {
     try {
         def output = project.providers.exec {
@@ -84,15 +105,18 @@ abstract class AarToDexTask extends DefaultTask {
     @OutputDirectory
     abstract DirectoryProperty getDexDir()
 
+    @Optional
     @Input
     abstract Property<String> getD8Path()
 
+    @Optional
     @Input
     abstract Property<String> getBuildToolsVersion()
 
     @Input
     abstract Property<Integer> getMinSdk()
 
+    @Optional
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     abstract RegularFileProperty getAndroidJar()
@@ -108,6 +132,13 @@ abstract class AarToDexTask extends DefaultTask {
 
     @TaskAction
     def convert() {
+        if (!d8Path.isPresent()) {
+            throw new GradleException("Android SDK not found or d8 is missing. Set sdk.dir in local.properties or ANDROID_HOME.")
+        }
+        if (!androidJar.isPresent() || !androidJar.get().asFile.exists()) {
+            throw new GradleException("android.jar not found for compileSdk. Install the matching Android SDK Platform.")
+        }
+
         def aar = aarFile.get().asFile
         def outputDir = dexDir.get().asFile
         def d8 = d8Path.get()
@@ -130,9 +161,11 @@ abstract class AarToDexTask extends DefaultTask {
             throw new GradleException("classes.jar not found inside ${aar.name}")
         }
 
-        if (!outputDir.exists()) {
-            outputDir.mkdirs()
+        // Remove stale dex files from a previous build with a different class count.
+        if (outputDir.exists()) {
+            outputDir.deleteDir()
         }
+        outputDir.mkdirs()
 
         def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
         def args = [
@@ -173,71 +206,55 @@ tasks.register("aarToDex", AarToDexTask) {
 
     def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
     def d8BinaryName = isWindows ? "d8.bat" : "d8"
-    def sdkDir = null
-    try {
-        sdkDir = project.extensions.findByName("android")?.sdkDirectory
-    } catch (Exception ignored) {}
-    if (!sdkDir || !sdkDir.exists()) {
-        def localProps = new File(project.rootDir, "local.properties")
-        if (localProps.exists()) {
-            def props = new Properties()
-            localProps.withInputStream { props.load(it) }
-            def p = props.getProperty("sdk.dir")
-            if (p) sdkDir = new File(p)
-        }
-    }
-    if (!sdkDir || !sdkDir.exists()) {
-        def envHome = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
-        if (envHome) sdkDir = new File(envHome)
-    }
-    if (!sdkDir || !sdkDir.exists()) {
-        throw new GradleException("Android SDK not found. Set sdk.dir in local.properties or ANDROID_HOME.")
-    }
-
+    // SDK discovery stays best-effort here: tasks like `buildPlugin` and `tasks` must work without a local SDK.
+    def sdkDir = findAndroidSdkDir(project)
     def resolvedD8 = null
     def resolvedBuildToolsVersion = null
-    def btVer = android.buildToolsVersion
-    if (btVer) {
-        def candidate = new File(sdkDir, "build-tools/${btVer}/${d8BinaryName}")
-        if (candidate.exists()) {
-            resolvedD8 = candidate.absolutePath
-            resolvedBuildToolsVersion = btVer
-        }
-    }
-    if (!resolvedD8) {
-        def buildToolsDir = new File(sdkDir, "build-tools")
-        if (buildToolsDir.isDirectory()) {
-            def parseVersion = { String v ->
-                v.tokenize(".-").collect { it.isInteger() ? it.toInteger() : 0 }
+    if (sdkDir != null) {
+        def btVer = android.buildToolsVersion
+        if (btVer) {
+            def candidate = new File(sdkDir, "build-tools/${btVer}/${d8BinaryName}")
+            if (candidate.exists()) {
+                resolvedD8 = candidate.absolutePath
+                resolvedBuildToolsVersion = btVer
             }
-            def latestDir = buildToolsDir.listFiles()
-                ?.findAll { it.isDirectory() && new File(it, d8BinaryName).exists() }
-                ?.max { a, b ->
-                    def va = parseVersion(a.name)
-                    def vb = parseVersion(b.name)
-                    for (int i = 0; i < Math.max(va.size(), vb.size()); i++) {
-                        int pa = i < va.size() ? va[i] : 0
-                        int pb = i < vb.size() ? vb[i] : 0
-                        if (pa != pb) return pa <=> pb
-                    }
-                    return 0
+        }
+        if (!resolvedD8) {
+            def buildToolsDir = new File(sdkDir, "build-tools")
+            if (buildToolsDir.isDirectory()) {
+                def parseVersion = { String v ->
+                    v.tokenize(".-").collect { it.isInteger() ? it.toInteger() : 0 }
                 }
-            if (latestDir) {
-                resolvedD8 = new File(latestDir, d8BinaryName).absolutePath
-                resolvedBuildToolsVersion = latestDir.name
+                def latestDir = buildToolsDir.listFiles()
+                    ?.findAll { it.isDirectory() && it.name ==~ /\d+(\.\d+)+/ && new File(it, d8BinaryName).exists() }
+                    ?.max { a, b ->
+                        def va = parseVersion(a.name)
+                        def vb = parseVersion(b.name)
+                        for (int i = 0; i < Math.max(va.size(), vb.size()); i++) {
+                            int pa = i < va.size() ? va[i] : 0
+                            int pb = i < vb.size() ? vb[i] : 0
+                            if (pa != pb) return pa <=> pb
+                        }
+                        return 0
+                    }
+                if (latestDir) {
+                    resolvedD8 = new File(latestDir, d8BinaryName).absolutePath
+                    resolvedBuildToolsVersion = latestDir.name
+                }
             }
         }
-    }
-    if (!resolvedD8) {
-        throw new GradleException("No valid d8 executable found in ${sdkDir}/build-tools. Install Android SDK Build-Tools.")
     }
 
     def compileSdkVer = android.compileSdk ?: 35
     def minSdkVer = android.defaultConfig.minSdk ?: 26
 
-    d8Path.set(resolvedD8)
-    buildToolsVersion.set(resolvedBuildToolsVersion)
-    androidJar.set(project.file("${sdkDir}/platforms/android-${compileSdkVer}/android.jar"))
+    if (resolvedD8 != null) {
+        d8Path.set(resolvedD8)
+        buildToolsVersion.set(resolvedBuildToolsVersion)
+    }
+    if (sdkDir != null) {
+        androidJar.set(project.file("${sdkDir}/platforms/android-${compileSdkVer}/android.jar"))
+    }
     minSdk.set(minSdkVer)
 }
 

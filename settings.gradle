@@ -8,8 +8,7 @@ pluginManagement {
 rootProject.name = 're-extera'
 
 def telegramSettings = file('libs/Telegram/settings.gradle')
-def telegramBuild = file('libs/Telegram/build.gradle')
-if (telegramSettings.exists() || telegramBuild.exists()) {
+if (telegramSettings.exists()) {
     includeBuild('libs/Telegram') {
         dependencySubstitution {
             substitute module('org.telegram:TMessagesProj') using project(':TMessagesProj')
