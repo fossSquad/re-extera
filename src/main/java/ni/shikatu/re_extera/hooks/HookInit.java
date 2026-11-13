@@ -31,6 +31,7 @@ import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.hooks.dialogcell.FilterDialogCellPreview;
 import ni.shikatu.re_extera.hooks.dialogsactivity.DialogsActivityHook;
 import ni.shikatu.re_extera.hooks.dialogsactivity.GetDialogsArray;
+import ni.shikatu.re_extera.hooks.fileloader.PreventDeletedStreamLoop;
 import ni.shikatu.re_extera.hooks.messagesstorage.DeleteDialogHook;
 import ni.shikatu.re_extera.hooks.messagescontroller.DeleteDialogControllerHook;
 import ni.shikatu.re_extera.hooks.messagesstorage.DeleteMessagesRangeHook;
@@ -64,6 +65,8 @@ import ni.shikatu.re_extera.hooks.userconfig.isPremium;
 import ni.shikatu.re_extera.hooks.usercell.HideOwnOnlineStatus;
 import ni.shikatu.re_extera.settings.Settings;
 import ni.shikatu.re_extera.utils.GhostMenuHelper;
+import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.FileStreamLoadOperation;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.FlagSecureReason;
 import org.telegram.messenger.MessageObject;
@@ -230,6 +233,8 @@ public final class HookInit {
         tryHook("MessagesStorage.updateDialogsWithDeletedMessagesInternal", MessagesStorage.class, "updateDialogsWithDeletedMessagesInternal", new UpdateDialogsWithDeletedMessages(), Long.TYPE, Long.TYPE, ArrayList.class, ArrayList.class);
         tryHook("ChatMessageCell.didPressButton", ChatMessageCell.class, "didPressButton", new DidPressButton(), Boolean.TYPE, Boolean.TYPE);
         tryHook("ChatMessageCell.measureTime", ChatMessageCell.class, "measureTime", new MeasureTime(), MessageObject.class);
+        tryHookByArgCount("FileLoader.loadStreamFile", FileLoader.class, "loadStreamFile", 8, new PreventDeletedStreamLoop.LoadStreamFileHook());
+        tryHookByArgCount("FileStreamLoadOperation.open", FileStreamLoadOperation.class, "open", 1, new PreventDeletedStreamLoop.OpenHook());
         tryHook("UserConfig.isPremium", UserConfig.class, "isPremium", new isPremium(), new Class[0]);
         tryHookByArgCount("UserConfig.setCurrentUser", UserConfig.class, "setCurrentUser", 1, new isPremium.SetCurrentUserHook());
         tryHookByArgCount("MessagesController.putUser(2arg)", MessagesController.class, "putUser", 2, new isPremium.PutUserHook());
@@ -452,6 +457,7 @@ public final class HookInit {
             }
         }
         this.hooks.clear();
+        PreventDeletedStreamLoop.clear();
         GhostMenuHelper.unregisterPluginMenuItem();
     }
 }
