@@ -83,16 +83,19 @@ jobs:
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
         WITHOUT_V=${TAG_NAME#v}
-        PLUGIN_VER=${WITHOUT_V%-*}
-        TG_VER=${WITHOUT_V#*-}
-        echo "plugin=$PLUGIN_VER" >> $GITHUB_OUTPUT
-        echo "tg=$TG_VER" >> $GITHUB_OUTPUT
+        if [[ "$WITHOUT_V" == *-* ]]; then
+          PLUGIN_VER=${WITHOUT_V%-*}
+          TG_VER=${WITHOUT_V##*-}
+          echo "release_name=v$PLUGIN_VER for $TG_VER" >> $GITHUB_OUTPUT
+        else
+          echo "release_name=v$WITHOUT_V" >> $GITHUB_OUTPUT
+        fi
 
     - name: Upload to Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v3
       with:
-        name: v${{ steps.parse_tag.outputs.plugin }} for ${{ steps.parse_tag.outputs.tg }}
+        name: ${{ steps.parse_tag.outputs.release_name }}
         files: |
           classes.dex
           loader.plugin
