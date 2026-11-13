@@ -18,8 +18,36 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
+    - name: Get Telegram submodule SHA
+      id: tg_submodule
+      run: echo "sha=$(git rev-parse HEAD:libs/Telegram)" >> $GITHUB_OUTPUT
+
+    - name: Cache Telegram source
+      id: cache_telegram
+      uses: actions/cache@v6
+      with:
+        path: |
+          libs/Telegram
+          .git/modules/libs/Telegram
+        key: telegram-submodule-${{ steps.tg_submodule.outputs.sha }}
+
     - name: Initialize Telegram source
+      if: steps.cache_telegram.outputs.cache-hit != 'true'
       run: git submodule update --init --recursive --depth=1
+
+    - name: Get Telegram NDK version
+      id: tg_ndk
+      run: |
+        NDK_VER=$(grep -m1 'ndkVersion' libs/Telegram/TMessagesProj/build.gradle | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+        echo "version=$NDK_VER" >> $GITHUB_OUTPUT
+
+    # Caching avoids re-downloading the Android NDK (~1.5 GB) during AGP configuration.
+    - name: Cache Android NDK
+      if: steps.tg_ndk.outputs.version != ''
+      uses: actions/cache@v6
+      with:
+        path: /usr/local/lib/android/sdk/ndk/${{ steps.tg_ndk.outputs.version }}
+        key: ndk-${{ steps.tg_ndk.outputs.version }}
 
     - name: Set up JDK 21
       uses: actions/setup-java@v6
