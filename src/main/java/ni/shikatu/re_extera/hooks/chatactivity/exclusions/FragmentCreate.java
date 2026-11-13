@@ -22,11 +22,13 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
+import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
 
 public class FragmentCreate extends XC_MethodHook {
+    private static final String MENU_ITEM_TEXT = "re:extera";
     private static final Field ARGUMENTS_FIELD;
     private static final Field HEADER_ITEM_FIELD;
 
@@ -73,6 +75,14 @@ public class FragmentCreate extends XC_MethodHook {
         int currentAccount = thisObject.getCurrentAccount();
         if (HEADER_ITEM_FIELD == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(HEADER_ITEM_FIELD, thisObject)) == null) {
             return;
+        }
+        ActionBarPopupWindow.ActionBarPopupWindowLayout popup = headerItem.getPopupLayout();
+        for (int i = 0; i < popup.getItemsCount(); i++) {
+            View item = popup.getItemAt(i);
+            if (item instanceof ActionBarMenuSubItem
+                    && MENU_ITEM_TEXT.contentEquals(((ActionBarMenuSubItem) item).getTextView().getText())) {
+                return;
+            }
         }
         Context context = thisObject.getContext();
         ExceptionsPopupWrapper exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, currentAccount, dialog_id, thisObject), thisObject.getResourceProvider());
