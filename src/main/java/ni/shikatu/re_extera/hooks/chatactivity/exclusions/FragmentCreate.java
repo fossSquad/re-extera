@@ -7,9 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import de.robv.android.xposed.XC_MethodHook;
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
 import ni.shikatu.re_extera.Main;
 import ni.shikatu.re_extera.hooks.connectionsmanager.SendRequest;
 import ni.shikatu.re_extera.localization.Localization;
@@ -25,15 +22,15 @@ import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
+import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ChatActivity;
 
 public class FragmentCreate extends XC_MethodHook {
+    private static final String MENU_ITEM_TEXT = "re:extera";
     private static final Field ARGUMENTS_FIELD;
     private static final Field HEADER_ITEM_FIELD;
-    private static final Set<ActionBarMenuItem> processedHeaderItems =
-            Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     static {
         Field headerField = null;
@@ -79,8 +76,13 @@ public class FragmentCreate extends XC_MethodHook {
         if (HEADER_ITEM_FIELD == null || (headerItem = (ActionBarMenuItem) ReflectionUtils.get(HEADER_ITEM_FIELD, thisObject)) == null) {
             return;
         }
-        if (!processedHeaderItems.add(headerItem)) {
-            return;
+        ActionBarPopupWindow.ActionBarPopupWindowLayout popup = headerItem.getPopupLayout();
+        for (int i = 0; i < popup.getItemsCount(); i++) {
+            View item = popup.getItemAt(i);
+            if (item instanceof ActionBarMenuSubItem
+                    && MENU_ITEM_TEXT.contentEquals(((ActionBarMenuSubItem) item).getTextView().getText())) {
+                return;
+            }
         }
         Context context = thisObject.getContext();
         ExceptionsPopupWrapper exceptionsPopupWrapper = new ExceptionsPopupWrapper(context, headerItem.getPopupLayout().getSwipeBack(), new AnonymousClass1(headerItem, context, currentAccount, dialog_id, thisObject), thisObject.getResourceProvider());
