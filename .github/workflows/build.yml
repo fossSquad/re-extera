@@ -2,6 +2,16 @@ name: Build Dex and Plugins
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Plugin build target'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - python
+          - typescript
   push:
     branches: [ "master", "main" ]
     tags: [ "v*" ]
@@ -57,6 +67,8 @@ jobs:
 
     - name: Set up Gradle caching
       uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-read-only: false
 
     - name: Set up Node.js
       uses: actions/setup-node@v7
@@ -81,20 +93,21 @@ jobs:
         cd loader/typescript
         pnpm install --frozen-lockfile
 
-    - name: Build with Gradle
+    - name: Build Dex and Plugins
       run: |
-        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
+        TARGET="${{ inputs.target }}"
+        if [ -z "$TARGET" ]; then
+          TARGET="all"
+        fi
+        ./gradlew --no-daemon --no-watch-fs --max-workers=2 --build-cache \
           -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
-          buildDex
-        ./gradlew --no-daemon --no-watch-fs --max-workers=2 \
-          -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" \
-          buildPlugin
+          buildDex buildPlugin -Ptarget=$TARGET
 
     - name: Copy build artifacts to root
       run: |
         cp build/dex/classes.dex .
-        cp build/plugin/loader.plugin .
-        cp build/plugin/loader.inu.js .
+        [ -f build/plugin/loader.plugin ] && cp build/plugin/loader.plugin . || true
+        [ -f build/plugin/loader.inu.js ] && cp build/plugin/loader.inu.js . || true
 
     - name: Upload Dev artifacts
       uses: actions/upload-artifact@v7
@@ -104,6 +117,7 @@ jobs:
           classes.dex
           loader.plugin
           loader.inu.js
+        if-no-files-found: ignore
 
     - name: Parse tag for release name
       id: parse_tag
